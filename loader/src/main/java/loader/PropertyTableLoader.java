@@ -1,7 +1,6 @@
-import java.io.FileNotFoundException;
+package loader;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -10,65 +9,37 @@ import org.apache.spark.sql.functions;
 
 
 /**
- * Class that construct complex property table. It operates over set of rdf
- * triples, collects and transforms information about them into a table. If we have
- * a list of predicates/properties p1, ... , pN, then the scheme of the table is
- * (s: STRING, p1: LIST<STRING> OR STRING, ..., pN: LIST<STRING> OR STRING).
- * Column s contains subjects. For each subject , there is only one row in the
- * table. Each predicate can be of complex or simple type. If a predicate is of
- * simple type means that there is no subject which has more than one triple
- * containing this property/predicate. Then the predicate column is of type
- * STRING. Otherwise, if a predicate is of complex type which means that there
- * exists at least one subject which has more than one triple containing this
- * property/predicate. Then the predicate column is of type LIST<STRING>.
+ * Class that constructs complex property table. It operates over set of RDF triples, collects and transforms
+ * information about them into a table. If we have  a list of predicates/properties p1, ... , pN, then 
+ * the scheme of the table is (s: STRING, p1: LIST<STRING> OR STRING, ..., pN: LIST<STRING> OR STRING).
+ * Column s contains subjects. For each subject , there is only one row in the table. Each predicate can be 
+ * of complex or simple type. If a predicate is of simple type means that there is no subject which has more
+ * than one triple containing this property/predicate. Then the predicate column is of type STRING. Otherwise, 
+ * if a predicate is of complex type which means that there exists at least one subject which has more 
+ * than one triple containing this property/predicate. Then the predicate column is of type LIST<STRING>.
  * 
  * @author Matteo Cossu
  *
  */
-public class PropertyTableLoader {
+public class PropertyTableLoader extends Loader{
+
 
 	protected String hdfs_input_directory;
 	
-	/** The separators used in the rdf data. */
-	public String field_terminator = "\\t";
-	public String line_terminator = "\\n";
-
-
-	public String column_name_subject = "s";
-	public String column_name_predicate = "p";
-	public String column_name_object = "o";
-	private String tablename_tripletable  = "tripletable";
 	private String tablename_properties = "properties";
 	
 	/** Separator used internally to distinguish two values in the same string  */
 	public String columns_separator = "\\$%";
-	public boolean keepTemporaryTables = false;
 
 	protected String output_db_name;
 	protected static final String output_tablename = "property_table";
-	protected static final String table_format = "parquet";
-
-	private SparkSession spark;
-	private static final Logger logger = Logger.getLogger(Main.class);
 	
-	
-	public PropertyTableLoader(String inputPath, String outputDB) {
-		this.hdfs_input_directory = inputPath;
-		this.output_db_name = outputDB;
-		
-		// initialize the Spark environment 
-		this.spark = SparkSession
-					  .builder()
-					  .appName("PRoST-Loader-PropertyTable")
-					  .getOrCreate();
+	public PropertyTableLoader(String hdfs_input_directory,
+			String database_name, SparkSession spark) {
+		super(hdfs_input_directory, database_name, spark);
 	}
-
 	
-	public void load() throws FileNotFoundException {
-		
-		useOutputDatabase();
-		
-		buildTripleTable();
+	public void load() {
 		
 		buildProperties();
 		
@@ -85,35 +56,9 @@ public class PropertyTableLoader {
 		// create complex property table
 		buildComplexPropertyTable(allProperties, isComplexProperty);
 		
-		// Drop intermediate tables
-		if (!keepTemporaryTables) {
-			dropTables(tablename_tripletable, tablename_properties);
-		}
 	}
 	
 	
-	private void useOutputDatabase() {
-		spark.sql("CREATE DATABASE IF NOT EXISTS " + output_db_name);
-		spark.sql("USE "  + output_db_name);
-		logger.info("Using the database: " + output_db_name);
-	}
-
-
-	/**
-	 * Build a table that contains all rdf triples. If a file with prefixes is
-	 * given, they will be replaced. 
-	 */
-	public void buildTripleTable() throws FileNotFoundException{
-		String createTripleTable = String.format(
-				"CREATE EXTERNAL TABLE IF NOT EXISTS %s(%s STRING, %s STRING, %s STRING) ROW FORMAT DELIMITED"
-						+ " FIELDS TERMINATED BY '%s'  LINES TERMINATED BY '%s' LOCATION '%s'",
-						tablename_tripletable  , column_name_subject, column_name_predicate, column_name_object,
-				field_terminator, line_terminator, hdfs_input_directory);
-
-		spark.sql(createTripleTable);
-		logger.info("Created tripletable");
-	}
-
 	public void buildProperties() {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
@@ -121,12 +66,13 @@ public class PropertyTableLoader {
 
 		// select the properties that are complex
 		Dataset<Row> multivaluedProperties = spark.sql(String.format(
-				"SELECT DISTINCT(%1$s) AS %1$s FROM (SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
-				column_name_predicate, column_name_subject, tablename_tripletable));
+				"SELECT DISTINCT(%1$s) AS %1$s FROM "
+				+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
+				column_name_predicate, column_name_subject, name_tripletable));
 
 		// select all the properties
 		Dataset<Row> allProperties = spark.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s",
-				column_name_predicate, tablename_tripletable));
+				column_name_predicate, name_tripletable));
 
 		// select the properties that are not complex
 		Dataset<Row> singledValueProperties = allProperties.except(multivaluedProperties);
@@ -137,7 +83,8 @@ public class PropertyTableLoader {
 				.union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
 		
 		// remove '<' and '>', convert the characters
-		Dataset<Row> cleanedProperties = combinedProperties.withColumn("p", functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), 
+		Dataset<Row> cleanedProperties = combinedProperties.withColumn("p", 
+				functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), 
 				"[[^\\w]+]", "_"));
 		
 		// write the result
@@ -161,7 +108,7 @@ public class PropertyTableLoader {
 
 		// get the compressed table
 		Dataset<Row> compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS po FROM %s",
-				column_name_subject, column_name_predicate, columns_separator, column_name_object, tablename_tripletable));
+				column_name_subject, column_name_predicate, columns_separator, column_name_object, name_tripletable));
 
 		// group by the subject and get all the data
 		Dataset<Row> grouped = compressedTriples.groupBy(column_name_subject)
@@ -189,24 +136,6 @@ public class PropertyTableLoader {
 				.saveAsTable(output_tablename);
 		logger.info("Created property table with name: " + output_tablename);
 
-	}
-
-	/**
-	 * Replace all not allowed characters of a DB column name by an
-	 * underscore("_") and return a valid DB column name.
-	 * 
-	 * @param columnName
-	 *            column name that will be validated and fixed
-	 * @return name of a DB column
-	 */
-	private String getValidColumnName(String columnName) {
-		return columnName.replaceAll("[^a-zA-Z0-9_]", "_");
-	}
-	
-	public void dropTables(String... tableNames) {
-		for (String tb : tableNames)
-			spark.sql("DROP TABLE " + tb);
-		logger.info("Removed tables: " + tableNames);
 	}
 
 }

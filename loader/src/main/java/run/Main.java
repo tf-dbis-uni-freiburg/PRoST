@@ -1,4 +1,8 @@
+package run;
 import java.io.FileNotFoundException;
+
+import loader.PropertyTableLoader;
+import loader.TripleTableLoader;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -9,6 +13,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.SparkSession;
 
 
 /**
@@ -22,7 +27,7 @@ import org.apache.log4j.Logger;
  * @author Matteo Cossu
  */
 public class Main {
-	private static String inputFile;
+	private static String input_file;
 	private static String outputDB;
 	private static final Logger logger = Logger.getLogger(Main.class);
 	public static void main(String[] args) {
@@ -49,19 +54,19 @@ public class Main {
 		try {
 			cmd = parser.parse(options, args);
 		} catch(MissingOptionException e){
-			 formatter.printHelp("JAR", "Execute a JoinTre on Spark", options, "", true);
+			 formatter.printHelp("JAR", "Load an RDF graph", options, "", true);
 			 return;
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		
 		if(cmd.hasOption("help")){
-			formatter.printHelp("JAR", "Load a RDF graph as Property Table using SparkSQL", options, "", true);
+			formatter.printHelp("JAR", "Load an RDF graph as Property Table using SparkSQL", options, "", true);
 			return;
 		}
 		if(cmd.hasOption("input")){
-			inputFile = cmd.getOptionValue("input");
-			logger.info("Input path set to: " + inputFile);
+			input_file = cmd.getOptionValue("input");
+			logger.info("Input path set to: " + input_file);
 		}
 		if(cmd.hasOption("output")){
 			outputDB = cmd.getOptionValue("output");
@@ -69,12 +74,17 @@ public class Main {
 		}
 	
 		// Set the loader from the inputFile to the outputDB
-		PropertyTableLoader propertyTable = new PropertyTableLoader(inputFile, outputDB);
-		try {
-			propertyTable.load();
-		} catch (FileNotFoundException e) {
-			logger.error("The input HDFS path does not exist: " + inputFile);
-		}
+		//PropertyTableLoader propertyTable = new PropertyTableLoader(input_file, outputDB);
+		SparkSession spark = SparkSession
+		  .builder()
+		  .appName("PRoST-Loader")
+		  .getOrCreate();
+		TripleTableLoader tt_loader = new TripleTableLoader(input_file, outputDB, spark);
+		tt_loader.load();
+		PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
+		pt_loader.load();
+			//logger.error("The input HDFS path does not exist: " + input_file);
+
 		
 	}
 
