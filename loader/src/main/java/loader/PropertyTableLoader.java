@@ -128,12 +128,10 @@ public class PropertyTableLoader extends Loader{
 					: " " + groupColumn + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
 			selectProperties[i + 1] = newProperty;
 		}
-
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
-
+		
 		// write the final one, partitioned by subject
-		propertyTable.write().mode(SaveMode.Overwrite).format(table_format)
-			.partitionBy(this.column_name_subject).saveAsTable(output_tablename);
+		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		logger.info("Created property table with name: " + output_tablename);
 
 	}
