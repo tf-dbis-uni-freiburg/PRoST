@@ -87,9 +87,6 @@ public class PropertyTableLoader extends Loader{
 				functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), 
 				"[[^\\w]+]", "_"));
 		
-		spark.sql("SHOW TABLES").show();
-		cleanedProperties.show(100);
-		System.out.println(cleanedProperties.collect());
 		// write the result
 		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
 		logger.info("Created properties table with name: " + tablename_properties);
@@ -134,8 +131,9 @@ public class PropertyTableLoader extends Loader{
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		// write the final one, partition by subject
-		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
+		// write the final one, partitioned by subject
+		propertyTable.write().mode(SaveMode.Overwrite).format(table_format)
+			.partitionBy(this.column_name_subject).saveAsTable(output_tablename);
 		logger.info("Created property table with name: " + output_tablename);
 
 	}

@@ -19,7 +19,7 @@ public class VerticalPartitioningLoader extends Loader {
 
 		logger.info("Beginning the creation of VP tables.");
 		
-		if (this.properties_names.equals(null)){
+		if (this.properties_names == null){
 			logger.error("Properties not calculated yet. Extracting them");
 			this.properties_names = extractProperties();
 		}
