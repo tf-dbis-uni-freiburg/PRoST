@@ -28,6 +28,7 @@ public abstract class Loader {
 	public String column_name_predicate = "p";
 	public String column_name_object = "o";
 	public String name_tripletable  = "tripletable";
+	protected String[] properties_names;
 	
 	public Loader(String hdfs_input_directory, String database_name, SparkSession spark){
 		this.database_name = database_name;
@@ -47,7 +48,7 @@ public abstract class Loader {
 	 *            column name that will be validated and fixed
 	 * @return name of a DB column
 	 */
-	protected String getValidColumnName(String columnName) {
+	protected String getValidHiveName(String columnName) {
 		return columnName.replaceAll("[^a-zA-Z0-9_]", "_");
 	}
 	

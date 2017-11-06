@@ -1,6 +1,4 @@
 package run;
-import java.io.FileNotFoundException;
-
 import loader.PropertyTableLoader;
 import loader.TripleTableLoader;
 
@@ -83,6 +81,8 @@ public class Main {
 		tt_loader.load();
 		PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
 		pt_loader.load();
+		//VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark);
+		//vp_loader.load();
 			//logger.error("The input HDFS path does not exist: " + input_file);
 
 		

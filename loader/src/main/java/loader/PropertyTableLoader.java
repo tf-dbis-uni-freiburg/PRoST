@@ -52,7 +52,7 @@ public class PropertyTableLoader extends Loader{
 			allProperties[i] = props.get(i).getString(0);
 			isComplexProperty[i] = props.get(i).getInt(1) == 1;
 		}
-		
+		this.properties_names = allProperties;
 		// create complex property table
 		buildComplexPropertyTable(allProperties, isComplexProperty);
 		
@@ -87,8 +87,11 @@ public class PropertyTableLoader extends Loader{
 				functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), 
 				"[[^\\w]+]", "_"));
 		
+		spark.sql("SHOW TABLES").show();
+		cleanedProperties.show(100);
+		System.out.println(cleanedProperties.collect());
 		// write the result
-		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable(tablename_properties);
+		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
 		logger.info("Created properties table with name: " + tablename_properties);
 	}
 
@@ -124,16 +127,15 @@ public class PropertyTableLoader extends Loader{
 					allProperties[i].substring(1, allProperties[i].length() - 1) :  allProperties[i];
 			// if is not a complex type, extract the value
 			String newProperty = isComplexProperty[i]
-					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidColumnName(rawProperty)
-					: " " + groupColumn + "[" + String.valueOf(i) + "][0] AS " + getValidColumnName(rawProperty);
+					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
+					: " " + groupColumn + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
 			selectProperties[i + 1] = newProperty;
 		}
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		// write the final one
-		propertyTable.write().mode(SaveMode.Overwrite).format(table_format)
-				.saveAsTable(output_tablename);
+		// write the final one, partition by subject
+		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		logger.info("Created property table with name: " + output_tablename);
 
 	}
