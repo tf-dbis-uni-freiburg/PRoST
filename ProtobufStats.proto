@@ -1,0 +1,24 @@
+/*
+Protobuf definition for the graph Statistics.
+During the loading some statistics are collected about the graph.
+They can be useful for the translator to generate better trees.
+@author: Matteo Cossu
+*/
+
+
+// describe a single table (belonging to particular property)
+message Table {
+    required string name = 1;
+    optional int32 size = 2; // number of elements
+    optional bool isComplex = 3; // if for the same subject exist more values
+    optional int32 distinctSubjects = 4; // distinct subjects in that table
+}
+
+// definition for the whole Graph
+message Graph {
+    optional string name = 1;
+    optional int32 size = 2; // number of triples
+    optional int32 distinctSubjects = 3; // distinct subjects in the whole graph
+
+    repeated Table tables = 4;
+}
