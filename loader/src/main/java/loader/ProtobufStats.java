@@ -12,8 +12,8 @@ public final class ProtobufStats {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  public interface TableOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:Table)
+  public interface TableStatsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TableStats)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -54,21 +54,17 @@ public final class ProtobufStats {
     int getDistinctSubjects();
   }
   /**
-   * <pre>
-   * describe a single table (belonging to particular property)
-   * </pre>
-   *
-   * Protobuf type {@code Table}
+   * Protobuf type {@code TableStats}
    */
-  public  static final class Table extends
+  public  static final class TableStats extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:Table)
-      TableOrBuilder {
-    // Use Table.newBuilder() to construct.
-    private Table(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      // @@protoc_insertion_point(message_implements:TableStats)
+      TableStatsOrBuilder {
+    // Use TableStats.newBuilder() to construct.
+    private TableStats(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private Table() {
+    private TableStats() {
       name_ = "";
       size_ = 0;
       isComplex_ = false;
@@ -80,7 +76,7 @@ public final class ProtobufStats {
     getUnknownFields() {
       return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
     }
-    private Table(
+    private TableStats(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -134,14 +130,14 @@ public final class ProtobufStats {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return ProtobufStats.internal_static_Table_descriptor;
+      return ProtobufStats.internal_static_TableStats_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return ProtobufStats.internal_static_Table_fieldAccessorTable
+      return ProtobufStats.internal_static_TableStats_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              ProtobufStats.Table.class, ProtobufStats.Table.Builder.class);
+              ProtobufStats.TableStats.class, ProtobufStats.TableStats.Builder.class);
     }
 
     public static final int NAME_FIELD_NUMBER = 1;
@@ -273,10 +269,10 @@ public final class ProtobufStats {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof ProtobufStats.Table)) {
+      if (!(obj instanceof ProtobufStats.TableStats)) {
         return super.equals(obj);
       }
-      ProtobufStats.Table other = (ProtobufStats.Table) obj;
+      ProtobufStats.TableStats other = (ProtobufStats.TableStats) obj;
 
       boolean result = true;
       result = result && getName()
@@ -311,58 +307,58 @@ public final class ProtobufStats {
       return hash;
     }
 
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static ProtobufStats.Table parseFrom(byte[] data)
+    public static ProtobufStats.TableStats parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static ProtobufStats.Table parseFrom(java.io.InputStream input)
+    public static ProtobufStats.TableStats parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static ProtobufStats.Table parseDelimitedFrom(java.io.InputStream input)
+    public static ProtobufStats.TableStats parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static ProtobufStats.Table parseDelimitedFrom(
+    public static ProtobufStats.TableStats parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static ProtobufStats.Table parseFrom(
+    public static ProtobufStats.TableStats parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -374,7 +370,7 @@ public final class ProtobufStats {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(ProtobufStats.Table prototype) {
+    public static Builder newBuilder(ProtobufStats.TableStats prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -389,29 +385,25 @@ public final class ProtobufStats {
       return builder;
     }
     /**
-     * <pre>
-     * describe a single table (belonging to particular property)
-     * </pre>
-     *
-     * Protobuf type {@code Table}
+     * Protobuf type {@code TableStats}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:Table)
-        ProtobufStats.TableOrBuilder {
+        // @@protoc_insertion_point(builder_implements:TableStats)
+        ProtobufStats.TableStatsOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return ProtobufStats.internal_static_Table_descriptor;
+        return ProtobufStats.internal_static_TableStats_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return ProtobufStats.internal_static_Table_fieldAccessorTable
+        return ProtobufStats.internal_static_TableStats_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                ProtobufStats.Table.class, ProtobufStats.Table.Builder.class);
+                ProtobufStats.TableStats.class, ProtobufStats.TableStats.Builder.class);
       }
 
-      // Construct using ProtobufStats.Table.newBuilder()
+      // Construct using ProtobufStats.TableStats.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -441,23 +433,23 @@ public final class ProtobufStats {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return ProtobufStats.internal_static_Table_descriptor;
+        return ProtobufStats.internal_static_TableStats_descriptor;
       }
 
-      public ProtobufStats.Table getDefaultInstanceForType() {
-        return ProtobufStats.Table.getDefaultInstance();
+      public ProtobufStats.TableStats getDefaultInstanceForType() {
+        return ProtobufStats.TableStats.getDefaultInstance();
       }
 
-      public ProtobufStats.Table build() {
-        ProtobufStats.Table result = buildPartial();
+      public ProtobufStats.TableStats build() {
+        ProtobufStats.TableStats result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public ProtobufStats.Table buildPartial() {
-        ProtobufStats.Table result = new ProtobufStats.Table(this);
+      public ProtobufStats.TableStats buildPartial() {
+        ProtobufStats.TableStats result = new ProtobufStats.TableStats(this);
         result.name_ = name_;
         result.size_ = size_;
         result.isComplex_ = isComplex_;
@@ -493,16 +485,16 @@ public final class ProtobufStats {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof ProtobufStats.Table) {
-          return mergeFrom((ProtobufStats.Table)other);
+        if (other instanceof ProtobufStats.TableStats) {
+          return mergeFrom((ProtobufStats.TableStats)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(ProtobufStats.Table other) {
-        if (other == ProtobufStats.Table.getDefaultInstance()) return this;
+      public Builder mergeFrom(ProtobufStats.TableStats other) {
+        if (other == ProtobufStats.TableStats.getDefaultInstance()) return this;
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
           onChanged();
@@ -528,11 +520,11 @@ public final class ProtobufStats {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        ProtobufStats.Table parsedMessage = null;
+        ProtobufStats.TableStats parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (ProtobufStats.Table) e.getUnfinishedMessage();
+          parsedMessage = (ProtobufStats.TableStats) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -735,39 +727,39 @@ public final class ProtobufStats {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:Table)
+      // @@protoc_insertion_point(builder_scope:TableStats)
     }
 
-    // @@protoc_insertion_point(class_scope:Table)
-    private static final ProtobufStats.Table DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:TableStats)
+    private static final ProtobufStats.TableStats DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new ProtobufStats.Table();
+      DEFAULT_INSTANCE = new ProtobufStats.TableStats();
     }
 
-    public static ProtobufStats.Table getDefaultInstance() {
+    public static ProtobufStats.TableStats getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<Table>
-        PARSER = new com.google.protobuf.AbstractParser<Table>() {
-      public Table parsePartialFrom(
+    private static final com.google.protobuf.Parser<TableStats>
+        PARSER = new com.google.protobuf.AbstractParser<TableStats>() {
+      public TableStats parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Table(input, extensionRegistry);
+          return new TableStats(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<Table> parser() {
+    public static com.google.protobuf.Parser<TableStats> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<Table> getParserForType() {
+    public com.google.protobuf.Parser<TableStats> getParserForType() {
       return PARSER;
     }
 
-    public ProtobufStats.Table getDefaultInstanceForType() {
+    public ProtobufStats.TableStats getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -788,52 +780,30 @@ public final class ProtobufStats {
         getNameBytes();
 
     /**
-     * <pre>
-     * number of triples
-     * </pre>
-     *
-     * <code>optional int32 size = 2;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    int getSize();
-
-    /**
-     * <pre>
-     * distinct subjects in the whole graph
-     * </pre>
-     *
-     * <code>optional int32 distinctSubjects = 3;</code>
-     */
-    int getDistinctSubjects();
-
-    /**
-     * <code>repeated .Table tables = 4;</code>
-     */
-    java.util.List<ProtobufStats.Table> 
+    java.util.List<ProtobufStats.TableStats> 
         getTablesList();
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    ProtobufStats.Table getTables(int index);
+    ProtobufStats.TableStats getTables(int index);
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
     int getTablesCount();
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    java.util.List<? extends ProtobufStats.TableOrBuilder> 
+    java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
         getTablesOrBuilderList();
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    ProtobufStats.TableOrBuilder getTablesOrBuilder(
+    ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
         int index);
   }
   /**
-   * <pre>
-   * definition for the whole Graph
-   * </pre>
-   *
    * Protobuf type {@code Graph}
    */
   public  static final class Graph extends
@@ -846,8 +816,6 @@ public final class ProtobufStats {
     }
     private Graph() {
       name_ = "";
-      size_ = 0;
-      distinctSubjects_ = 0;
       tables_ = java.util.Collections.emptyList();
     }
 
@@ -882,23 +850,13 @@ public final class ProtobufStats {
               name_ = s;
               break;
             }
-            case 16: {
-
-              size_ = input.readInt32();
-              break;
-            }
-            case 24: {
-
-              distinctSubjects_ = input.readInt32();
-              break;
-            }
             case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-                tables_ = new java.util.ArrayList<ProtobufStats.Table>();
-                mutable_bitField0_ |= 0x00000008;
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                tables_ = new java.util.ArrayList<ProtobufStats.TableStats>();
+                mutable_bitField0_ |= 0x00000002;
               }
               tables_.add(
-                  input.readMessage(ProtobufStats.Table.parser(), extensionRegistry));
+                  input.readMessage(ProtobufStats.TableStats.parser(), extensionRegistry));
               break;
             }
           }
@@ -909,7 +867,7 @@ public final class ProtobufStats {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           tables_ = java.util.Collections.unmodifiableList(tables_);
         }
         makeExtensionsImmutable();
@@ -962,63 +920,37 @@ public final class ProtobufStats {
       }
     }
 
-    public static final int SIZE_FIELD_NUMBER = 2;
-    private int size_;
-    /**
-     * <pre>
-     * number of triples
-     * </pre>
-     *
-     * <code>optional int32 size = 2;</code>
-     */
-    public int getSize() {
-      return size_;
-    }
-
-    public static final int DISTINCTSUBJECTS_FIELD_NUMBER = 3;
-    private int distinctSubjects_;
-    /**
-     * <pre>
-     * distinct subjects in the whole graph
-     * </pre>
-     *
-     * <code>optional int32 distinctSubjects = 3;</code>
-     */
-    public int getDistinctSubjects() {
-      return distinctSubjects_;
-    }
-
     public static final int TABLES_FIELD_NUMBER = 4;
-    private java.util.List<ProtobufStats.Table> tables_;
+    private java.util.List<ProtobufStats.TableStats> tables_;
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    public java.util.List<ProtobufStats.Table> getTablesList() {
+    public java.util.List<ProtobufStats.TableStats> getTablesList() {
       return tables_;
     }
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    public java.util.List<? extends ProtobufStats.TableOrBuilder> 
+    public java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
         getTablesOrBuilderList() {
       return tables_;
     }
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
     public int getTablesCount() {
       return tables_.size();
     }
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    public ProtobufStats.Table getTables(int index) {
+    public ProtobufStats.TableStats getTables(int index) {
       return tables_.get(index);
     }
     /**
-     * <code>repeated .Table tables = 4;</code>
+     * <code>repeated .TableStats tables = 4;</code>
      */
-    public ProtobufStats.TableOrBuilder getTablesOrBuilder(
+    public ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
         int index) {
       return tables_.get(index);
     }
@@ -1038,12 +970,6 @@ public final class ProtobufStats {
       if (!getNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
       }
-      if (size_ != 0) {
-        output.writeInt32(2, size_);
-      }
-      if (distinctSubjects_ != 0) {
-        output.writeInt32(3, distinctSubjects_);
-      }
       for (int i = 0; i < tables_.size(); i++) {
         output.writeMessage(4, tables_.get(i));
       }
@@ -1056,14 +982,6 @@ public final class ProtobufStats {
       size = 0;
       if (!getNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
-      }
-      if (size_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, size_);
-      }
-      if (distinctSubjects_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, distinctSubjects_);
       }
       for (int i = 0; i < tables_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
@@ -1087,10 +1005,6 @@ public final class ProtobufStats {
       boolean result = true;
       result = result && getName()
           .equals(other.getName());
-      result = result && (getSize()
-          == other.getSize());
-      result = result && (getDistinctSubjects()
-          == other.getDistinctSubjects());
       result = result && getTablesList()
           .equals(other.getTablesList());
       return result;
@@ -1105,10 +1019,6 @@ public final class ProtobufStats {
       hash = (19 * hash) + getDescriptorForType().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + SIZE_FIELD_NUMBER;
-      hash = (53 * hash) + getSize();
-      hash = (37 * hash) + DISTINCTSUBJECTS_FIELD_NUMBER;
-      hash = (53 * hash) + getDistinctSubjects();
       if (getTablesCount() > 0) {
         hash = (37 * hash) + TABLES_FIELD_NUMBER;
         hash = (53 * hash) + getTablesList().hashCode();
@@ -1196,10 +1106,6 @@ public final class ProtobufStats {
       return builder;
     }
     /**
-     * <pre>
-     * definition for the whole Graph
-     * </pre>
-     *
      * Protobuf type {@code Graph}
      */
     public static final class Builder extends
@@ -1238,13 +1144,9 @@ public final class ProtobufStats {
         super.clear();
         name_ = "";
 
-        size_ = 0;
-
-        distinctSubjects_ = 0;
-
         if (tablesBuilder_ == null) {
           tables_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000002);
         } else {
           tablesBuilder_.clear();
         }
@@ -1273,12 +1175,10 @@ public final class ProtobufStats {
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         result.name_ = name_;
-        result.size_ = size_;
-        result.distinctSubjects_ = distinctSubjects_;
         if (tablesBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          if (((bitField0_ & 0x00000002) == 0x00000002)) {
             tables_ = java.util.Collections.unmodifiableList(tables_);
-            bitField0_ = (bitField0_ & ~0x00000008);
+            bitField0_ = (bitField0_ & ~0x00000002);
           }
           result.tables_ = tables_;
         } else {
@@ -1330,17 +1230,11 @@ public final class ProtobufStats {
           name_ = other.name_;
           onChanged();
         }
-        if (other.getSize() != 0) {
-          setSize(other.getSize());
-        }
-        if (other.getDistinctSubjects() != 0) {
-          setDistinctSubjects(other.getDistinctSubjects());
-        }
         if (tablesBuilder_ == null) {
           if (!other.tables_.isEmpty()) {
             if (tables_.isEmpty()) {
               tables_ = other.tables_;
-              bitField0_ = (bitField0_ & ~0x00000008);
+              bitField0_ = (bitField0_ & ~0x00000002);
             } else {
               ensureTablesIsMutable();
               tables_.addAll(other.tables_);
@@ -1353,7 +1247,7 @@ public final class ProtobufStats {
               tablesBuilder_.dispose();
               tablesBuilder_ = null;
               tables_ = other.tables_;
-              bitField0_ = (bitField0_ & ~0x00000008);
+              bitField0_ = (bitField0_ & ~0x00000002);
               tablesBuilder_ = 
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getTablesFieldBuilder() : null;
@@ -1458,98 +1352,22 @@ public final class ProtobufStats {
         return this;
       }
 
-      private int size_ ;
-      /**
-       * <pre>
-       * number of triples
-       * </pre>
-       *
-       * <code>optional int32 size = 2;</code>
-       */
-      public int getSize() {
-        return size_;
-      }
-      /**
-       * <pre>
-       * number of triples
-       * </pre>
-       *
-       * <code>optional int32 size = 2;</code>
-       */
-      public Builder setSize(int value) {
-        
-        size_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * number of triples
-       * </pre>
-       *
-       * <code>optional int32 size = 2;</code>
-       */
-      public Builder clearSize() {
-        
-        size_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private int distinctSubjects_ ;
-      /**
-       * <pre>
-       * distinct subjects in the whole graph
-       * </pre>
-       *
-       * <code>optional int32 distinctSubjects = 3;</code>
-       */
-      public int getDistinctSubjects() {
-        return distinctSubjects_;
-      }
-      /**
-       * <pre>
-       * distinct subjects in the whole graph
-       * </pre>
-       *
-       * <code>optional int32 distinctSubjects = 3;</code>
-       */
-      public Builder setDistinctSubjects(int value) {
-        
-        distinctSubjects_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * distinct subjects in the whole graph
-       * </pre>
-       *
-       * <code>optional int32 distinctSubjects = 3;</code>
-       */
-      public Builder clearDistinctSubjects() {
-        
-        distinctSubjects_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private java.util.List<ProtobufStats.Table> tables_ =
+      private java.util.List<ProtobufStats.TableStats> tables_ =
         java.util.Collections.emptyList();
       private void ensureTablesIsMutable() {
-        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
-          tables_ = new java.util.ArrayList<ProtobufStats.Table>(tables_);
-          bitField0_ |= 0x00000008;
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          tables_ = new java.util.ArrayList<ProtobufStats.TableStats>(tables_);
+          bitField0_ |= 0x00000002;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          ProtobufStats.Table, ProtobufStats.Table.Builder, ProtobufStats.TableOrBuilder> tablesBuilder_;
+          ProtobufStats.TableStats, ProtobufStats.TableStats.Builder, ProtobufStats.TableStatsOrBuilder> tablesBuilder_;
 
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public java.util.List<ProtobufStats.Table> getTablesList() {
+      public java.util.List<ProtobufStats.TableStats> getTablesList() {
         if (tablesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(tables_);
         } else {
@@ -1557,7 +1375,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public int getTablesCount() {
         if (tablesBuilder_ == null) {
@@ -1567,9 +1385,9 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public ProtobufStats.Table getTables(int index) {
+      public ProtobufStats.TableStats getTables(int index) {
         if (tablesBuilder_ == null) {
           return tables_.get(index);
         } else {
@@ -1577,10 +1395,10 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder setTables(
-          int index, ProtobufStats.Table value) {
+          int index, ProtobufStats.TableStats value) {
         if (tablesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1594,10 +1412,10 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder setTables(
-          int index, ProtobufStats.Table.Builder builderForValue) {
+          int index, ProtobufStats.TableStats.Builder builderForValue) {
         if (tablesBuilder_ == null) {
           ensureTablesIsMutable();
           tables_.set(index, builderForValue.build());
@@ -1608,9 +1426,9 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public Builder addTables(ProtobufStats.Table value) {
+      public Builder addTables(ProtobufStats.TableStats value) {
         if (tablesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1624,10 +1442,10 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder addTables(
-          int index, ProtobufStats.Table value) {
+          int index, ProtobufStats.TableStats value) {
         if (tablesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1641,10 +1459,10 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder addTables(
-          ProtobufStats.Table.Builder builderForValue) {
+          ProtobufStats.TableStats.Builder builderForValue) {
         if (tablesBuilder_ == null) {
           ensureTablesIsMutable();
           tables_.add(builderForValue.build());
@@ -1655,10 +1473,10 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder addTables(
-          int index, ProtobufStats.Table.Builder builderForValue) {
+          int index, ProtobufStats.TableStats.Builder builderForValue) {
         if (tablesBuilder_ == null) {
           ensureTablesIsMutable();
           tables_.add(index, builderForValue.build());
@@ -1669,10 +1487,10 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder addAllTables(
-          java.lang.Iterable<? extends ProtobufStats.Table> values) {
+          java.lang.Iterable<? extends ProtobufStats.TableStats> values) {
         if (tablesBuilder_ == null) {
           ensureTablesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -1684,12 +1502,12 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder clearTables() {
         if (tablesBuilder_ == null) {
           tables_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000002);
           onChanged();
         } else {
           tablesBuilder_.clear();
@@ -1697,7 +1515,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
       public Builder removeTables(int index) {
         if (tablesBuilder_ == null) {
@@ -1710,16 +1528,16 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public ProtobufStats.Table.Builder getTablesBuilder(
+      public ProtobufStats.TableStats.Builder getTablesBuilder(
           int index) {
         return getTablesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public ProtobufStats.TableOrBuilder getTablesOrBuilder(
+      public ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
           int index) {
         if (tablesBuilder_ == null) {
           return tables_.get(index);  } else {
@@ -1727,9 +1545,9 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public java.util.List<? extends ProtobufStats.TableOrBuilder> 
+      public java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
            getTablesOrBuilderList() {
         if (tablesBuilder_ != null) {
           return tablesBuilder_.getMessageOrBuilderList();
@@ -1738,35 +1556,35 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public ProtobufStats.Table.Builder addTablesBuilder() {
+      public ProtobufStats.TableStats.Builder addTablesBuilder() {
         return getTablesFieldBuilder().addBuilder(
-            ProtobufStats.Table.getDefaultInstance());
+            ProtobufStats.TableStats.getDefaultInstance());
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public ProtobufStats.Table.Builder addTablesBuilder(
+      public ProtobufStats.TableStats.Builder addTablesBuilder(
           int index) {
         return getTablesFieldBuilder().addBuilder(
-            index, ProtobufStats.Table.getDefaultInstance());
+            index, ProtobufStats.TableStats.getDefaultInstance());
       }
       /**
-       * <code>repeated .Table tables = 4;</code>
+       * <code>repeated .TableStats tables = 4;</code>
        */
-      public java.util.List<ProtobufStats.Table.Builder> 
+      public java.util.List<ProtobufStats.TableStats.Builder> 
            getTablesBuilderList() {
         return getTablesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          ProtobufStats.Table, ProtobufStats.Table.Builder, ProtobufStats.TableOrBuilder> 
+          ProtobufStats.TableStats, ProtobufStats.TableStats.Builder, ProtobufStats.TableStatsOrBuilder> 
           getTablesFieldBuilder() {
         if (tablesBuilder_ == null) {
           tablesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              ProtobufStats.Table, ProtobufStats.Table.Builder, ProtobufStats.TableOrBuilder>(
+              ProtobufStats.TableStats, ProtobufStats.TableStats.Builder, ProtobufStats.TableStatsOrBuilder>(
                   tables_,
-                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  ((bitField0_ & 0x00000002) == 0x00000002),
                   getParentForChildren(),
                   isClean());
           tables_ = null;
@@ -1823,10 +1641,10 @@ public final class ProtobufStats {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_Table_descriptor;
+    internal_static_TableStats_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_Table_fieldAccessorTable;
+      internal_static_TableStats_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_Graph_descriptor;
   private static final 
@@ -1841,11 +1659,11 @@ public final class ProtobufStats {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\023ProtobufStats.proto\"P\n\005Table\022\014\n\004name\030\001" +
-      " \001(\t\022\014\n\004size\030\002 \001(\005\022\021\n\tisComplex\030\003 \001(\010\022\030\n" +
-      "\020distinctSubjects\030\004 \001(\005\"U\n\005Graph\022\014\n\004name" +
-      "\030\001 \001(\t\022\014\n\004size\030\002 \001(\005\022\030\n\020distinctSubjects" +
-      "\030\003 \001(\005\022\026\n\006tables\030\004 \003(\0132\006.Tableb\006proto3"
+      "\n\023ProtobufStats.proto\"U\n\nTableStats\022\014\n\004n" +
+      "ame\030\001 \001(\t\022\014\n\004size\030\002 \001(\005\022\021\n\tisComplex\030\003 \001" +
+      "(\010\022\030\n\020distinctSubjects\030\004 \001(\005\"2\n\005Graph\022\014\n" +
+      "\004name\030\001 \001(\t\022\033\n\006tables\030\004 \003(\0132\013.TableStats" +
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1859,18 +1677,18 @@ public final class ProtobufStats {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_Table_descriptor =
+    internal_static_TableStats_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_Table_fieldAccessorTable = new
+    internal_static_TableStats_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_Table_descriptor,
+        internal_static_TableStats_descriptor,
         new java.lang.String[] { "Name", "Size", "IsComplex", "DistinctSubjects", });
     internal_static_Graph_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_Graph_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Graph_descriptor,
-        new java.lang.String[] { "Name", "Size", "DistinctSubjects", "Tables", });
+        new java.lang.String[] { "Name", "Tables", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
