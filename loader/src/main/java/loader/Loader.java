@@ -29,6 +29,7 @@ public abstract class Loader {
 	public String column_name_object = "o";
 	public String name_tripletable  = "tripletable";
 	protected String[] properties_names;
+	public String stats_file_suffix = ".stats";
 	
 	public Loader(String hdfs_input_directory, String database_name, SparkSession spark){
 		this.database_name = database_name;
