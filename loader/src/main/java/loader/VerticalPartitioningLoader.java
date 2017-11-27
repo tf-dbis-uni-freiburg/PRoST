@@ -1,5 +1,6 @@
 package loader;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -86,9 +87,10 @@ public class VerticalPartitioningLoader extends Loader {
 		Graph serialized_stats = graph_stats_builder.build();
 		
 		FileOutputStream f_stream;
-
+		File file;
 		try {
-			f_stream = new FileOutputStream(name + this.stats_file_suffix);
+			file = new File(name + this.stats_file_suffix);
+			f_stream = new FileOutputStream(file);
 			serialized_stats.writeTo(f_stream);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

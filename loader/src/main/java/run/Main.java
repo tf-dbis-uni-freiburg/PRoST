@@ -5,12 +5,12 @@ import loader.VerticalPartitioningLoader;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
@@ -34,7 +34,7 @@ public class Main {
 		/*
 		 * Manage the CLI options
 		 */
-		CommandLineParser parser = new DefaultParser();
+		CommandLineParser parser = new PosixParser();
 		Options options = new Options();
 		
 		Option inputOpt = new Option("i", "input", true, "HDFS input path of the RDF graph.");
