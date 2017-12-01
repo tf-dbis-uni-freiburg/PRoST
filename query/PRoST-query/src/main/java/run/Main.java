@@ -22,7 +22,7 @@ import Translator.Translator;
  */
 public class Main {
 	private static String inputFile;
-	private static String outputFile = "RESULTS.txt";
+	private static String outputFile;
 	private static String statsFileName = "";
 	private static String database_name;
 	private static final Logger logger = Logger.getLogger(Main.class);
@@ -109,7 +109,8 @@ public class Main {
 		/*
 		 * Execution Phase
 		 */
-		Executor executor = new Executor(translatedQuery, outputFile, database_name);
+		Executor executor = new Executor(translatedQuery, database_name);
+		if (outputFile != null) executor.setOutputFile(outputFile); 
 		executor.execute();		
 		
 	}

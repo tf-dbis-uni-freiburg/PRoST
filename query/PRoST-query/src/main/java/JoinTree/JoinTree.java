@@ -42,7 +42,7 @@ public class JoinTree {
 	}
 	
 	
-		@Override
+	@Override
 	public String toString(){
 		StringBuilder str = new StringBuilder("JoinTree \n");
 		str.append(node.toString());

@@ -18,7 +18,7 @@ public class NodeComparator implements Comparator<Node> {
 		float priority = 0;
 		
 		if(node.isPropertyTable) {
-			//priority = 1 / node.getTripleGroupCount();
+
 			for(TriplePattern t : node.tripleGroup){
 				boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
 				boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;

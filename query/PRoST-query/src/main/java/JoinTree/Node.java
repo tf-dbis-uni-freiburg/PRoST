@@ -113,8 +113,6 @@ public class Node {
 				query.append(" P" + columnName +" AS " +
 					Utils.removeQuestionMark(t.object) + ",");
 				explodedColumns.add(columnName);
-				//query.append(" explode(" + Utils.toMetastoreName(t.predicate) + ") AS " + 
-				//		Utils.removeQuestionMark(t.object) + ",");
 			} else {
 				query.append(" " + Utils.toMetastoreName(t.predicate) + " AS " +
 						Utils.removeQuestionMark(t.object) + ",");

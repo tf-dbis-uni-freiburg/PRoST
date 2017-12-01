@@ -61,7 +61,7 @@ public class Translator {
         Query query = QueryFactory.read("file:"+inputFile);
         prefixes = query.getPrefixMapping();
         
-        logger.info("*** SPARQL QUERY ***\n" + query +"\n********************"  );
+        logger.info("** SPARQL QUERY **\n" + query +"\n****************"  );
         
         // extract variables and list of triples from the unique BGP
         OpProject opRoot = (OpProject) Algebra.compile(query);
@@ -69,9 +69,9 @@ public class Translator {
         variables = opRoot.getVars();
         triples = singleBGP.getPattern().getList();
         
-        // build the tree and serialize it
+        // build the tree
         Node root_node = buildTree();
-        logger.info("*** Spark JoinTree ***\n" + root_node +"\n********************" );
+        logger.info("** Spark JoinTree **\n" + root_node +"\n****************" );
         
         return new JoinTree(root_node);
     }
