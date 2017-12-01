@@ -1,4 +1,4 @@
-<img align="middle" width="35%" src="PRoST_logo.svg">
+<p align="center"> <img width="36%" src="PRoST_logo.svg"></p>
 
 ## PRoST (Partitioned RDF on Spark Tables)
 PRoST allows to load and query very large RDF graphs in Hadoop clusters.
