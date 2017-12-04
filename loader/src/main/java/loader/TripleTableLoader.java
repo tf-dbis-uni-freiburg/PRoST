@@ -1,6 +1,10 @@
 package loader;
 
+import org.apache.spark.sql.Dataset;
+
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 
 
 /**
@@ -30,4 +34,33 @@ public class TripleTableLoader extends Loader {
 		spark.sql(createTripleTable);
 		logger.info("Created tripletable");
 	}
+	
+	public void load_ntriples() {
+		String ds = hdfs_input_directory;
+		Dataset<Row> triple_table_file = spark.read().text(ds);
+
+		
+		String triple_regex = build_triple_regex();
+
+		Dataset<Row> triple_table = triple_table_file.select(
+				functions.regexp_extract(functions.col("value"), triple_regex, 1).alias(this.column_name_subject),
+				functions.regexp_extract(functions.col("value"), triple_regex, 2).alias(this.column_name_predicate),
+				functions.regexp_extract(functions.col("value"), triple_regex, 3).alias(this.column_name_object));
+		
+		triple_table.createOrReplaceTempView(name_tripletable);
+		logger.info("Created tripletable");
+	}
+	
+	// this method exists for the sake of clarity instead of a constant String
+	// Therefore, it should be called only once
+	private static String build_triple_regex() {
+		String uri_s = "<(?:[^:]+:[^\\s\"<>]+)>";
+		String literal_s = "\"(?:[^\"\\\\]*(?:\\.[^\"\\\\]*)*)\"(?:@([a-z]+(?:-[a-zA-Z0-9]+)*)|\\^\\^" + uri_s + ")?";
+		String subject_s = "(" + uri_s + "|" + literal_s + ")";
+		String predicate_s = "(" + uri_s + ")";
+		String object_s = "(" + uri_s + "|" + literal_s + ")";
+		String space_s = "[ \t]+";
+		return "[ \\t]*" + subject_s + space_s + predicate_s + space_s + object_s + "[ \\t]*\\.*[ \\t]*(#.*)?";
+	}
+
 }
