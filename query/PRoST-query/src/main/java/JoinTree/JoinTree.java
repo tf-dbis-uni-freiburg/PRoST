@@ -7,7 +7,7 @@ import org.apache.spark.sql.SQLContext;
 
 
 /**
- * JoinTree Java definition
+ * JoinTree definition
  * @author Matteo Cossu
  *
  */
