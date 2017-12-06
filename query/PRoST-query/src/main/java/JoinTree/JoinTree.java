@@ -14,6 +14,7 @@ import org.apache.spark.sql.SQLContext;
 public class JoinTree {
 	
 	private Node node;
+	private String filter;
 	
 	public Node getNode() {
 		return node;
@@ -36,8 +37,11 @@ public class JoinTree {
 		for (int i = 0; i < selectedColumns.length; i++) {
 			selectedColumns[i]= new Column(node.projection.get(i));
 		}
+		
 
-		return results.select(selectedColumns);
+		// if there is a filter set, apply it
+		results =  filter == null ? results.select(selectedColumns) : results.filter(filter).select(selectedColumns);
+		return results;
 		
 	}
 	
@@ -51,6 +55,24 @@ public class JoinTree {
 		}
 		
 		return str.toString();
+	}
+
+
+	public String getFilter() {
+		return filter;
+	}
+
+	// set the filter condition translated in SQL
+	public void setFilter(String filter) {
+		this.filter = sparqlFilterToSQL(filter);
+	}
+	
+	/*
+	 * this method translates a SPARQL filter condition into a SQL where condition
+	 */
+	private String sparqlFilterToSQL(String sparqlFilter) {
+		//TODO: actual translation missing 
+		return sparqlFilter;
 	}
 
 }
