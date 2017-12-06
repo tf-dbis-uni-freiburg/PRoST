@@ -20,8 +20,8 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.algebra.Algebra;
-import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
-import com.hp.hpl.jena.sparql.algebra.op.OpProject;
+import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 /**
  * This class parses the SPARQL query,
@@ -64,17 +64,22 @@ public class Translator {
         
         logger.info("** SPARQL QUERY **\n" + query +"\n****************"  );
         
-        // extract variables and list of triples from the unique BGP
-        OpProject opRoot = (OpProject) Algebra.compile(query);
-        OpBGP singleBGP = (OpBGP) opRoot.getSubOp();
-        variables = opRoot.getVars();
-        triples = singleBGP.getPattern().getList();
+        // extract variables, list of triples and filter
+        Op opQuery = Algebra.compile(query);
+        QueryVisitor queryVisitor = new QueryVisitor();
+        OpWalker.walk(opQuery, queryVisitor);
+        triples = queryVisitor.getTriple_patterns();
+        variables  = queryVisitor.getVariables();
+        
         
         // build the tree
         Node root_node = buildTree();
-        logger.info("** Spark JoinTree **\n" + root_node +"\n****************" );
+        JoinTree tree = new JoinTree(root_node);
+        // TODO: set the filter when is ready
+        //tree.setFilter(queryVisitor.getFilter());
+        logger.info("** Spark JoinTree **\n" + tree +"\n****************" );
         
-        return new JoinTree(root_node);
+        return tree;
     }
     
     
