@@ -2,7 +2,6 @@ package Translator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -12,7 +11,9 @@ import org.apache.log4j.Logger;
 import JoinTree.ElementType;
 import JoinTree.JoinTree;
 import JoinTree.Node;
+import JoinTree.PtNode;
 import JoinTree.TriplePattern;
+import JoinTree.VpNode;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
@@ -164,10 +165,10 @@ public class Translator {
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
 				if (subjectGroups.get(subject).size() >= minimumGroupSize){
-					nodesQueue.add(new Node(subjectGroups.get(subject), prefixes));
+					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes));
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
-						Node newNode = new Node(new TriplePattern(t, prefixes), Collections.<TriplePattern> emptyList());
+						Node newNode = new VpNode(new TriplePattern(t, prefixes));
 						nodesQueue.add(newNode);
 					}
 				}
@@ -175,7 +176,7 @@ public class Translator {
     
 		} else {
 			for(Triple t : triples){
-				Node newNode = new Node(new TriplePattern(t, prefixes), Collections.<TriplePattern> emptyList());
+				Node newNode = new VpNode(new TriplePattern(t, prefixes));
 				nodesQueue.add(newNode);
 			}
 		}
