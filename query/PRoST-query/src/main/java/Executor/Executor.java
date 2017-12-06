@@ -83,7 +83,7 @@ public class Executor {
 		
 		// if specified, save the results in HDFS, just count otherwise
 		if (this.outputFile != null) {
-			results.write().text(this.outputFile);
+			results.write().parquet(this.outputFile);
 		} else {
 			logger.info("Number of Results: " + String.valueOf(results.count()));
 		}

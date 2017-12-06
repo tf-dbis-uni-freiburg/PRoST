@@ -111,7 +111,8 @@ public final class ProtobufStats {
         getUnknownFields() {
       return this.unknownFields;
     }
-    private Table(
+    @SuppressWarnings("unused")
+	private Table(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
