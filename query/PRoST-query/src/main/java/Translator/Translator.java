@@ -72,7 +72,7 @@ public class Translator {
         
         // build the tree
         Node root_node = buildTree();
-        JoinTree tree = new JoinTree(root_node);
+        JoinTree tree = new JoinTree(root_node, inputFile);
         // TODO: set the filter when is ready
         //tree.setFilter(queryVisitor.getFilter());
         logger.info("** Spark JoinTree **\n" + tree +"\n****************" );

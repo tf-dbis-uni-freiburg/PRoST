@@ -16,12 +16,16 @@ public class JoinTree {
 	private Node node;
 	private String filter;
 	
+	// identifier for the query, useful for debugging
+	public String query_name;
+	
 	public Node getNode() {
 		return node;
 	}
 
 	
-	public JoinTree(Node node){
+	public JoinTree(Node node, String query_name){
+		this.query_name = query_name;
 		this.node = node;
 	}
 	

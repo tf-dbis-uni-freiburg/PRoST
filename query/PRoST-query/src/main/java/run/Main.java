@@ -1,6 +1,7 @@
 package run;
 
 import java.io.File;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,6 +32,8 @@ public class Main {
 	private static int treeWidth = -1;
 	private static boolean useOnlyVP = false;
 	private static int setGroupSize = -1;
+	private static boolean benchmarkMode = false;
+	private static String benchmark_file;
 	
 	public static void main(String[] args) {
 		
@@ -42,12 +45,12 @@ public class Main {
 		Option inputOpt = new Option("i", "input", true, "Input file with the SPARQL query.");
 		inputOpt.setRequired(true);
 		options.addOption(inputOpt);
-		Option outputOpt = new Option("o", "output", true, "Custom results filename.");
+		Option outputOpt = new Option("o", "output", true, "Path for the results in HDFS.");
 		options.addOption(outputOpt);
 		Option statOpt = new Option("s", "stats", true, "File with statistics (required)");
 		options.addOption(statOpt);
 		statOpt.setRequired(true);
-		Option databaseOpt = new Option("d", "DB", true, "Database containing the VP tables.");
+		Option databaseOpt = new Option("d", "DB", true, "Database containing the VP tables and the PT.");
 		databaseOpt.setRequired(true);
 		options.addOption(databaseOpt);
 		Option helpOpt = new Option("h", "help", true, "Print this help.");
@@ -56,6 +59,8 @@ public class Main {
 		options.addOption(widthOpt);
 		Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical Partitioning");
 		options.addOption(propertyTableOpt);
+		Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
+		options.addOption(benchmarkOpt);
 		Option groupsizeOpt = new Option("g", "groupsize", true, "Minimum Group Size for Property Table nodes");
 		options.addOption(groupsizeOpt);
 		
@@ -99,6 +104,10 @@ public class Main {
 		if(cmd.hasOption("DB")){
 			database_name = cmd.getOptionValue("DB");
 		}
+		if(cmd.hasOption("times")){
+			benchmarkMode = true;
+			benchmark_file = cmd.getOptionValue("times");
+		}
 		
 		File file = new File(inputFile);
 		
@@ -120,17 +129,20 @@ public class Main {
 			
 			// empty executor to initialize Spark
 			Executor executor = new Executor(null, database_name);
-			// if the path is a directory execute every files inside
-			for(String fname : file.list()){
-				logger.info("Starting: " + fname);
-				
-				// translation phase
-				JoinTree translatedQuery = translateSingleQuery(inputFile +  "/" + fname, statsFileName, treeWidth);
-				
-				// execution phase
-				executor.setQueryTree(translatedQuery);
-				executor.execute();	
+			
+			if(benchmarkMode) {
+				executor.cacheTables();
+				executeBatch(random_sample(file.list(), 3), executor);
+				executor.clearQueryTimes();
 			}
+			
+			// if the path is a directory execute every files inside
+			executeBatch(file.list(), executor);
+			
+			if(benchmarkMode) {
+				executor.saveResultsCsv(benchmark_file);
+			}
+			
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
 			return;
@@ -147,5 +159,29 @@ public class Main {
 		
 		return translator.translateQuery();
 	}
+	
+	
+	private static void executeBatch(String[] queries, Executor executor) {
+		for(String fname : queries){
+			logger.info("Starting: " + fname);
+			
+			// translation phase
+			JoinTree translatedQuery = translateSingleQuery(inputFile +  "/" + fname, statsFileName, treeWidth);
+			
+			// execution phase
+			executor.setQueryTree(translatedQuery);
+			executor.execute();	
+		}
+	}
+	
+	private static String[] random_sample(String[] queries, int k) {
+		String[] sample = new String[k];
+		for (int i = 0; i < sample.length; i++) {
+			int randomIndex = ThreadLocalRandom.current().nextInt(0, queries.length);
+			sample[i] = queries[randomIndex];
+		}
+		return sample;
+	}
+	
 
 }
