@@ -25,6 +25,7 @@ public class Executor {
 	private String outputFile;
 	private String databaseName;
 	private JoinTree queryTree;
+	
 	SparkSession spark;
 	SQLContext sqlContext;
 
@@ -47,6 +48,11 @@ public class Executor {
 	public void setOutputFile(String outputFile){
 		this.outputFile = outputFile;
 	}
+	
+	public void setQueryTree(JoinTree queryTree) {
+		this.queryTree = queryTree;
+	}
+
 		
 	
 	/*

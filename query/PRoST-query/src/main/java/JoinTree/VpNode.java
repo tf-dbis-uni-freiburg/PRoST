@@ -13,7 +13,7 @@ import Executor.Utils;
 public class VpNode extends Node {
 	
 	/*
-	 * The node contains only a single triple pattern.
+	 * The node contains a single triple pattern.
 	 */
 	public VpNode(TriplePattern triplePattern){
 		

@@ -33,7 +33,6 @@ public class Translator {
 	
 	final int DEFAULT_MIN_GROUP_SIZE = 2;
     String inputFile;
-    String outputFile;
     String statsFile;
     Stats stats;
     boolean statsActive = false;
@@ -45,9 +44,8 @@ public class Translator {
 	private boolean usePropertyTable;
     private static final Logger logger = Logger.getLogger(run.Main.class);
     
-    public Translator(String input, String output, String statsPath, int treeWidth) {
+    public Translator(String input, String statsPath, int treeWidth) {
     	this.inputFile = input;
-    	this.outputFile = output != null && output.length() > 0 ? output : input + ".out";
     	this.statsFile = statsPath;
     	if(statsFile.length() > 0){
     		stats = new Stats(statsFile);

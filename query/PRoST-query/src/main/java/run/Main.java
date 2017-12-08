@@ -1,5 +1,7 @@
 package run;
 
+import java.io.File;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -98,21 +100,52 @@ public class Main {
 			database_name = cmd.getOptionValue("DB");
 		}
 		
-		/*
-		 * Translation Phase
-		 */
-		Translator translator = new Translator(inputFile, outputFile, statsFileName, treeWidth);
+		File file = new File(inputFile);
+		
+		// single file
+		if(file.isFile()){
+			
+			// translation phase
+			JoinTree translatedQuery = translateSingleQuery(inputFile, statsFileName, treeWidth);
+			
+			// execution phase
+			Executor executor = new Executor(translatedQuery, database_name);
+			if (outputFile != null) executor.setOutputFile(outputFile); 
+			executor.execute();	
+			
+		} 
+		
+		// set of queries
+		else if(file.isDirectory()){
+			
+			// empty executor to initialize Spark
+			Executor executor = new Executor(null, database_name);
+			// if the path is a directory execute every files inside
+			for(String fname : file.list()){
+				logger.info("Starting: " + fname);
+				
+				// translation phase
+				JoinTree translatedQuery = translateSingleQuery(inputFile +  "/" + fname, statsFileName, treeWidth);
+				
+				// execution phase
+				executor.setQueryTree(translatedQuery);
+				executor.execute();	
+			}
+		} else {
+			logger.error("The input file is not set correctly or contains errors");
+			return;
+		}
+			
+			
+		
+	}
+	
+	private static JoinTree translateSingleQuery(String query, String statsFile, int width) {
+		Translator translator = new Translator(query, statsFile, width);
 		if (useOnlyVP) translator.setPropertyTable(true);
 		if (setGroupSize > 0) translator.setMinimumGroupSize(setGroupSize);
-		JoinTree translatedQuery = translator.translateQuery();
 		
-		/*
-		 * Execution Phase
-		 */
-		Executor executor = new Executor(translatedQuery, database_name);
-		if (outputFile != null) executor.setOutputFile(outputFile); 
-		executor.execute();		
-		
+		return translator.translateQuery();
 	}
 
 }
