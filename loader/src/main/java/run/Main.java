@@ -76,7 +76,10 @@ public class Main {
 		//PropertyTableLoader propertyTable = new PropertyTableLoader(input_file, outputDB);
 		SparkSession spark = SparkSession
 		  .builder()
+		  //.enableHiveSupport()
 		  .appName("PRoST-Loader")
+		  //.config("spark.master", "local")
+		  //.config("spark.sql.warehouse.dir", "file:///C:\\Dev\\workspaces\\PRoST\\loader\\sparkwarehouse")
 		  .getOrCreate();
 		TripleTableLoader tt_loader = new TripleTableLoader(input_file, outputDB, spark);
 		tt_loader.load();
