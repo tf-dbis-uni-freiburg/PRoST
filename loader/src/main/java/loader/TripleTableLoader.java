@@ -26,10 +26,11 @@ public class TripleTableLoader extends Loader {
 	public void load() {
 		
 		String createTripleTable = String.format(
-				"CREATE EXTERNAL TABLE IF NOT EXISTS %s(%s STRING, %s STRING, %s STRING) ROW FORMAT DELIMITED"
-						+ " FIELDS TERMINATED BY '%s'  LINES TERMINATED BY '%s' LOCATION '%s'",
-						name_tripletable  , column_name_subject, column_name_predicate, column_name_object,
-				field_terminator, line_terminator, hdfs_input_directory);
+				"CREATE EXTERNAL TABLE IF NOT EXISTS %s(%s STRING, %s STRING, %s STRING) ROW FORMAT  SERDE"
+						+ "'org.apache.hadoop.hive.serde2.RegexSerDe'  WITH SERDEPROPERTIES "
+						+ "( \"input.regex\" = \"(\\\\S+)\\\\s+(\\\\S+)\\\\s+(.*)\")"
+						+ "LOCATION '%s'",
+						name_tripletable, column_name_subject, column_name_predicate, column_name_object, hdfs_input_directory);
 
 		spark.sql(createTripleTable);
 		logger.info("Created tripletable");

@@ -83,7 +83,7 @@ public class PropertiesAggregateFunction extends UserDefinedAggregateFunction {
 	public void update(MutableAggregationBuffer buffer, Row input) {
 
 		// split the property from the object
-		String[] po = input.getString(0).split(columns_separator);
+		String[] po = input.getString(0).split(columns_separator); 
 		String property = po[0].startsWith("<") && po[0].endsWith(">") ? 
 				po[0].substring(1, po[0].length() - 1 ).replaceAll("[[^\\w]+]", "_")
 				: po[0].replaceAll("[[^\\w]+]", "_");
