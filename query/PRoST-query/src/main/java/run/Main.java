@@ -2,6 +2,7 @@ package run;
 
 import java.io.File;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -131,7 +132,7 @@ public class Main {
 			Executor executor = new Executor(null, database_name);
 			
 			if(benchmarkMode) {
-				executor.cacheTables();
+				//executor.cacheTables();
 				executeBatch(random_sample(file.list(), 3), executor);
 				executor.clearQueryTimes();
 			}
@@ -155,7 +156,7 @@ public class Main {
 	private static JoinTree translateSingleQuery(String query, String statsFile, int width) {
 		Translator translator = new Translator(query, statsFile, width);
 		if (useOnlyVP) translator.setPropertyTable(true);
-		if (setGroupSize > 0) translator.setMinimumGroupSize(setGroupSize);
+		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
 		
 		return translator.translateQuery();
 	}

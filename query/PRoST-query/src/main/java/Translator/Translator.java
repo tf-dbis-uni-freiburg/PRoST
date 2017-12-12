@@ -73,8 +73,13 @@ public class Translator {
         // build the tree
         Node root_node = buildTree();
         JoinTree tree = new JoinTree(root_node, inputFile);
+        
         // TODO: set the filter when is ready
         //tree.setFilter(queryVisitor.getFilter());
+        
+        // if distinct keyword is present
+        tree.setDistinct(query.isDistinct());
+        
         logger.info("** Spark JoinTree **\n" + tree +"\n****************" );
         
         return tree;

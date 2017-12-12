@@ -24,7 +24,6 @@ public class VpNode extends Node {
 	}
 	
 	public void computeNodeData(SQLContext sqlContext){
-		
 		StringBuilder query = new StringBuilder("SELECT DISTINCT ");
 		
 		// SELECT

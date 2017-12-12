@@ -49,6 +49,7 @@ public class Executor {
 				  .builder()
 				  .appName("PRoST-Executor")
 				  .getOrCreate();
+		sqlContext = spark.sqlContext();
 	}
 	
 	public void setOutputFile(String outputFile){
@@ -57,10 +58,16 @@ public class Executor {
 	
 	public void setQueryTree(JoinTree queryTree) {
 		this.queryTree = queryTree;
+		
+		// refresh session
+		spark = SparkSession
+				  .builder()
+				  .appName("PRoST-Executor")
+				  .getOrCreate();
+		sqlContext = spark.sqlContext();
 	}
 
 		
-	
 	/*
 	 * execute performs the Spark computation and measure the time required
 	 */
