@@ -2,7 +2,6 @@ package Translator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -12,15 +11,17 @@ import org.apache.log4j.Logger;
 import JoinTree.ElementType;
 import JoinTree.JoinTree;
 import JoinTree.Node;
+import JoinTree.PtNode;
 import JoinTree.TriplePattern;
+import JoinTree.VpNode;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.algebra.Algebra;
-import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
-import com.hp.hpl.jena.sparql.algebra.op.OpProject;
+import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 /**
  * This class parses the SPARQL query,
@@ -32,7 +33,6 @@ public class Translator {
 	
 	final int DEFAULT_MIN_GROUP_SIZE = 2;
     String inputFile;
-    String outputFile;
     String statsFile;
     Stats stats;
     boolean statsActive = false;
@@ -44,9 +44,8 @@ public class Translator {
 	private boolean usePropertyTable;
     private static final Logger logger = Logger.getLogger(run.Main.class);
     
-    public Translator(String input, String output, String statsPath, int treeWidth) {
+    public Translator(String input, String statsPath, int treeWidth) {
     	this.inputFile = input;
-    	this.outputFile = output != null && output.length() > 0 ? output : input + ".out";
     	this.statsFile = statsPath;
     	if(statsFile.length() > 0){
     		stats = new Stats(statsFile);
@@ -63,17 +62,27 @@ public class Translator {
         
         logger.info("** SPARQL QUERY **\n" + query +"\n****************"  );
         
-        // extract variables and list of triples from the unique BGP
-        OpProject opRoot = (OpProject) Algebra.compile(query);
-        OpBGP singleBGP = (OpBGP) opRoot.getSubOp();
-        variables = opRoot.getVars();
-        triples = singleBGP.getPattern().getList();
+        // extract variables, list of triples and filter
+        Op opQuery = Algebra.compile(query);
+        QueryVisitor queryVisitor = new QueryVisitor();
+        OpWalker.walk(opQuery, queryVisitor);
+        triples = queryVisitor.getTriple_patterns();
+        variables  = queryVisitor.getVariables();
+        
         
         // build the tree
         Node root_node = buildTree();
-        logger.info("** Spark JoinTree **\n" + root_node +"\n****************" );
+        JoinTree tree = new JoinTree(root_node, inputFile);
         
-        return new JoinTree(root_node);
+        // TODO: set the filter when is ready
+        //tree.setFilter(queryVisitor.getFilter());
+        
+        // if distinct keyword is present
+        tree.setDistinct(query.isDistinct());
+        
+        logger.info("** Spark JoinTree **\n" + tree +"\n****************" );
+        
+        return tree;
     }
     
     
@@ -164,10 +173,10 @@ public class Translator {
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
 				if (subjectGroups.get(subject).size() >= minimumGroupSize){
-					nodesQueue.add(new Node(subjectGroups.get(subject), prefixes));
+					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes));
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
-						Node newNode = new Node(new TriplePattern(t, prefixes), Collections.<TriplePattern> emptyList());
+						Node newNode = new VpNode(new TriplePattern(t, prefixes));
 						nodesQueue.add(newNode);
 					}
 				}
@@ -175,7 +184,7 @@ public class Translator {
     
 		} else {
 			for(Triple t : triples){
-				Node newNode = new Node(new TriplePattern(t, prefixes), Collections.<TriplePattern> emptyList());
+				Node newNode = new VpNode(new TriplePattern(t, prefixes));
 				nodesQueue.add(newNode);
 			}
 		}

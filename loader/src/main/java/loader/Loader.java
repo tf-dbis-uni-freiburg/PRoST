@@ -22,7 +22,6 @@ public abstract class Loader {
 	public boolean keep_temporary_tables = false;
 	public static final String table_format = "parquet";
 	/** The separators used in the RDF data. */
-	public String field_terminator = "\\t";
 	public String line_terminator = "\\n";
 	public String column_name_subject = "s";
 	public String column_name_predicate = "p";

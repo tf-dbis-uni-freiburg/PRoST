@@ -7,20 +7,27 @@ import org.apache.spark.sql.SQLContext;
 
 
 /**
- * JoinTree Java definition
+ * JoinTree definition
  * @author Matteo Cossu
  *
  */
 public class JoinTree {
 	
 	private Node node;
+	private String filter;
+	
+	private boolean selectDistinct = false;
+	
+	// identifier for the query, useful for debugging
+	public String query_name;
 	
 	public Node getNode() {
 		return node;
 	}
 
 	
-	public JoinTree(Node node){
+	public JoinTree(Node node, String query_name){
+		this.query_name = query_name;
 		this.node = node;
 	}
 	
@@ -37,7 +44,13 @@ public class JoinTree {
 			selectedColumns[i]= new Column(node.projection.get(i));
 		}
 
-		return results.select(selectedColumns);
+		// if there is a filter set, apply it
+		results =  filter == null ? results.select(selectedColumns) : results.filter(filter).select(selectedColumns);
+		
+		// if results are distinct
+		if(selectDistinct) results = results.distinct();
+		
+		return results;
 		
 	}
 	
@@ -51,6 +64,29 @@ public class JoinTree {
 		}
 		
 		return str.toString();
+	}
+
+
+	public String getFilter() {
+		return filter;
+	}
+
+	// set the filter condition translated in SQL
+	public void setFilter(String filter) {
+		this.filter = sparqlFilterToSQL(filter);
+	}
+	
+	// set the filter condition translated in SQL
+	public void setDistinct(boolean distinct) {
+		this.selectDistinct = distinct;
+	}
+	
+	/*
+	 * this method translates a SPARQL filter condition into a SQL where condition
+	 */
+	private String sparqlFilterToSQL(String sparqlFilter) {
+		//TODO: actual translation missing 
+		return sparqlFilter;
 	}
 
 }

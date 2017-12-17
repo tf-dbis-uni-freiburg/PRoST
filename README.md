@@ -11,7 +11,26 @@ Input graphs are partitioned efficiently and stored across several tables regist
   - Java 1.8+
 
 ## Getting the code and compiling
+First, clone this repository. The project contains two separate components, one for loading the data (/loader) and the other for querying(/query).
+Both are built using [Apache Maven](http://maven.apache.org/).
+To build PRoST, run:
+
+    mvn package
 
 ## Loading RDF graphs
+You can load a graph with PRoST in the following way:
+
+    spark2-submit --class run.Main PRoST-Loader.jar -i <HDFS_path_RDF_graph> -o <output_DB_name>
+
+The input RDF graph is loaded from the HDFS path specified with the -i option.
+Instead, the -o option contains the name of the database in which PRoST will store the graph using its own representation.
+
+The loader produces a .stats file in the local node, required for querying.
 
 ## Querying with SPARQL
+To query the data use the following command:
+
+    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file>
+    
+The database name and the statistics file need to be the ones used to load the graph.
+The -o option contains the name of the HDFS file in which PRoST will save the results of the query.
