@@ -25,18 +25,18 @@ public class VerticalPartitioningLoader extends Loader {
 	@Override
 	public void load() {
 
-		logger.info("Beginning the creation of VP tables.");
+		LOGGER.info("Beginning the creation of VP tables.");
 		
-		if (this.properties_names == null){
-			logger.error("Properties not calculated yet. Extracting them");
-			this.properties_names = extractProperties();
+		if (this.propertiesNames == null){
+			LOGGER.error("Properties not calculated yet. Extracting them");
+			this.propertiesNames = extractProperties();
 		}
 		
 		ArrayList<TableStats> tables_stats =  new ArrayList<TableStats>();
 		
 		// TODO: these jobs should be submitted in parallel threads
 		// leaving the control to the YARN scheduler
-		for(String property : this.properties_names){
+		for(String property : this.propertiesNames){
 			Dataset<Row> table_VP = spark.sql("SELECT s AS s, o AS o FROM tripletable WHERE p='" + property + "'");
 			String table_name_VP = "vp_" + this.getValidHiveName(property);
 			
@@ -44,13 +44,13 @@ public class VerticalPartitioningLoader extends Loader {
 			tables_stats.add(calculate_stats_table(table_VP));
 			
 			table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
-			logger.info("Created VP table for the property: " + property);
+			LOGGER.info("Created VP table for the property: " + property);
 		}
 		
 		// save the stats in a file with the same name as the output database
-		save_stats(this.database_name, tables_stats);
+		save_stats(this.databaseName, tables_stats);
 		
-		logger.info("Vertical Partitioning completed. Loaded " + String.valueOf(this.properties_names.length) + " tables.");
+		LOGGER.info("Vertical Partitioning completed. Loaded " + String.valueOf(this.propertiesNames.length) + " tables.");
 		
 	}
 	
@@ -64,7 +64,7 @@ public class VerticalPartitioningLoader extends Loader {
 		
 		// calculate the stats
 		int table_size = (int) table.count();
-		int distinct_subjects = (int) table.select(this.column_name_subject).distinct().count();
+		int distinct_subjects = (int) table.select(this.subjectColumnName).distinct().count();
 		boolean is_complex = table_size != distinct_subjects;
 		
 		// put them in the protobuf object
@@ -89,7 +89,7 @@ public class VerticalPartitioningLoader extends Loader {
 		FileOutputStream f_stream;
 		File file;
 		try {
-			file = new File(name + this.stats_file_suffix);
+			file = new File(name + this.statsFileSufix);
 			f_stream = new FileOutputStream(file);
 			serialized_stats.writeTo(f_stream);
 		} catch (FileNotFoundException e) {
@@ -102,7 +102,7 @@ public class VerticalPartitioningLoader extends Loader {
 	
 	private String[] extractProperties() {
 		List<Row> props = spark.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s",
-				column_name_predicate, name_tripletable)).collectAsList();
+				predicateColumnName, tripleTableName)).collectAsList();
 		String[] result_properties = new String[props.size()];
 		
 		for (int i = 0; i < props.size(); i++) {

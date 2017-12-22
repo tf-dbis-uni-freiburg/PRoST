@@ -22,59 +22,71 @@ import org.apache.spark.sql.functions;
  *
  */
 public class PropertyTableLoader extends Loader{
-	private static final String TABLENAME_REVERSE_PROPERTIES = "reverse_property_table";
 	
-	protected String hdfs_input_directory;
-	
-	private String tablename_properties = "properties";
+	private final String nonReversePropertiesTableName = "properties";
+	private final String reverseTableName = "reverse_properties";
+	protected final String outputNonReversePropertyTableName = "property_table";
+	protected final String outputReversePropertyTableName = "reverse_property_table";
 	
 	/** Separator used internally to distinguish two values in the same string  */
-	public String columns_separator = "\\$%";
-
-	protected String output_db_name;
-	protected static final String output_tablename = "property_table";
+	private static final  String COLLUMNS_SEPARATOR = "\\$%";
 	
-	public PropertyTableLoader(String hdfs_input_directory,
-			String database_name, SparkSession spark) {
+	public PropertyTableLoader(String hdfs_input_directory,	String database_name, SparkSession spark) {
 		super(hdfs_input_directory, database_name, spark);
 	}
 	
 	public void load() {
-		buildProperties(tablename_properties, column_name_predicate, column_name_subject, name_tripletable);
-			
-		Dataset<Row> propertyTable = buildComplexPropertyTable(tablename_properties, column_name_subject, 
-				column_name_predicate, column_name_object, name_tripletable, false, false);
+		//creates non reverse property table
+		buildProperties();		
+		buildComplexPropertyTable().write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputNonReversePropertyTableName);
+		LOGGER.info("Created property table with name: " + outputNonReversePropertyTableName);	
 		
-		buildProperties(TABLENAME_REVERSE_PROPERTIES, column_name_predicate, column_name_object, name_tripletable);
-		
-		Dataset<Row> reversePropertyTable = buildComplexPropertyTable(TABLENAME_REVERSE_PROPERTIES, column_name_subject, 
-				column_name_predicate, column_name_object, name_tripletable, true, true);
-		
-		Dataset<Row> fullPropertyTable = propertyTable.union(reversePropertyTable);
-		
-		fullPropertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
-		logger.info("Created property table with name: " + output_tablename);	
+		//creates reverse property table
+		buildProperties(reverseTableName, true);	
+		buildComplexPropertyTable(reverseTableName, true).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputReversePropertyTableName);	
+		LOGGER.info("Created property table with name: " + outputReversePropertyTableName);	
 	}
 		
 	/**
 	 * Creates a table containing possible properties and their complexities
 	 * 
-	 * @param propertyTableName name of the table to be created
-	 * @param predicateColumnName name of the column containing predicates in the triplestore table
-	 * @param sourceEntityColumnName name of the source column in the triplestore table (either subject or object entity)
-	 * @param tripleTableName name of the triplestore table
+	 * <p>The scheme of the created table is (&ltpredicateColumnName&gt: String, is_complex: Integer), where is_complex has the value of 1 in case there is more than one
+	 * triple containing the predicate-object or subject-predicate (depending on the <b>isReverseOrder</b> parameter.
+	 * 
+	 * @param propertiesTableName name of the table to be created
+	 * @param isReverseOrder indicates whether the complexity of a property is determined by the count of elements in a predicate-object group (case TRUE),
+	 * or the count of elements in a subject-predicate group (case FALSE)
+	 * @param ignoreLiterals indicates whether to ignore triples where the object is a literal. Only applicable when isReverse is True, as no subject is a literal.
 	 */
-	public void buildProperties(String propertyTableName, String predicateColumnName, String sourceEntityColumnName, String tripleTableName) {
+	private void buildProperties(String propertiesTableName, Boolean isReverseOrder, Boolean ignoreLiterals) {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
 		// 1 for multivalued predicate, 0 for single predicate
-		
-		
+				
 		// select the properties that are complex
-		Dataset<Row> multivaluedProperties = spark.sql(String.format(
-				"SELECT DISTINCT(%1$s) AS %1$s FROM "
-				+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
-				predicateColumnName, sourceEntityColumnName, tripleTableName));
+		Dataset<Row> multivaluedProperties;
+		if (isReverseOrder) {
+			//grouping by predicate-object
+			if (ignoreLiterals) {
+				//literals begin and ends with the char '"'
+				multivaluedProperties = spark.sql(String.format(
+						"SELECT DISTINCT(%1$s) AS %1$s FROM "
+						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s WHERE %2$s NOT RLIKE ^\\\".*$\\\" HAVING rc > 1) AS grouped",
+						predicateColumnName, objectColumnName, tripleTableName));
+			}
+			else {
+				multivaluedProperties = spark.sql(String.format(
+						"SELECT DISTINCT(%1$s) AS %1$s FROM "
+						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
+						predicateColumnName, objectColumnName, tripleTableName));
+			}
+		}else {
+			//grouping by subject-predicate
+			multivaluedProperties = spark.sql(String.format(
+					"SELECT DISTINCT(%1$s) AS %1$s FROM "
+					+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
+					predicateColumnName, subjectColumnName, tripleTableName));
+		}
 		
 		// select all the properties
 		Dataset<Row> allProperties = spark.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s",
@@ -85,8 +97,8 @@ public class PropertyTableLoader extends Loader{
 		
 		// combine them
 		Dataset<Row> combinedProperties = singledValueProperties
-				.selectExpr(predicateColumnName, "0 AS is_complex")
-				.union(multivaluedProperties.selectExpr(predicateColumnName, "1 AS is_complex"));
+				.selectExpr(predicateColumnName, "lit(0) AS is_complex")
+				.union(multivaluedProperties.selectExpr(predicateColumnName, "lit(1) AS is_complex"));
 		
 		// remove '<' and '>', convert the characters
 		Dataset<Row> cleanedProperties = combinedProperties.withColumn(predicateColumnName, 
@@ -94,43 +106,68 @@ public class PropertyTableLoader extends Loader{
 				"[[^\\w]+]", "_"));
 		
 		// write the result
-		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable(propertyTableName);
-		logger.info("Created properties table with name: " + propertyTableName);
+		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable(propertiesTableName);
+		LOGGER.info("Created properties table with name: " + propertiesTableName);
+	}
+	
+	/**
+	 * Creates a table of properties and theirs complexities.
+	 * 
+	 * <p>Complexity is checked according to the number of triples in a each group of predicate-object
+	 * 
+	 * @see PropertyTableLoader#buildProperties(String, Boolean, Boolean)
+	 */
+	private void buildProperties() {
+		buildProperties(nonReversePropertiesTableName, false, false);
+	}
+	
+	/**
+	 * Creates a table of properties and theirs complexities.
+	 * 
+	 * Literals in &ltobjectColumnName&gt are ignored in case the parameter <b>isReverseOrder</b> is <b>true</b>. If <b>isReverseOrder</b> is <b>false</b>, 
+	 * there are no literals in &ltsubjectColumnName&gt by the definition of RDF triples.
+	 *  
+	 * @param propertiesTableName name of the table to be created
+	 * @param isReverseOrder indicates whether the complexity of a property is determined by the count of elements in a predicate-object group (case TRUE),
+	 * or the count of elements in a subject-predicate group (case FALSE)
+	 * 
+	 * @see PropertyTableLoader#buildProperties(String, Boolean, Boolean)
+	 */
+	private void buildProperties(String propertiesTableName, Boolean isReverseOrder) {
+		buildProperties(propertiesTableName, isReverseOrder, true);
 	}
 	
 	/**
 	 * Returns a dataset with the property table generated from the given triplestore table
 	 * 
-	 * Given a triplestore table (s-p-o), columns of the type List[String] or String are created for each predicate.
-	 * <p>A column named <subjectColumnName> is created containing the source column. The source column is either 
-	 * <subjectColumnName> if <isReverseOrder> is False, or <predicateColumnName> otherwise</p>
-	 * A column named is_reverse_order is also created
-	 * <p>Each property column contains a List[String] or String with the appropriate entities from the target column,
-	 * or is Null otherwise</p>
+	 * <p>Given a triplestore table (s-p-o), columns of the type List[String] or String are created for each predicate.</p>
+	 * <p>A column named &ltsubjectColumnName&gt is created containing the source column. The source column is either 
+	 * &ltsubjectColumnName&gt if <b>isReverseOrder</b> is <b>false</b>, or &ltpredicateColumnName&gt otherwise</p>
+	 * <p>A column named <b>is_reverse_order</b> is also created with the <b>is_reverse_order</b> parameter value.</p>
+	 * <p>Each property column contains a List[String] or String with the appropriate entities from the target column</p>
 	 * 
-	 * @param propertiesTableName name of the table of properties to be used
-	 * @param subjectColumnName name of the column containing the subjects in the triplestore table
-	 * @param predicateColumnName name of the column containing the predicates in the triplestore table
-	 * @param objectColumnName name of the column containing the objects in the triplestore table
-	 * @param tripleTableName name of the triplestore table
-	 * @param isReverseOrder sets the order of the source and target columns (False = subject->predicate->object; True= object->predicate->subject)
-	 * @param removeLiterals sets whether literals should be removed from the source column
-	 * @return return a dataset with the following schema: (subjectColumnName: STRING, is_reverse_order: Boolean, p1: LIST<STRING> OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * @param propertiesTableName name of the properties table to be used
+	 * @param isReverseOrder sets the order of the source and target columns (False = subject->tpredicate->object; True= object->predicate->subject)
+	 * @param removeLiterals sets whether literals should be removed from the source column. Ignored if <b>is_reverse</b> is <b>false</b>
+	 * @return return a dataset with the following schema: 
+	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
 	 */
-	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, String subjectColumnName, String predicateColumnName, String objectColumnName, 
-			String tripleTableName, Boolean isReverseOrder, Boolean removeLiterals) {
-				
+	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverseOrder, Boolean removeLiterals) {
+		final String sourceColumn;
+		final String targetColumn;
+		
 		if (isReverseOrder) {
-			// swap subject and object column names
-			String temp = subjectColumnName;
-			subjectColumnName = objectColumnName;
-			objectColumnName = temp;
+			sourceColumn = subjectColumnName;
+			targetColumn = objectColumnName;
+		}
+		else {
+			sourceColumn = objectColumnName;
+			targetColumn = subjectColumnName;
 		}
 		
 		// collect information for all properties
 		// allProperties contains the list of all possible properties
-		// isComplexProperty indicates with a boolean value whether the property with the same index in allProperties is complex (multivalued) or simple
-		
+		// isComplexProperty indicates with a boolean value whether the property with the same index in allProperties is complex (multivalued) or simple		
 		List<Row> props = spark.sql(String.format("SELECT * FROM %s", propertiesTableName)).collectAsList();
 		String[] allProperties = new String[props.size()];
 		Boolean[] isComplexProperty = new Boolean[props.size()];
@@ -142,32 +179,32 @@ public class PropertyTableLoader extends Loader{
 		//this.properties_names = allProperties;
 			
 		// create a new aggregation environment
-		PropertiesAggregateFunction aggregator = new PropertiesAggregateFunction(allProperties, columns_separator);
+		PropertiesAggregateFunction aggregator = new PropertiesAggregateFunction(allProperties, COLLUMNS_SEPARATOR);
 
-		String predicateObjectColumn = "po";
-		String groupColumn = "group";
+		String predicateObjectColumnName = "po";
+		String groupColumnName = "group";
 		
 		// get the compressed table
 		Dataset<Row> compressedTriples;
 		if (removeLiterals) {
-			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s WHERE %s NOT RLIKE \".*\"",
-					subjectColumnName, predicateColumnName, columns_separator, objectColumnName, predicateObjectColumn, tripleTableName, subjectColumnName));
+			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s WHERE %s NOT RLIKE ^\\\".*$\\\"",
+					sourceColumn, predicateColumnName, COLLUMNS_SEPARATOR, targetColumn, predicateObjectColumnName, tripleTableName, sourceColumn));
 		} else {
 			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s",
-					subjectColumnName, predicateColumnName, columns_separator, objectColumnName, predicateObjectColumn, tripleTableName));
+					sourceColumn, predicateColumnName, COLLUMNS_SEPARATOR, targetColumn, predicateObjectColumnName, tripleTableName));
 		}
 		
 		// group by the subject and get all the data
-		Dataset<Row> grouped = compressedTriples.groupBy(subjectColumnName)
-				.agg(aggregator.apply(compressedTriples.col(predicateObjectColumn)).alias(groupColumn));
+		Dataset<Row> grouped = compressedTriples.groupBy(sourceColumn)
+				.agg(aggregator.apply(compressedTriples.col(predicateObjectColumnName)).alias(groupColumnName));
 
 		// build the query to extract the property from the array
 		String[] selectProperties = new String[allProperties.length + 2];
-		selectProperties[0] = subjectColumnName;
+		selectProperties[0] = sourceColumn;
 		if (isReverseOrder) {
-			selectProperties[1] = "True as is_reverse_order";
+			selectProperties[1] = "lit(true) as is_reverse_order";
 		} else {
-			selectProperties[1] = "False as is_reverse_order";
+			selectProperties[1] = "lit(false) as is_reverse_order";
 		}
 		for (int i = 0; i < allProperties.length; i++) {
 			// if property is a full URI, remove the < at the beginning end > at the end
@@ -177,17 +214,45 @@ public class PropertyTableLoader extends Loader{
 					
 			// if is not a complex type, extract the value
 			String newProperty = isComplexProperty[i]
-					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
-					: " " + groupColumn + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
+					? " " + groupColumnName + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
+					: " " + groupColumnName + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
 			selectProperties[i + 2] = newProperty;
 		}		
 		
 		if (isReverseOrder) {
 			// renames the column so that its name is consistent with the non-reverse dataset
-			return grouped.selectExpr(selectProperties).withColumnRenamed(subjectColumnName, predicateColumnName);
+			return grouped.selectExpr(selectProperties).withColumnRenamed(sourceColumn, targetColumn);
 		}
 		else{
 			return grouped.selectExpr(selectProperties);
 		}
+	}
+	
+	/**
+	 * Returns a dataset with the property table generated based on the subjects and the previously generated nonReversePropertiesTableName
+	 * 
+	 * @return return a dataset with the following schema: 
+	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * 
+	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
+	 */
+	public Dataset<Row> buildComplexPropertyTable() {
+		return buildComplexPropertyTable(nonReversePropertiesTableName, false, false);
+	}
+	
+	/**
+	 * Returns a dataset with the property table generated and ignoring literals in the &ltobjectColumn&gt if <b>is_reverse</b> is <b>true</b>.
+	 * 
+	 * <p>If <b>is_reverse</b> is <b>false</b>, there are no literals in &ltsubjectColumnName&gt by the definition of RDF triples.
+	 * 
+	 * @param propertiesTableName name of the properties table to be used
+	 * @param isReverse
+	 * @return return a dataset with the following schema: 
+	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * 
+	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
+	 */
+	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverse) {
+		return buildComplexPropertyTable(propertiesTableName, false, true);
 	}
 }

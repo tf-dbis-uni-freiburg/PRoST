@@ -30,7 +30,7 @@ public class TripleTableLoader extends Loader {
 						+ "'org.apache.hadoop.hive.serde2.RegexSerDe'  WITH SERDEPROPERTIES "
 						+ "( \"input.regex\" = \"(\\\\S+)\\\\s+(\\\\S+)\\\\s+(.*)\")"
 						+ "LOCATION '%s'",
-						name_tripletable, column_name_subject, column_name_predicate, column_name_object, hdfs_input_directory);
+						tripleTableName, subjectColumnName, predicateColumnName, objectColumnName, hdfsInputDirectory);
 
 		spark.sql(createTripleTable);
 		
@@ -40,24 +40,24 @@ public class TripleTableLoader extends Loader {
 		
 		spark.sql("show databases").show();
 		spark.sql("show tables from prost_todelete").show();
-		spark.sql("describe "+name_tripletable).show();
-		logger.info("Created tripletable");
+		spark.sql("describe "+tripleTableName).show();
+		LOGGER.info("Created tripletable");
 	}
 	
 	public void load_ntriples() {
-		String ds = hdfs_input_directory;
+		String ds = hdfsInputDirectory;
 		Dataset<Row> triple_table_file = spark.read().text(ds);
 
 		
 		String triple_regex = build_triple_regex();
 
 		Dataset<Row> triple_table = triple_table_file.select(
-				functions.regexp_extract(functions.col("value"), triple_regex, 1).alias(this.column_name_subject),
-				functions.regexp_extract(functions.col("value"), triple_regex, 2).alias(this.column_name_predicate),
-				functions.regexp_extract(functions.col("value"), triple_regex, 3).alias(this.column_name_object));
+				functions.regexp_extract(functions.col("value"), triple_regex, 1).alias(this.subjectColumnName),
+				functions.regexp_extract(functions.col("value"), triple_regex, 2).alias(this.predicateColumnName),
+				functions.regexp_extract(functions.col("value"), triple_regex, 3).alias(this.objectColumnName));
 		
-		triple_table.createOrReplaceTempView(name_tripletable);
-		logger.info("Created tripletable");
+		triple_table.createOrReplaceTempView(tripleTableName);
+		LOGGER.info("Created tripletable");
 	}
 	
 	// this method exists for the sake of clarity instead of a constant String

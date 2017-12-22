@@ -86,9 +86,6 @@ public class Main {
 		PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
 		pt_loader.load();
 		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark);
-		vp_loader.load();
-		
+		vp_loader.load();		
 	}
-
-
 }

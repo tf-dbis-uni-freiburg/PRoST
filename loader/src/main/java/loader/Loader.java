@@ -16,24 +16,24 @@ public abstract class Loader {
 	public abstract void load();
 	
 	protected SparkSession spark;
-	protected String database_name;
-	protected String hdfs_input_directory;
-	protected static final Logger logger = Logger.getLogger(Main.class);
-	public boolean keep_temporary_tables = false;
-	public static final String table_format = "parquet";
+	protected final String databaseName;
+	protected final String hdfsInputDirectory;
+	protected static final Logger LOGGER = Logger.getLogger(Main.class);
+	public boolean keepTemporaryFiles = false;
+	public static final String TABLE_FORMAT = "parquet";
 	/** The separators used in the RDF data. */
-	public String line_terminator = "\\n";
-	public String column_name_subject = "s";
-	public String column_name_predicate = "p";
-	public String column_name_object = "o";
-	public String name_tripletable  = "tripletable";
-	protected String[] properties_names;
-	public String stats_file_suffix = ".stats";
+	public final String lineTerminator = "\\n";
+	public final String subjectColumnName = "s";
+	public final String predicateColumnName = "p";
+	public final String objectColumnName = "o";
+	public final String tripleTableName  = "tripletable";
+	protected String[] propertiesNames;
+	public final String statsFileSufix = ".stats";
 	
 	public Loader(String hdfs_input_directory, String database_name, SparkSession spark){
-		this.database_name = database_name;
+		this.databaseName = database_name;
 		this.spark = spark;
-		this.hdfs_input_directory = hdfs_input_directory;
+		this.hdfsInputDirectory = hdfs_input_directory;
 		
 		// from now on, set the right database
 		this.useOutputDatabase();
@@ -63,13 +63,12 @@ public abstract class Loader {
 	protected void dropTables(String... tableNames) {
 		for (String tb : tableNames)
 			spark.sql("DROP TABLE " + tb);
-		logger.info("Removed tables: " + tableNames);
+		LOGGER.info("Removed tables: " + tableNames);
 	}
 	
 	protected void useOutputDatabase() {
-		spark.sql("CREATE DATABASE IF NOT EXISTS " + database_name);
-		spark.sql("USE "  + database_name);
-		logger.info("Using the database: " + database_name);
+		spark.sql("CREATE DATABASE IF NOT EXISTS " + databaseName);
+		spark.sql("USE "  + databaseName);
+		LOGGER.info("Using the database: " + databaseName);
 	}
-
 }
