@@ -7,8 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.realtime.RealtimeThread;
-
 import org.apache.log4j.Logger;
 
 import JoinTree.ProtobufStats;
@@ -96,7 +94,7 @@ public class Stats {
 	    // one of the two is prefixed the other not
 	    boolean partialMatch1 = realTableName.endsWith(cleanedTableName);
 	    boolean partialMatch2 = cleanedTableName.endsWith(realTableName);
-	    
+
 	    // if there is a match, return the correct table name
 	    if(exactMatch || partialMatch1 || partialMatch2)
 	      return realTableName;
