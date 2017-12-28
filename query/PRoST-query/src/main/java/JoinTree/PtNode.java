@@ -10,20 +10,24 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import Executor.Utils;
+import Translator.Stats;
 
 /*
  * A node of the JoinTree that refers to the Property Table.
  */
 public class PtNode extends Node {
 	
-	/*
+	private Stats stats;
+
+  /*
 	 * The node contains a list of triple patterns with the same subject.
 	 */
-	public PtNode(List<TriplePattern> tripleGroup){
+	public PtNode(List<TriplePattern> tripleGroup, Stats stats){
 		
 		super();
 		this.isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
+		this.stats = stats;
 		
 	}
 	
@@ -31,7 +35,7 @@ public class PtNode extends Node {
 	 * Alternative constructor, used to instantiate a Node directly with
 	 * a list of jena triple patterns.
 	 */
-	public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes) {
+	public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
 		for (Triple t : jenaTriples){
 			triplePatterns.add(new TriplePattern(t, prefixes));
@@ -40,6 +44,7 @@ public class PtNode extends Node {
 		this.tripleGroup = triplePatterns;
 		this.children = new ArrayList<Node>();
 		this.projection = Collections.emptyList();
+		this.stats = stats;
 		
 	}
 
@@ -54,20 +59,24 @@ public class PtNode extends Node {
 
 		// objects
 		for (TriplePattern t : tripleGroup) {
+		    String columnName = stats.findTableName(t.predicate);
+		    if (columnName == null) {
+		      System.err.println("This column does not exists: " + t.predicate);
+		      return;
+		    }
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex)
 					whereConditions
-							.add("array_contains(" + Utils.toMetastoreName(t.predicate) + ", '" + t.object + "')");
+							.add("array_contains(" +columnName + ", '" + t.object + "')");
 				else
-					whereConditions.add(Utils.toMetastoreName(t.predicate) + "='" + t.object + "'");
+					whereConditions.add(columnName + "='" + t.object + "'");
 			} else if (t.isComplex) {
-				String columnName = Utils.toMetastoreName(t.predicate);
 				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
 				explodedColumns.add(columnName);
 			} else {
 				query.append(
-						" " + Utils.toMetastoreName(t.predicate) + " AS " + Utils.removeQuestionMark(t.object) + ",");
-				whereConditions.add(Utils.toMetastoreName(t.predicate) + " IS NOT NULL");
+						" " + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
 

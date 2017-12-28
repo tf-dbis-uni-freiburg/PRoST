@@ -173,10 +173,11 @@ public class Translator {
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
 				if (subjectGroups.get(subject).size() >= minimumGroupSize){
-					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes));
+					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes, this.stats));
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
-						Node newNode = new VpNode(new TriplePattern(t, prefixes));
+					    String tableName = this.stats.findTableName(t.getPredicate().getName());
+						Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 				}
@@ -184,7 +185,8 @@ public class Translator {
     
 		} else {
 			for(Triple t : triples){
-				Node newNode = new VpNode(new TriplePattern(t, prefixes));
+			    String tableName = this.stats.findTableName(t.getPredicate().getName());
+				Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 				nodesQueue.add(newNode);
 			}
 		}

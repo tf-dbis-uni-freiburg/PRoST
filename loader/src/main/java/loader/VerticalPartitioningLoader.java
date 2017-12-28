@@ -41,7 +41,7 @@ public class VerticalPartitioningLoader extends Loader {
 			String table_name_VP = "vp_" + this.getValidHiveName(property);
 			
 			// calculate stats
-			tables_stats.add(calculate_stats_table(table_VP));
+			tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
 			
 			table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
 			logger.info("Created VP table for the property: " + property);
@@ -59,7 +59,7 @@ public class VerticalPartitioningLoader extends Loader {
 	 * size, number of distinct subjects and isComplex.
 	 * It returns a protobuf object defined in ProtobufStats.proto
 	 */
-	private TableStats calculate_stats_table(Dataset<Row> table) {
+	private TableStats calculate_stats_table(Dataset<Row> table, String tableName) {
 		TableStats.Builder table_stats_builder = TableStats.newBuilder();
 		
 		// calculate the stats
@@ -70,7 +70,8 @@ public class VerticalPartitioningLoader extends Loader {
 		// put them in the protobuf object
 		table_stats_builder.setSize(table_size)
 			.setDistinctSubjects(distinct_subjects)
-			.setIsComplex(is_complex);
+			.setIsComplex(is_complex)
+			.setName(tableName);
 		
 		return table_stats_builder.build();
 	}
