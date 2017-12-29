@@ -67,11 +67,11 @@ public class PropertyTableLoader extends Loader{
 		Dataset<Row> multivaluedProperties;
 		if (isReverseOrder) {
 			//grouping by predicate-object
-			if (ignoreLiterals) {
+			if (ignoreLiterals) {	
 				//literals begin and ends with the char '"'
 				multivaluedProperties = spark.sql(String.format(
 						"SELECT DISTINCT(%1$s) AS %1$s FROM "
-						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s WHERE %2$s NOT RLIKE ^\\\".*$\\\" HAVING rc > 1) AS grouped",
+						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s WHERE %2$s NOT RLIKE \"^\\\".*\\\"$\" GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
 						predicateColumnName, objectColumnName, tripleTableName));
 			}
 			else {
@@ -97,8 +97,8 @@ public class PropertyTableLoader extends Loader{
 		
 		// combine them
 		Dataset<Row> combinedProperties = singledValueProperties
-				.selectExpr(predicateColumnName, "lit(0) AS is_complex")
-				.union(multivaluedProperties.selectExpr(predicateColumnName, "lit(1) AS is_complex"));
+				.selectExpr(predicateColumnName, "0 AS is_complex")
+				.union(multivaluedProperties.selectExpr(predicateColumnName, "1 AS is_complex"));
 		
 		// remove '<' and '>', convert the characters
 		Dataset<Row> cleanedProperties = combinedProperties.withColumn(predicateColumnName, 
@@ -143,26 +143,25 @@ public class PropertyTableLoader extends Loader{
 	 * <p>Given a triplestore table (s-p-o), columns of the type List[String] or String are created for each predicate.</p>
 	 * <p>A column named &ltsubjectColumnName&gt is created containing the source column. The source column is either 
 	 * &ltsubjectColumnName&gt if <b>isReverseOrder</b> is <b>false</b>, or &ltpredicateColumnName&gt otherwise</p>
-	 * <p>A column named <b>is_reverse_order</b> is also created with the <b>is_reverse_order</b> parameter value.</p>
 	 * <p>Each property column contains a List[String] or String with the appropriate entities from the target column</p>
 	 * 
 	 * @param propertiesTableName name of the properties table to be used
 	 * @param isReverseOrder sets the order of the source and target columns (False = subject->tpredicate->object; True= object->predicate->subject)
 	 * @param removeLiterals sets whether literals should be removed from the source column. Ignored if <b>is_reverse</b> is <b>false</b>
 	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
 	 */
 	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverseOrder, Boolean removeLiterals) {
 		final String sourceColumn;
 		final String targetColumn;
 		
 		if (isReverseOrder) {
-			sourceColumn = subjectColumnName;
-			targetColumn = objectColumnName;
-		}
-		else {
 			sourceColumn = objectColumnName;
 			targetColumn = subjectColumnName;
+		}
+		else {
+			sourceColumn = subjectColumnName;
+			targetColumn = objectColumnName;
 		}
 		
 		// collect information for all properties
@@ -187,7 +186,7 @@ public class PropertyTableLoader extends Loader{
 		// get the compressed table
 		Dataset<Row> compressedTriples;
 		if (removeLiterals) {
-			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s WHERE %s NOT RLIKE ^\\\".*$\\\"",
+			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s WHERE %s NOT RLIKE \"^\\\".*\\\"$\"",
 					sourceColumn, predicateColumnName, COLLUMNS_SEPARATOR, targetColumn, predicateObjectColumnName, tripleTableName, sourceColumn));
 		} else {
 			compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS %s FROM %s",
@@ -199,13 +198,8 @@ public class PropertyTableLoader extends Loader{
 				.agg(aggregator.apply(compressedTriples.col(predicateObjectColumnName)).alias(groupColumnName));
 
 		// build the query to extract the property from the array
-		String[] selectProperties = new String[allProperties.length + 2];
+		String[] selectProperties = new String[allProperties.length + 1];
 		selectProperties[0] = sourceColumn;
-		if (isReverseOrder) {
-			selectProperties[1] = "lit(true) as is_reverse_order";
-		} else {
-			selectProperties[1] = "lit(false) as is_reverse_order";
-		}
 		for (int i = 0; i < allProperties.length; i++) {
 			// if property is a full URI, remove the < at the beginning end > at the end
 			String rawProperty = allProperties[i].startsWith("<") && allProperties[i].endsWith(">") 
@@ -216,7 +210,7 @@ public class PropertyTableLoader extends Loader{
 			String newProperty = isComplexProperty[i]
 					? " " + groupColumnName + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
 					: " " + groupColumnName + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
-			selectProperties[i + 2] = newProperty;
+			selectProperties[i + 1] = newProperty;
 		}		
 		
 		if (isReverseOrder) {
@@ -232,7 +226,7 @@ public class PropertyTableLoader extends Loader{
 	 * Returns a dataset with the property table generated based on the subjects and the previously generated nonReversePropertiesTableName
 	 * 
 	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
 	 * 
 	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
 	 */
@@ -248,11 +242,11 @@ public class PropertyTableLoader extends Loader{
 	 * @param propertiesTableName name of the properties table to be used
 	 * @param isReverse
 	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, is_reverse_order: Boolean, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
 	 * 
 	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
 	 */
 	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverse) {
-		return buildComplexPropertyTable(propertiesTableName, false, true);
+		return buildComplexPropertyTable(propertiesTableName, isReverse, true);
 	}
 }

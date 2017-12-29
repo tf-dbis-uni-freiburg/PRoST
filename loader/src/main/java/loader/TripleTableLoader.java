@@ -33,14 +33,6 @@ public class TripleTableLoader extends Loader {
 						tripleTableName, subjectColumnName, predicateColumnName, objectColumnName, hdfsInputDirectory);
 
 		spark.sql(createTripleTable);
-		
-		
-		//spark.sql("show databases").show();
-		//spark.sql("show tables from prost_todelete." + name_tripletable).show();
-		
-		spark.sql("show databases").show();
-		spark.sql("show tables from prost_todelete").show();
-		spark.sql("describe "+tripleTableName).show();
 		LOGGER.info("Created tripletable");
 	}
 	
