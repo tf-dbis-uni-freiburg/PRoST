@@ -49,7 +49,7 @@ public abstract class Loader {
 	 * @return name of a DB column
 	 */
 	protected String getValidHiveName(String columnName) {
-		return columnName.replaceAll("[^a-zA-Z0-9_]", "_");
+		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
 	
 	
