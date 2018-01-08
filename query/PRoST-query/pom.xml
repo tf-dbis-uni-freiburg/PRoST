@@ -81,14 +81,11 @@
 						</goals>
 						<configuration>
 							<artifactSet>
-								<excludes>
-									<exclude>*yarn*</exclude>
-									<exclude>*hadoop*</exclude>
-									<exclude>*spark*</exclude>
-								</excludes>
+
 								<includes>
 									<include>*google*</include>
 									<include>*jena*</include>
+									<include>org.apache.commons*</include>
 								</includes>
 							</artifactSet>
 						</configuration>
