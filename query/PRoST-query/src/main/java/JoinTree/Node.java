@@ -66,11 +66,19 @@ public abstract class Node {
 	
 	@Override
 	public String toString(){
-		StringBuilder str = new StringBuilder("[Triple: " + triplePattern.toString() + " Children: ");
-		for (Node child: children){
-			str.append(child.toString() + "\t" );
+		StringBuilder str = new StringBuilder("{");
+		if (this instanceof PtNode) {
+		  for(TriplePattern tp_group : this.tripleGroup)
+		    str.append(tp_group.toString() + ", ");
+		} else {
+		  str.append(triplePattern.toString());
 		}
-		str.append("]");
+		str.append(" }");
+		str.append(" [");
+		for (Node child: children){
+			str.append("\n" + child.toString());
+		}
+		str.append("\n]");
 		return str.toString();
 	}
 
