@@ -1,7 +1,9 @@
 package JoinTree;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -55,9 +57,9 @@ public abstract class Node {
 		Dataset<Row> currentResult = this.sparkNodeData;
 		for (Node child: children){
 			Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
-			String joinVariable = Utils.findCommonVariable(triplePattern, tripleGroup, child.triplePattern, child.tripleGroup);
-			if (joinVariable != null)
-				currentResult = currentResult.join(childResult, joinVariable);
+			List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
+			currentResult = currentResult.join(childResult, 
+			    scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 			
 		}
 		return currentResult;
