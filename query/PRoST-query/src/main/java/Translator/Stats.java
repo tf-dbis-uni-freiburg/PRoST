@@ -87,19 +87,19 @@ public class Stats {
 	 * Return null if there is no match
 	 */
 	public String findTableName(String tableName) {
-	  String cleanedTableName = Utils.toMetastoreName(tableName);
-	  
+	  String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
+	 
 	  for(String realTableName: this.tableNames) {
-	    boolean exactMatch = realTableName.equals(cleanedTableName);
+	    
+	    boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
 	    // one of the two is prefixed the other not
-	    boolean partialMatch1 = realTableName.endsWith(cleanedTableName);
-	    boolean partialMatch2 = cleanedTableName.endsWith(realTableName);
-
+	    boolean partialMatch1 = realTableName.toLowerCase().endsWith(cleanedTableName);
+	    boolean partialMatch2 = cleanedTableName.endsWith(realTableName.toLowerCase());
+	    
 	    // if there is a match, return the correct table name
 	    if(exactMatch || partialMatch1 || partialMatch2)
 	      return realTableName;
 	  }
-	  
 	  // not found
 	  return null;
 	}
