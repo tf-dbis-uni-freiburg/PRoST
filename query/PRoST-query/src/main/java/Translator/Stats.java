@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import JoinTree.ProtobufStats;
@@ -64,17 +65,20 @@ public class Stats {
 	}
 	
 	public int getTableSize(String table){
-		if(!tableSize.containsKey(table)) return -1;
+	    table = this.findTableName(table);
+		if(table == null) return -1;
 		return tableSize.get(table);
 	}
 	
 	public int getTableDistinctSubjects(String table){
-		if(!tableDistinctSubjects.containsKey(table)) return -1;
+	    table = this.findTableName(table);
+		if(table == null) return -1;
 		return tableDistinctSubjects.get(table);
 	}
 	
 	public Table getTableStats(String table){
-		if(!tableStats.containsKey(table)) return null;
+	    table = this.findTableName(table);
+		if(table == null) return null;
 		return tableStats.get(table);
 	}
 	
@@ -112,6 +116,21 @@ public class Stats {
 	  // not found
 	  return null;
 	}
+	
+	   /*
+     * return true if prefixed are used in the dataset.
+     * It tries to guess from the properties names to not query the real data.
+     * TODO: query the real data to be sure, or ask the user.
+     */
+    public boolean arePrefixesActive() {
+      
+      for(String propertyName : this.tableNames) {
+        if(StringUtils.countMatches(propertyName, "_") > 2)
+          return false;
+      }
+      
+      return true;
+    }
 	
 
 }

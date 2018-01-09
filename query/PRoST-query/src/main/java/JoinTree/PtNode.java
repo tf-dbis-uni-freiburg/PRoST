@@ -17,7 +17,6 @@ import Translator.Stats;
  */
 public class PtNode extends Node {
 	
-	private Stats stats;
 
   /*
 	 * The node contains a list of triple patterns with the same subject.
@@ -38,14 +37,14 @@ public class PtNode extends Node {
 	 */
 	public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
-		for (Triple t : jenaTriples){
-			triplePatterns.add(new TriplePattern(t, prefixes));
-		}
 		this.isPropertyTable = true;
 		this.tripleGroup = triplePatterns;
 		this.children = new ArrayList<Node>();
 		this.projection = Collections.emptyList();
 		this.stats = stats;
+		for (Triple t : jenaTriples){
+		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
+		}
 		this.setIsComplex();
 		
 	}

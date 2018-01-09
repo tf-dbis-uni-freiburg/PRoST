@@ -177,7 +177,7 @@ public class Translator {
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
 					    String tableName = this.stats.findTableName(t.getPredicate().toString());
-						Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+						Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
 						nodesQueue.add(newNode);
 					}
 				}
@@ -186,7 +186,7 @@ public class Translator {
 		} else {
 			for(Triple t : triples){
 			    String tableName = this.stats.findTableName(t.getPredicate().toString());
-				Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+				Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
 				nodesQueue.add(newNode);
 			}
 		}

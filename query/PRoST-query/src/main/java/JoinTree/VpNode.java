@@ -5,6 +5,7 @@ import java.util.Collections;
 import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
+import Translator.Stats;
 
 
 /*
@@ -20,8 +21,7 @@ public class VpNode extends Node {
 		super();
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
-		this.tripleGroup = Collections.emptyList();
-		
+		this.tripleGroup = Collections.emptyList();		
 	}
 	
 	public void computeNodeData(SQLContext sqlContext){
