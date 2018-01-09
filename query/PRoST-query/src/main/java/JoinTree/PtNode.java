@@ -28,6 +28,7 @@ public class PtNode extends Node {
 		this.isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		this.stats = stats;
+		this.setIsComplex();
 		
 	}
 	
@@ -45,10 +46,17 @@ public class PtNode extends Node {
 		this.children = new ArrayList<Node>();
 		this.projection = Collections.emptyList();
 		this.stats = stats;
+		this.setIsComplex();
 		
 	}
 
-	public void computeNodeData(SQLContext sqlContext) {
+	private void setIsComplex() {
+	  for(TriplePattern triplePattern: this.tripleGroup) {
+	    triplePattern.isComplex = stats.isTableComplex(triplePattern.predicate);
+	  }
+    }
+
+  public void computeNodeData(SQLContext sqlContext) {
 
 		StringBuilder query = new StringBuilder("SELECT ");
 		ArrayList<String> whereConditions = new ArrayList<String>();
@@ -59,7 +67,7 @@ public class PtNode extends Node {
 
 		// objects
 		for (TriplePattern t : tripleGroup) {
-		    String columnName = stats.findTableName(t.predicate);
+		    String columnName = stats.findTableName(t.predicate.toString());
 		    if (columnName == null) {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;

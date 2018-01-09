@@ -78,6 +78,10 @@ public class Stats {
 		return tableStats.get(table);
 	}
 	
+	public boolean isTableComplex(String table) {
+	  String cleanedTableName = this.findTableName(table);
+      return this.getTableSize(cleanedTableName) != this.getTableDistinctSubjects(cleanedTableName);
+	}
 	
 	/*
 	 * This method returns the same name for the table (VP) or column (PT)
@@ -88,9 +92,14 @@ public class Stats {
 	 */
 	public String findTableName(String tableName) {
 	  String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
-	 
+	  
+	  if (cleanedTableName.contains("_")) {
+	    int lstIdx = cleanedTableName.lastIndexOf("_");
+	    cleanedTableName = cleanedTableName.substring(lstIdx);	    
+	  }
+	  
 	  for(String realTableName: this.tableNames) {
-	    
+
 	    boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
 	    // one of the two is prefixed the other not
 	    boolean partialMatch1 = realTableName.toLowerCase().endsWith(cleanedTableName);
