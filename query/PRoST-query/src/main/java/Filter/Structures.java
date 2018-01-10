@@ -28,11 +28,14 @@ public class Structures {
 				"WHERE {\n" + 
 				"    ?person foaf:name ?name .\n"
 				+ "  ?ciccia foaf:tot ?nome .\n"
-				+ "  FILTER(?name = \"Peter\"" + " && " 
-				+ " ?person = ?nome)" +
+				+ "  FILTER(?name = \"Peter\"" 
+				+ " || " 
+				
+				//+ "!bound(?name)) "
+				+ " (?a + ?n) >= 5)" 
 //				+ " FILTER(bound(?name) ) \n" +
 //				"  FILTER(?name = \"Peter\")" +
-				"}";
+				+ "}";
 		
 		TestJean j = new TestJean();
 

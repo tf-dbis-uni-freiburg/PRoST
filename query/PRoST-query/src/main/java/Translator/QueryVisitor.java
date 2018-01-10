@@ -37,7 +37,7 @@ public class QueryVisitor extends OpVisitorBase {
     	for (Expr e : opFilter.getExprs()) {
 			e.visit(filterV);
 			filter = filterV.getSQLFilter();
-			System.out.println("AAA");
+			System.out.println("AAAB");
 			System.out.println("Filter: " + filter);
 			System.out.println(e);
 			System.out.println(e.isFunction());

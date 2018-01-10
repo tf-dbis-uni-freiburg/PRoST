@@ -35,9 +35,9 @@ public class TestJean extends OpVisitorBase {
     {
          
     	 triples = opBGP.getPattern().getList();
-    	 System.out.println("Printing triple");
+    	 System.out.println("Printing triple in opBGP" + triples );
     	 for (Triple t : triples) {
-    		 System.out.println(t);
+    		 System.out.println("Triples in BGP: " + t);
     	 }
     	 id = "sssss";
     }
@@ -60,16 +60,15 @@ public class TestJean extends OpVisitorBase {
     		}
     	}*/
     	FilterVisitor a = new FilterVisitor();
+    	//System.out.println("Subexpression of opFilter: " + opFilter.getSubOp());
     	for (Expr e : opFilter.getExprs()) {
-    		
+    		System.out.println("Subexpression of opFilter: "+ e.getFunction());
 			e.visit(a);
 			filter = a.getSQLFilter();
-			System.out.println("AAA");
+			System.out.println(filter);
 			System.out.println(e);
 			System.out.println(e.isFunction());
 		}
-    	
-
     }
     
     public void visit(OpProject opP)
