@@ -1,1 +1,29 @@
 /target/
+*.jar
+*.war
+*.ear
+*.class
+
+# eclipse 
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+PRoST-query\src\main\java\Filter\Structures.java
+PRoST-query\src\main\java\Filter\TestJean.java
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
