@@ -3,11 +3,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
+import Translator.Stats;
 
 /*
  * A single node of the JoinTree
@@ -21,6 +23,7 @@ public abstract class Node {
 	// the spark dataset containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
+	protected Stats stats;
 	
 	/**
 	 * computeNodeData sets the Dataset<Row> to the data referring to this node
@@ -55,10 +58,9 @@ public abstract class Node {
 		Dataset<Row> currentResult = this.sparkNodeData;
 		for (Node child: children){
 			Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
-			String joinVariable = Utils.findCommonVariable(triplePattern, tripleGroup, child.triplePattern, child.tripleGroup);
-			if (joinVariable != null)
-				currentResult = currentResult.join(childResult, joinVariable);
-			
+			List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
+			currentResult = currentResult.join(childResult, 
+			    scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 		}
 		return currentResult;
 	}
@@ -66,11 +68,19 @@ public abstract class Node {
 	
 	@Override
 	public String toString(){
-		StringBuilder str = new StringBuilder("[Triple: " + triplePattern.toString() + " Children: ");
-		for (Node child: children){
-			str.append(child.toString() + "\t" );
+		StringBuilder str = new StringBuilder("{");
+		if (this instanceof PtNode) {
+		  for(TriplePattern tp_group : this.tripleGroup)
+		    str.append(tp_group.toString() + ", ");
+		} else {
+		  str.append(triplePattern.toString());
 		}
-		str.append("]");
+		str.append(" }");
+		str.append(" [");
+		for (Node child: children){
+			str.append("\n" + child.toString());
+		}
+		str.append("\n]");
 		return str.toString();
 	}
 
@@ -82,4 +92,6 @@ public abstract class Node {
 	public int getChildrenCount() {
 		return this.children.size();
 	}
+	
+	
 }

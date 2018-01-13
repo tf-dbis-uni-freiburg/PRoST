@@ -154,7 +154,7 @@ public class Main {
 	
 	private static JoinTree translateSingleQuery(String query, String statsFile, int width) {
 		Translator translator = new Translator(query, statsFile, width);
-		if (useOnlyVP) translator.setPropertyTable(true);
+		if (!useOnlyVP) translator.setPropertyTable(true);
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
 		
 		return translator.translateQuery();

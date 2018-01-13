@@ -177,7 +177,7 @@ public class Translator {
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
 					    String tableName = this.stats.findTableName(t.getPredicate().toString());
-						Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+						Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
 						nodesQueue.add(newNode);
 					}
 				}
@@ -186,7 +186,7 @@ public class Translator {
 		} else {
 			for(Triple t : triples){
 			    String tableName = this.stats.findTableName(t.getPredicate().toString());
-				Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+				Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
 				nodesQueue.add(newNode);
 			}
 		}
@@ -266,46 +266,6 @@ public class Translator {
     	return 2;
     }
     
-    
-    /*
-     * Simple triples reordering based on statistics.
-     * Thanks to this method the building of the tree will follow a better order.
-     */
-    private void sortTriples(){
-    	if(triples.size() == 0 || !statsActive) return;
-    	
-    	logger.info("Triples being sorted");
-    	
-    	// find the best root
-    	int indexBestRoot = 0;
-    	String predicate = triples.get(0).getPredicate().toString(prefixes);
-    	int bestSize = stats.getTableSize(predicate);
-    	float bestProportion = bestSize / stats.getTableDistinctSubjects(predicate);
-    	for(int i = 1; i < triples.size(); i++){
-    		predicate = triples.get(i).getPredicate().toString(prefixes);
-        	float proportion = stats.getTableSize(predicate) / 
-        			stats.getTableDistinctSubjects(predicate);
-        	
-        	// update best if the proportion is better
-        	if (proportion > bestProportion){
-        		indexBestRoot = i;
-        		bestProportion = proportion;
-        		bestSize = stats.getTableSize(predicate); 
-        	} // or if the table size is bigger
-        	else if (proportion == bestProportion && stats.getTableSize(predicate) > bestSize) {
-        		indexBestRoot = i;
-        		bestSize = stats.getTableSize(predicate);        		
-        	}
-    	}
-
-    	// move the best triple to the front
-    	if(indexBestRoot > 0){
-    		Triple tripleToMove = triples.get(indexBestRoot);
-    		triples.remove(indexBestRoot);
-    		triples.add(0, tripleToMove);
-    	}
-    	  	
-    }
 
 	public void setPropertyTable(boolean b) {
 		this.usePropertyTable = b;

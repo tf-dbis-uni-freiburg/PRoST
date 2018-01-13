@@ -1,6 +1,10 @@
 package Executor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import JoinTree.ElementType;
 import JoinTree.TriplePattern;
@@ -60,6 +64,18 @@ public class Utils {
 					return findCommonVariable(at, tripleB);
 		
 		return null;
+	}
+	
+	public static List<String> commonVariables(String[] variablesOne, String[] variablesTwo) {
+	  Set<String> varsOne = new HashSet<String>(Arrays.asList(variablesOne)); 
+	  Set<String> varsTwo = new HashSet<String>(Arrays.asList(variablesTwo));
+	  varsOne.retainAll(varsTwo);
+	  
+	  List<String> results = new ArrayList<String>(varsOne);
+	  if (!varsOne.isEmpty())
+	    return results;
+	  
+	  return null;	  
 	}
 
 }

@@ -17,7 +17,6 @@ import Translator.Stats;
  */
 public class PtNode extends Node {
 	
-	private Stats stats;
 
   /*
 	 * The node contains a list of triple patterns with the same subject.
@@ -28,6 +27,7 @@ public class PtNode extends Node {
 		this.isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		this.stats = stats;
+		this.setIsComplex();
 		
 	}
 	
@@ -37,18 +37,25 @@ public class PtNode extends Node {
 	 */
 	public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
-		for (Triple t : jenaTriples){
-			triplePatterns.add(new TriplePattern(t, prefixes));
-		}
 		this.isPropertyTable = true;
 		this.tripleGroup = triplePatterns;
 		this.children = new ArrayList<Node>();
 		this.projection = Collections.emptyList();
 		this.stats = stats;
+		for (Triple t : jenaTriples){
+		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
+		}
+		this.setIsComplex();
 		
 	}
 
-	public void computeNodeData(SQLContext sqlContext) {
+	private void setIsComplex() {
+	  for(TriplePattern triplePattern: this.tripleGroup) {
+	    triplePattern.isComplex = stats.isTableComplex(triplePattern.predicate);
+	  }
+    }
+
+  public void computeNodeData(SQLContext sqlContext) {
 
 		StringBuilder query = new StringBuilder("SELECT ");
 		ArrayList<String> whereConditions = new ArrayList<String>();
@@ -59,7 +66,7 @@ public class PtNode extends Node {
 
 		// objects
 		for (TriplePattern t : tripleGroup) {
-		    String columnName = stats.findTableName(t.predicate);
+		    String columnName = stats.findTableName(t.predicate.toString());
 		    if (columnName == null) {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;

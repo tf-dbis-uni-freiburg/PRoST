@@ -57,13 +57,8 @@ public class JoinTree {
 	
 	@Override
 	public String toString(){
-		StringBuilder str = new StringBuilder("JoinTree \n");
-		str.append(node.toString());
-		for (Node child: node.children){
-			str.append("\n" + child.toString());
-		}
 		
-		return str.toString();
+		return this.node.toString();
 	}
 
 

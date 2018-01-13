@@ -12,39 +12,38 @@ public class TriplePattern {
 	public ElementType objectType;
 	public ElementType predicateType;
 	public boolean isComplex = false;
+	public boolean arePrefixUsed = false;
 	
-	// construct from single properties
-	public TriplePattern(String subject, String predicate, String object, 
-			ElementType subjectType, ElementType objectType, ElementType predicateType){
-		this.subject = subject;
-		this.subjectType = subjectType;
-		this.predicate = predicate;
-		this.predicateType = predicateType;
-		this.object = object;
-		this.objectType = objectType;
-	}
 	
 	// construct from Jena triple
-	public TriplePattern(Triple triple, PrefixMapping prefixes){
+	public TriplePattern(Triple triple, PrefixMapping prefixes, boolean datasetUsesPrefixes){
 
 		// extract and set the subject
-		if(triple.getSubject().isVariable())
-			subjectType = ElementType.VARIABLE;
-		else
-			subjectType = ElementType.CONSTANT;
-		subject = triple.getSubject().toString(prefixes);
-			
+		if(triple.getSubject().isVariable()) {
+		  subjectType = ElementType.VARIABLE;
+		  subject = triple.getSubject().toString();
+		}
+		else {
+		  subjectType = ElementType.CONSTANT;
+		  subject = datasetUsesPrefixes? triple.getSubject().toString(prefixes) : 
+		    "<" + triple.getSubject().getURI() + ">";
+		  
+		}
 		
 		// extract and set the predicate
 		predicateType = ElementType.CONSTANT;
 		predicate = triple.getPredicate().toString(prefixes);
 		
 		// extract and set the object
-		if(triple.getObject().isVariable())
-			objectType = ElementType.VARIABLE;
-		else
-			objectType = ElementType.CONSTANT;
-		object = triple.getObject().toString(prefixes);
+		if(triple.getObject().isVariable()) {
+		  objectType = ElementType.VARIABLE;
+		  object = triple.getObject().toString();
+		}
+		else {
+		  objectType = ElementType.CONSTANT;
+		  object = datasetUsesPrefixes ? triple.getObject().toString(prefixes) : 
+		    "<" + triple.getObject().getURI() + ">";
+		}
 		
 	}
 	
