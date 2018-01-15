@@ -23,6 +23,7 @@ public abstract class Node {
 	// the spark dataset containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
+	public boolean isReversePropertyTable = false;
 	protected Stats stats;
 	
 	/**

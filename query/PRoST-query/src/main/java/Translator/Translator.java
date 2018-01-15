@@ -12,6 +12,7 @@ import JoinTree.ElementType;
 import JoinTree.JoinTree;
 import JoinTree.Node;
 import JoinTree.PtNode;
+import JoinTree.RPtNode;
 import JoinTree.TriplePattern;
 import JoinTree.VpNode;
 
@@ -42,6 +43,7 @@ public class Translator {
     List<Var> variables;
     List<Triple> triples;
 	private boolean usePropertyTable;
+	private boolean useReversePropertyTable;
     private static final Logger logger = Logger.getLogger(run.Main.class);
     
     public Translator(String input, String statsPath, int treeWidth) {
@@ -154,7 +156,8 @@ public class Translator {
     private PriorityQueue<Node> getNodesQueue() {
     	PriorityQueue<Node> nodesQueue = new PriorityQueue<Node>
     		(triples.size(), new NodeComparator(this.stats));
-    	if(usePropertyTable){
+      	
+    	if(usePropertyTable && !useReversePropertyTable){
 			HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
 			
 			// group by subjects
@@ -181,7 +184,37 @@ public class Translator {
 						nodesQueue.add(newNode);
 					}
 				}
-			}			
+			}	
+    	} else if(!usePropertyTable && useReversePropertyTable){
+    		HashMap<String, List<Triple>> objectGroups = new HashMap<String, List<Triple>>();
+			
+			// group by objects
+			for(Triple triple : triples){
+				String object = triple.getObject().toString(prefixes);
+		
+				if (objectGroups.containsKey(object)) {
+					objectGroups.get(object).add(triple);
+				} else {
+					List<Triple> objTriples = new ArrayList<Triple>();
+					objTriples.add(triple);
+					objectGroups.put(object, objTriples);
+				}
+			}
+			
+			// create and add the proper nodes
+			for(String object : objectGroups.keySet()){
+				if (objectGroups.get(object).size() >= minimumGroupSize){
+					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats));
+				} else {
+					for (Triple t : objectGroups.get(object)){
+					    String tableName = this.stats.findTableName(t.getPredicate().toString());
+						Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
+						nodesQueue.add(newNode);
+					}
+				}
+			}
+    	} else if(usePropertyTable && useReversePropertyTable){
+    		// TODO algorithm to decide a a triple should go to a Object or Subject group (Possible solution: biggest groups have priority)
     
 		} else {
 			for(Triple t : triples){
@@ -192,9 +225,7 @@ public class Translator {
 		}
     	return nodesQueue;
 	}
-
-    
-    
+ 
     /*
      * findRelateNode, given a source node, finds another node
      * with at least one variable in common, if there isn't return null
@@ -216,10 +247,25 @@ public class Translator {
 				}
     		}
     		
+    	} else if(sourceNode.isReversePropertyTable) {
+    		// sourceNode is a group
+    		for(TriplePattern tripleSource : sourceNode.tripleGroup){
+				for (Node node : availableNodes){
+					if(node.isReversePropertyTable) {
+						for(TriplePattern tripleDest : node.tripleGroup)
+	    					if(existsVariableInCommon(tripleSource, tripleDest))
+	    						return node;
+					} else {
+						if(existsVariableInCommon(tripleSource, node.triplePattern))
+							return node;
+					}
+				}
+    		}
     	} else {
     		// source node is not a group
+    		// TODO Clarify the for loop
     		for (Node node : availableNodes) {
-    			if(node.isPropertyTable) {
+    			if(node.isPropertyTable || node.isReversePropertyTable) {
     				for(TriplePattern tripleDest : node.tripleGroup){
     					if(existsVariableInCommon(tripleDest, sourceNode.triplePattern))
     						return node;
@@ -253,6 +299,7 @@ public class Translator {
     /*
      * heuristicWidth decides a width based on the proportion
      * between the number of elements in a table and the unique subjects.
+     * TODO generate stats for unique objects
      */
     private int heuristicWidth(Node node){
     	if(node.isPropertyTable)
@@ -269,6 +316,10 @@ public class Translator {
 
 	public void setPropertyTable(boolean b) {
 		this.usePropertyTable = b;
+	}
+	
+	public void setReversePropertyTable(boolean b) {
+		this.useReversePropertyTable = b;
 	}
 	
 	public void setMinimumGroupSize(int size){

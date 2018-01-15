@@ -31,6 +31,9 @@ public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class);
 	private static int treeWidth = -1;
 	private static boolean useOnlyVP = false;
+	private static boolean usePropertyTable = true;
+	private static boolean useReversePropertyTable = false;
+	
 	private static int setGroupSize = -1;
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
@@ -57,8 +60,12 @@ public class Main {
 		options.addOption(helpOpt);
 		Option widthOpt = new Option("w", "width", true, "The maximum Tree width");
 		options.addOption(widthOpt);
-		Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical Partitioning");
+		Option vpOpt = new Option("v", "only_vp", false, "Use only Vertical Partitioning");
+		options.addOption(vpOpt);
+		Option propertyTableOpt = new Option("p", "property_table", false, "Use Propery Table");
 		options.addOption(propertyTableOpt);
+		Option reversePropertyTableOpt = new Option("rp", "reverse_property_table", false, "Use Reverse Property Table");
+		options.addOption(reversePropertyTableOpt);
 		Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
 		Option groupsizeOpt = new Option("g", "groupsize", true, "Minimum Group Size for Property Table nodes");
@@ -96,6 +103,14 @@ public class Main {
 		if(cmd.hasOption("only_vp")){
 			useOnlyVP = true;
 			logger.info("Using Vertical Partitioning only.");
+		}
+		if(cmd.hasOption("property_table")){
+			useOnlyVP = true;
+			logger.info("Using Property Table.");
+		}
+		if(cmd.hasOption("reverse_property_table")){
+			useOnlyVP = true;
+			logger.info("Using Reverse Property Table.");
 		}
 		if(cmd.hasOption("groupsize")){
 			setGroupSize = Integer.valueOf(cmd.getOptionValue("groupsize"));
