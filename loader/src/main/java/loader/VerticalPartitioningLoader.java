@@ -20,10 +20,12 @@ import loader.ProtobufStats.TableStats;
 
 public class VerticalPartitioningLoader extends Loader {
   public final int max_parallelism = 5;
+  private boolean computeStatistics;
 
 	public VerticalPartitioningLoader(String hdfs_input_directory,
-			String database_name, SparkSession spark) {
+			String database_name, SparkSession spark, boolean computeStatistics) {
 		super(hdfs_input_directory, database_name, spark);
+		this.computeStatistics = computeStatistics;
 	}
 
 	@Override
@@ -47,7 +49,8 @@ public class VerticalPartitioningLoader extends Loader {
 			  // save the table
 			  table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
 			  // calculate stats
-			  tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
+			  if(computeStatistics)
+			    tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
 			  
 			  logger.info("Created VP table for the property: " + property);
 	        }));
@@ -55,7 +58,8 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		
 		// save the stats in a file with the same name as the output database
-		save_stats(this.database_name, tables_stats);
+		if(computeStatistics)
+		  save_stats(this.database_name, tables_stats);
 		
 		logger.info("Vertical Partitioning completed. Loaded " + String.valueOf(this.properties_names.length) + " tables.");
 		

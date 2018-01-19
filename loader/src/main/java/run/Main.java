@@ -22,6 +22,7 @@ import org.apache.spark.sql.SparkSession;
  * -h, --help prints the usage help message.
  * -i, --input <file> HDFS input path of the RDF graph.
  * -o, --output <DBname> output database name.
+ * -s, compute statistics
  * 
  * @author Matteo Cossu
  */
@@ -29,6 +30,7 @@ public class Main {
 	private static String input_file;
 	private static String outputDB;
 	private static final Logger logger = Logger.getLogger(Main.class);
+	private static boolean useStatistics = false;
 	public static void main(String[] args) {
 		
 		/*
@@ -48,6 +50,9 @@ public class Main {
 		Option helpOpt = new Option("h", "help", false, "Print this help.");
 		options.addOption(helpOpt);
 		
+		Option statsOpt = new Option("s", "stats", false, "Flag to produce the statistics");
+        options.addOption(statsOpt);
+        
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
@@ -71,6 +76,10 @@ public class Main {
 			outputDB = cmd.getOptionValue("output");
 			logger.info("Output database set to: " + outputDB);
 		}
+		if(cmd.hasOption("stats")){
+		  useStatistics = true;
+          logger.info("Statistics active!");
+        }
 	
 		// Set the loader from the inputFile to the outputDB
 		SparkSession spark = SparkSession
@@ -81,7 +90,7 @@ public class Main {
 		tt_loader.load();
 		PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
 		pt_loader.load();
-		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark);
+		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark, useStatistics);
 		vp_loader.load();
 		
 	}
