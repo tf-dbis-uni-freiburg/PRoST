@@ -73,7 +73,6 @@ public class Main {
 		}
 	
 		// Set the loader from the inputFile to the outputDB
-		//PropertyTableLoader propertyTable = new PropertyTableLoader(input_file, outputDB);
 		SparkSession spark = SparkSession
 		  .builder()
 		  .appName("PRoST-Loader")
