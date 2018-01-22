@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 
 import JoinTree.ElementType;
 import JoinTree.JoinTree;
@@ -45,8 +47,10 @@ public class Translator {
 	private boolean usePropertyTable;
 	private boolean useReversePropertyTable;
     private static final Logger logger = Logger.getLogger(run.Main.class);
+	SparkSession spark;
+	SQLContext sqlContext;
     
-    public Translator(String input, String statsPath, int treeWidth) {
+    public Translator(String input, String statsPath, int treeWidth, String databaseName) {
     	this.inputFile = input;
     	this.statsFile = statsPath;
     	if(statsFile.length() > 0){
@@ -54,6 +58,17 @@ public class Translator {
     		statsActive = true;
     	}
     	this.treeWidth = treeWidth;
+    	
+		// initialize the Spark environment 
+		spark = SparkSession
+				  .builder()
+				  .appName("PRoST-Translator")
+				  .getOrCreate();
+		sqlContext = spark.sqlContext();
+		
+		// use the selected database
+		sqlContext.sql("USE "+ databaseName);
+		logger.info("USE "+ databaseName);
     }
     
     public JoinTree translateQuery(){
@@ -64,14 +79,14 @@ public class Translator {
         
         logger.info("** SPARQL QUERY **\n" + query +"\n****************"  );
         
+        
         // extract variables, list of triples and filter
         Op opQuery = Algebra.compile(query);
         QueryVisitor queryVisitor = new QueryVisitor();
         OpWalker.walk(opQuery, queryVisitor);
         triples = queryVisitor.getTriple_patterns();
         variables  = queryVisitor.getVariables();
-        
-        
+           
         // build the tree
         Node root_node = buildTree();
         JoinTree tree = new JoinTree(root_node, inputFile);
@@ -148,7 +163,6 @@ public class Translator {
     			
     		}
     	}
-    	
     	return tree;
     }
         
@@ -204,7 +218,7 @@ public class Translator {
 			// create and add the proper nodes
 			for(String object : objectGroups.keySet()){
 				if (objectGroups.get(object).size() >= minimumGroupSize){
-					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats));
+					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats, this.sqlContext));
 				} else {
 					for (Triple t : objectGroups.get(object)){
 					    String tableName = this.stats.findTableName(t.getPredicate().toString());

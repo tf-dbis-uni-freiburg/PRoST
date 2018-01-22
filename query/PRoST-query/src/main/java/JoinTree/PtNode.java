@@ -22,7 +22,6 @@ public class PtNode extends Node {
 	 * The node contains a list of triple patterns with the same subject.
 	 */
 	public PtNode(List<TriplePattern> tripleGroup, Stats stats){
-		
 		super();
 		this.isPropertyTable = true;
 		this.tripleGroup = tripleGroup;

@@ -105,11 +105,11 @@ public class Main {
 			logger.info("Using Vertical Partitioning only.");
 		}
 		if(cmd.hasOption("property_table")){
-			useOnlyVP = true;
+			usePropertyTable = true;
 			logger.info("Using Property Table.");
 		}
 		if(cmd.hasOption("reverse_property_table")){
-			useOnlyVP = true;
+			useReversePropertyTable = true;
 			logger.info("Using Reverse Property Table.");
 		}
 		if(cmd.hasOption("groupsize")){
@@ -161,15 +161,16 @@ public class Main {
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
 			return;
-		}
-			
-			
-		
+		}	
 	}
 	
 	private static JoinTree translateSingleQuery(String query, String statsFile, int width) {
-		Translator translator = new Translator(query, statsFile, width);
-		if (!useOnlyVP) translator.setPropertyTable(true);
+		Translator translator = new Translator(query, statsFile, width, database_name);
+		if (usePropertyTable) {
+			translator.setPropertyTable(true);
+		} else if (useReversePropertyTable) {
+			translator.setReversePropertyTable(true);
+		}
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
 		
 		return translator.translateQuery();

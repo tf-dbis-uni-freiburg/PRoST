@@ -21,13 +21,12 @@ public class RPtNode extends Node {
   /*
 	 * The node contains a list of triple patterns with the same subject.
 	 */
-	public RPtNode(List<TriplePattern> tripleGroup, Stats stats){
-		
+	public RPtNode(List<TriplePattern> tripleGroup, Stats stats, SQLContext sqlContext){	
 		super();
 		this.isReversePropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		this.stats = stats;
-		this.setIsComplex();
+		this.setIsComplex(sqlContext);
 		
 	}
 	
@@ -35,7 +34,7 @@ public class RPtNode extends Node {
 	 * Alternative constructor, used to instantiate a Node directly with
 	 * a list of jena triple patterns.
 	 */
-	public RPtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
+	public RPtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats, SQLContext sqlContext) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
 		this.isReversePropertyTable = true;
 		this.tripleGroup = triplePatterns;
@@ -45,19 +44,23 @@ public class RPtNode extends Node {
 		for (Triple t : jenaTriples){
 		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
 		}
-		this.setIsComplex();
+		this.setIsComplex(sqlContext);
 		
 	}
 
-	//TODO check if it is setting the corect complexity for reverse property tables
-	private void setIsComplex() {
-	  for(TriplePattern triplePattern: this.tripleGroup) {
-	    triplePattern.isComplex = stats.isTableComplex(triplePattern.predicate);
-	  }
-    }
+	private void setIsComplex(SQLContext sqlContext) {
+		for(TriplePattern triplePattern: this.tripleGroup) {
+			StringBuilder query = new StringBuilder("select is_complex from reverse_properties where p='" + triplePattern.object + "'" );
+			int value = sqlContext.sql(query.toString()).head().getInt(0);
+			if (value==1) {
+				triplePattern.isComplex = true;
+			}else {
+				triplePattern.isComplex = false;
+			}
+		}
+	}
 
   public void computeNodeData(SQLContext sqlContext) {
-
 		StringBuilder query = new StringBuilder("SELECT ");
 		ArrayList<String> whereConditions = new ArrayList<String>();
 		ArrayList<String> explodedColumns = new ArrayList<String>();
