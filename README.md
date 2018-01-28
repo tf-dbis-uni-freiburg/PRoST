@@ -20,12 +20,12 @@ To build PRoST, run:
 ## Loading RDF graphs
 You can load a graph with PRoST in the following way:
 
-    spark2-submit --class run.Main PRoST-Loader.jar -i <HDFS_path_RDF_graph> -o <output_DB_name>
+    spark2-submit --class run.Main PRoST-Loader.jar -i <HDFS_path_RDF_graph> -o <output_DB_name> -s
 
 The input RDF graph is loaded from the HDFS path specified with the -i option.
 Instead, the -o option contains the name of the database in which PRoST will store the graph using its own representation.
 
-The loader produces a .stats file in the local node, required for querying.
+If the option -s is present, the loader produces a .stats file in the local node, required for querying.
 
 ## Querying with SPARQL
 To query the data use the following command:

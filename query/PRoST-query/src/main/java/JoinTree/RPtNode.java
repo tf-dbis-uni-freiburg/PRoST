@@ -67,7 +67,8 @@ public class RPtNode extends Node {
 
 		// object
 		// TODO Parametrize the name of the column
-		query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
+		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) 
+			  query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
 
 		// subjects
 		for (TriplePattern t : tripleGroup) {
@@ -76,6 +77,9 @@ public class RPtNode extends Node {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;
 		    }
+		    if(t.subjectType == ElementType.CONSTANT) {
+			      whereConditions.add("s='" + t.subject + "'");
+			}
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex)
 					whereConditions

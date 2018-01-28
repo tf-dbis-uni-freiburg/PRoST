@@ -61,7 +61,8 @@ public class PtNode extends Node {
 		ArrayList<String> explodedColumns = new ArrayList<String>();
 
 		// subject
-		query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).subject) + ",");
+		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) 
+		  query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).subject) + ",");
 
 		// objects
 		for (TriplePattern t : tripleGroup) {
@@ -69,6 +70,9 @@ public class PtNode extends Node {
 		    if (columnName == null) {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;
+		    }
+		    if(t.subjectType == ElementType.CONSTANT) {
+		      whereConditions.add("s='" + t.subject + "'");
 		    }
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex)

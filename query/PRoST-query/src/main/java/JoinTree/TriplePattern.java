@@ -32,12 +32,12 @@ public class TriplePattern {
 		
 		// extract and set the predicate
 		predicateType = ElementType.CONSTANT;
-		predicate = triple.getPredicate().toString(prefixes);
+		predicate = triple.getPredicate().toString();
 		
 		// extract and set the object
 		if(triple.getObject().isVariable()) {
 		  objectType = ElementType.VARIABLE;
-		  object = triple.getObject().toString();
+		  object = triple.getObject().toString(prefixes);
 		}
 		else {
 		  objectType = ElementType.CONSTANT;

@@ -4,22 +4,28 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 
 import loader.ProtobufStats.Graph;
 import loader.ProtobufStats.TableStats;
 
 public class VerticalPartitioningLoader extends Loader {
+  public final int max_parallelism = 5;
+  private boolean computeStatistics;
 
 	public VerticalPartitioningLoader(String hdfs_input_directory,
-			String database_name, SparkSession spark) {
+			String database_name, SparkSession spark, boolean computeStatistics) {
 		super(hdfs_input_directory, database_name, spark);
+		this.computeStatistics = computeStatistics;
 	}
 
 	@Override
@@ -32,23 +38,28 @@ public class VerticalPartitioningLoader extends Loader {
 			this.propertiesNames = extractProperties();
 		}
 		
-		ArrayList<TableStats> tables_stats =  new ArrayList<TableStats>();
+		Vector<TableStats> tables_stats =  new Vector<TableStats>();
+		ThreadPoolExecutor loaders_pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(max_parallelism);
 		
-		// TODO: these jobs should be submitted in parallel threads
-		// leaving the control to the YARN scheduler
-		for(String property : this.propertiesNames){
+		for(int i = 0; i < this.propertiesNames.length; i++){
+		    String property = this.propertiesNames[i];
 			Dataset<Row> table_VP = spark.sql("SELECT s AS s, o AS o FROM tripletable WHERE p='" + property + "'");
 			String table_name_VP = "vp_" + this.getValidHiveName(property);
+			loaders_pool.submit(new Thread(() -> {
+			  // save the table
+			  table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
+			  // calculate stats
+			  if(computeStatistics)
+			    tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
+			  
+			  LOGGER.info("Created VP table for the property: " + property);
+	        }));
 			
-			// calculate stats
-			tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
-			
-			table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
-			LOGGER.info("Created VP table for the property: " + property);
 		}
 		
 		// save the stats in a file with the same name as the output database
-		save_stats(this.databaseName, tables_stats);
+		if(computeStatistics)
+		  save_stats(this.databaseName, tables_stats);
 		
 		LOGGER.info("Vertical Partitioning completed. Loaded " + String.valueOf(this.propertiesNames.length) + " tables.");
 		
@@ -111,5 +122,5 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		return result_properties;
 	}
-
+	
 }

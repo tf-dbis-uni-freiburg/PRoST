@@ -55,7 +55,7 @@ public class VpNode extends Node {
 			query.append(" o='" + triplePattern.object +"' ");
 		
 		if (triplePattern.subjectType == ElementType.CONSTANT)
-			query.append(" o='" + triplePattern.subject +"' ");
+			query.append(" s='" + triplePattern.subject +"' ");
 		
 		this.sparkNodeData = sqlContext.sql(query.toString());
 	}
