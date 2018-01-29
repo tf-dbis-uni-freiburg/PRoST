@@ -71,10 +71,16 @@ public abstract class Node {
 	public String toString(){
 		StringBuilder str = new StringBuilder("{");
 		if (this instanceof PtNode) {
+			str.append("pt node: ");
 		  for(TriplePattern tp_group : this.tripleGroup)
 		    str.append(tp_group.toString() + ", ");
+		} else if (this instanceof RPtNode){
+			str.append("rpt node: ");
+			for(TriplePattern tp_group : this.tripleGroup)
+			    str.append(tp_group.toString() + ", ");
 		} else {
-		  str.append(triplePattern.toString());
+			str.append("vp node: ");
+			str.append(triplePattern.toString());
 		}
 		str.append(" }");
 		str.append(" [");

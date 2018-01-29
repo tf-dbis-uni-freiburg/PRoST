@@ -31,7 +31,7 @@ public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class);
 	private static int treeWidth = -1;
 	private static boolean useOnlyVP = false;
-	private static boolean usePropertyTable = true;
+	private static boolean usePropertyTable = false;
 	private static boolean useReversePropertyTable = false;
 	
 	private static int setGroupSize = -1;

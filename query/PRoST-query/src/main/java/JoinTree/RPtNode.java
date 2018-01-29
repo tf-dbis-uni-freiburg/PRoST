@@ -50,7 +50,8 @@ public class RPtNode extends Node {
 
 	private void setIsComplex(SQLContext sqlContext) {
 		for(TriplePattern triplePattern: this.tripleGroup) {
-			StringBuilder query = new StringBuilder("select is_complex from reverse_properties where p='" + triplePattern.object + "'" );
+			String p = stats.findTableName(triplePattern.predicate.toString());
+			StringBuilder query = new StringBuilder("select is_complex from reverse_properties where p='" + p + "'" );
 			int value = sqlContext.sql(query.toString()).head().getInt(0);
 			if (value==1) {
 				triplePattern.isComplex = true;
@@ -67,7 +68,7 @@ public class RPtNode extends Node {
 
 		// object
 		// TODO Parametrize the name of the column
-		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) 
+		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) 
 			  query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
 
 		// subjects
@@ -77,10 +78,10 @@ public class RPtNode extends Node {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;
 		    }
-		    if(t.subjectType == ElementType.CONSTANT) {
-			      whereConditions.add("s='" + t.subject + "'");
+		    if(t.objectType == ElementType.CONSTANT) {
+			      whereConditions.add("s='" + t.object + "'");
 			}
-			if (t.objectType == ElementType.CONSTANT) {
+			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex)
 					whereConditions
 							.add("array_contains(" +columnName + ", '" + t.subject + "')");

@@ -44,8 +44,8 @@ public class Translator {
     PrefixMapping prefixes;
     List<Var> variables;
     List<Triple> triples;
-	private boolean usePropertyTable;
-	private boolean useReversePropertyTable;
+	private boolean usePropertyTable = false;
+	private boolean useReversePropertyTable = false;
     private static final Logger logger = Logger.getLogger(run.Main.class);
 	SparkSession spark;
 	SQLContext sqlContext;
@@ -313,10 +313,11 @@ public class Translator {
     /*
      * heuristicWidth decides a width based on the proportion
      * between the number of elements in a table and the unique subjects.
-     * TODO generate stats for unique objects
      */
     private int heuristicWidth(Node node){
     	if(node.isPropertyTable)
+    		return 5;
+    	if(node.isReversePropertyTable)
     		return 5;
     	String predicate = node.triplePattern.predicate;
     	int tableSize = stats.getTableSize(predicate);
