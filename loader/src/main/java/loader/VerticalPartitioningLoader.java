@@ -39,22 +39,18 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		
 		Vector<TableStats> tables_stats =  new Vector<TableStats>();
-		ThreadPoolExecutor loaders_pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(max_parallelism);
 		
 		for(int i = 0; i < this.properties_names.length; i++){
 		    String property = this.properties_names[i];
 			Dataset<Row> table_VP = spark.sql("SELECT s AS s, o AS o FROM tripletable WHERE p='" + property + "'");
 			String table_name_VP = "vp_" + this.getValidHiveName(property);
-			loaders_pool.submit(new Thread(() -> {
-			  // save the table
-			  table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
-			  // calculate stats
-			  if(computeStatistics)
-			    tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
+			// save the table
+			table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
+			// calculate stats
+			if(computeStatistics)
+			  tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
 			  
-			  logger.info("Created VP table for the property: " + property);
-	        }));
-			
+			logger.info("Created VP table for the property: " + property);
 		}
 		
 		// save the stats in a file with the same name as the output database
