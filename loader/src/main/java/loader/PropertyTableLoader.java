@@ -42,8 +42,8 @@ public class PropertyTableLoader extends Loader{
 		LOGGER.info("Created property table with name: " + outputNonReversePropertyTableName);	
 		
 		//creates reverse property table
-		buildProperties(reverseTableName, true);	
-		buildComplexPropertyTable(reverseTableName, true).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputReversePropertyTableName);	
+		buildProperties(reverseTableName, true, false);	
+		buildComplexPropertyTable(reverseTableName, true, false).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputReversePropertyTableName);	
 		LOGGER.info("Created property table with name: " + outputReversePropertyTableName);	
 	}
 		
