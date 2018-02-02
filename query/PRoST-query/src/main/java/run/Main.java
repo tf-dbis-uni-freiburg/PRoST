@@ -30,7 +30,6 @@ public class Main {
 	private static String database_name;
 	private static final Logger logger = Logger.getLogger(Main.class);
 	private static int treeWidth = -1;
-	private static boolean useOnlyVP = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useReversePropertyTable = false;
 	
@@ -60,8 +59,6 @@ public class Main {
 		options.addOption(helpOpt);
 		Option widthOpt = new Option("w", "width", true, "The maximum Tree width");
 		options.addOption(widthOpt);
-		Option vpOpt = new Option("v", "only_vp", false, "Use only Vertical Partitioning");
-		options.addOption(vpOpt);
 		Option propertyTableOpt = new Option("p", "property_table", false, "Use Propery Table");
 		options.addOption(propertyTableOpt);
 		Option reversePropertyTableOpt = new Option("rp", "reverse_property_table", false, "Use Reverse Property Table");
@@ -99,10 +96,6 @@ public class Main {
 		if(cmd.hasOption("width")){
 			treeWidth = Integer.valueOf(cmd.getOptionValue("width"));
 			logger.info("Maximum tree width is set to " + String.valueOf(treeWidth));
-		}
-		if(cmd.hasOption("only_vp")){
-			useOnlyVP = true;
-			logger.info("Using Vertical Partitioning only.");
 		}
 		if(cmd.hasOption("property_table")){
 			usePropertyTable = true;

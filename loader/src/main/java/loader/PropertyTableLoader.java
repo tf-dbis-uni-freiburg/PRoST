@@ -121,22 +121,7 @@ public class PropertyTableLoader extends Loader{
 		buildProperties(nonReversePropertiesTableName, false, false);
 	}
 	
-	/**
-	 * Creates a table of properties and theirs complexities.
-	 * 
-	 * Literals in &ltobjectColumnName&gt are ignored in case the parameter <b>isReverseOrder</b> is <b>true</b>. If <b>isReverseOrder</b> is <b>false</b>, 
-	 * there are no literals in &ltsubjectColumnName&gt by the definition of RDF triples.
-	 *  
-	 * @param propertiesTableName name of the table to be created
-	 * @param isReverseOrder indicates whether the complexity of a property is determined by the count of elements in a predicate-object group (case TRUE),
-	 * or the count of elements in a subject-predicate group (case FALSE)
-	 * 
-	 * @see PropertyTableLoader#buildProperties(String, Boolean, Boolean)
-	 */
-	private void buildProperties(String propertiesTableName, Boolean isReverseOrder) {
-		buildProperties(propertiesTableName, isReverseOrder, true);
-	}
-	
+
 	/**
 	 * Returns a dataset with the property table generated from the given triplestore table
 	 * 

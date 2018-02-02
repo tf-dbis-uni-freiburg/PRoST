@@ -228,7 +228,8 @@ public class Translator {
 				}
 			}
     	} else if(usePropertyTable && useReversePropertyTable){
-    		// TODO algorithm to decide a a triple should go to a Object or Subject group (Possible solution: biggest groups have priority)
+    		HashMap<String, List<Triple>> objectGroups = new HashMap<String, List<Triple>>();
+    		HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
     
 		} else {
 			for(Triple t : triples){

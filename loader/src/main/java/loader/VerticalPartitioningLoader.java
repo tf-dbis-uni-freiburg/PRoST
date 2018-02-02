@@ -6,14 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
 
 import loader.ProtobufStats.Graph;
 import loader.ProtobufStats.TableStats;
@@ -75,7 +72,6 @@ public class VerticalPartitioningLoader extends Loader {
 		boolean is_complex = table_size != distinct_subjects;
 		
 		String query = new String("select is_complex from reverse_properties where p='" + tableName + "'" );
-		int value = spark.sql(query).head().getInt(0);
 		
 		boolean is_revese_complex = spark.sql(query.toString()).head().getInt(0)==1;
 
