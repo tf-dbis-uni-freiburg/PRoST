@@ -4,7 +4,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
@@ -172,65 +174,91 @@ public class Translator {
     		(triples.size(), new NodeComparator(this.stats));
       	
     	if(usePropertyTable && !useReversePropertyTable){
-			HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
-			
-			// group by subjects
-			for(Triple triple : triples){
-				String subject = triple.getSubject().toString(prefixes);
-		
-				if (subjectGroups.containsKey(subject)) {
-					subjectGroups.get(subject).add(triple);
-				} else {
-					List<Triple> subjTriples = new ArrayList<Triple>();
-					subjTriples.add(triple);
-					subjectGroups.put(subject, subjTriples);
-				}
-			}
+			HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
-				if (subjectGroups.get(subject).size() >= minimumGroupSize){
-					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes, this.stats));
-				} else {
-					for (Triple t : subjectGroups.get(subject)){
-					    String tableName = this.stats.findTableName(t.getPredicate().toString());
-						Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
-						nodesQueue.add(newNode);
-					}
-				}
+				createPtVPNode(subjectGroups.get(subject), nodesQueue);
 			}	
     	} else if(!usePropertyTable && useReversePropertyTable){
-    		HashMap<String, List<Triple>> objectGroups = new HashMap<String, List<Triple>>();
-			
-			// group by objects
-			for(Triple triple : triples){
-				String object = triple.getObject().toString(prefixes);
-		
-				if (objectGroups.containsKey(object)) {
-					objectGroups.get(object).add(triple);
-				} else {
-					List<Triple> objTriples = new ArrayList<Triple>();
-					objTriples.add(triple);
-					objectGroups.put(object, objTriples);
-				}
-			}
+    		HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			
 			// create and add the proper nodes
 			for(String object : objectGroups.keySet()){
-				if (objectGroups.get(object).size() >= minimumGroupSize){
-					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats));
-				} else {
-					for (Triple t : objectGroups.get(object)){
-					    String tableName = this.stats.findTableName(t.getPredicate().toString());
-						Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
-						nodesQueue.add(newNode);
-					}
-				}
+				createRPtVPNode(objectGroups.get(object), nodesQueue);
 			}
     	} else if(usePropertyTable && useReversePropertyTable){
-    		HashMap<String, List<Triple>> objectGroups = new HashMap<String, List<Triple>>();
-    		HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
-    
+    		HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
+    		HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+    		
+    		while (objectGroups.size()!=0 && subjectGroups.size()!=0) {
+    			//Calculate biggest group
+	    		String biggestObjectGroupIndex="";
+	    		int biggestObjectGroupSize = 0;
+	    		List<Triple> biggestObjectGroupTriples = new ArrayList<Triple>();
+	    		for (HashMap.Entry<String, List<Triple>> entry : objectGroups.entrySet()) {
+	    		    int size = entry.getValue().size();
+	    		    if (size>biggestObjectGroupSize) {
+	    		    	biggestObjectGroupIndex = entry.getKey();
+	    		    	biggestObjectGroupSize = size;
+	    		    	biggestObjectGroupTriples = entry.getValue();
+	    		    }
+	    		}
+	    		
+	    		String biggestSubjectGroupIndex="";
+	    		int biggestSubjectGroupSize = 0;
+	    		List<Triple> biggestSubjectGroupTriples = new ArrayList<Triple>();
+	    		for (HashMap.Entry<String, List<Triple>> entry : subjectGroups.entrySet()) {
+	    		    int size = entry.getValue().size();
+	    		    if (size>biggestSubjectGroupSize) {
+	    		    	biggestSubjectGroupIndex = entry.getKey();
+	    		    	biggestSubjectGroupSize = size;
+	    		    	biggestSubjectGroupTriples = entry.getValue();
+	    		    }
+	    		}
+	    		
+	    		//create nodes
+	    		if (biggestObjectGroupSize>biggestSubjectGroupSize) {
+	    			// create and add the rpt or vp node
+					if (biggestObjectGroupSize >= minimumGroupSize){
+						nodesQueue.add(new RPtNode(biggestObjectGroupTriples, prefixes, this.stats));
+					} else {
+						for (Triple t : biggestObjectGroupTriples){
+						    String tableName = this.stats.findTableName(t.getPredicate().toString());
+							Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
+							nodesQueue.add(newNode);
+						}
+					}
+				    removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups); //remove empty groups
+				    objectGroups.remove(biggestObjectGroupIndex); //remove group of created node
+	    		} else {
+	    			/// create and add the pt or vp node
+					if (biggestSubjectGroupSize >= minimumGroupSize){
+						nodesQueue.add(new PtNode(biggestSubjectGroupTriples, prefixes, this.stats));
+					} else {
+						for (Triple t : biggestSubjectGroupTriples){
+						    String tableName = this.stats.findTableName(t.getPredicate().toString());
+							Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
+							nodesQueue.add(newNode);
+						}
+					}
+					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups); //remove empty groups
+				    subjectGroups.remove(biggestSubjectGroupIndex); //remove group of created node
+	    		}
+	    		
+	    		if (objectGroups.size()!=0) {
+	    			// create and add the proper nodes
+	    			for(String object : objectGroups.keySet()){
+	    				createRPtVPNode(objectGroups.get(object), nodesQueue);
+	    			}
+	    		}
+	    		if (subjectGroups.size()!=0) {
+	    			// create and add the proper nodes
+	    			for(String subject : subjectGroups.keySet()){
+	    				createPtVPNode(subjectGroups.get(subject), nodesQueue);
+	    			}
+	    		}
+    		}
 		} else {
 			for(Triple t : triples){
 			    String tableName = this.stats.findTableName(t.getPredicate().toString());
@@ -240,6 +268,77 @@ public class Translator {
 		}
     	return nodesQueue;
 	}
+    
+    private void createPtVPNode(List<Triple> triples, PriorityQueue<Node> nodesQueue) {
+    	if (triples.size() >= minimumGroupSize){
+			nodesQueue.add(new PtNode(triples, prefixes, this.stats));
+		} else {
+			for (Triple t : triples){
+			    String tableName = this.stats.findTableName(t.getPredicate().toString());
+				Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
+				nodesQueue.add(newNode);
+			}
+		}
+    }
+    
+    private void createRPtVPNode(List<Triple> triples, PriorityQueue<Node> nodesQueue) {
+    	if (triples.size() >= minimumGroupSize){
+			nodesQueue.add(new RPtNode(triples, prefixes, this.stats));
+		} else {
+			for (Triple t : triples){
+			    String tableName = this.stats.findTableName(t.getPredicate().toString());
+				Node newNode = new VpNode(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()), tableName);
+				nodesQueue.add(newNode);
+			}
+		}
+    }
+    
+    
+    private void removeTriplesFromGroups(List<Triple> triples, HashMap<String, List<Triple>> groups) {
+    	for (HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
+		    entry.getValue().removeAll(triples);
+		}
+		//remove empty groups
+		Iterator it = groups.entrySet().iterator();
+	    while (it.hasNext()) {
+	        HashMap.Entry<String, List<Triple>> pair = (Entry<String, List<Triple>>) it.next();
+	        if (pair.getValue().size()==0) {
+	        	it.remove(); // avoids a ConcurrentModificationException
+	        }
+	    }
+    }
+    
+    private HashMap<String, List<Triple>> getSubjectGroups(List<Triple> triples) {
+    	HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
+    	for(Triple triple : triples){
+			String subject = triple.getSubject().toString(prefixes);
+	
+			if (subjectGroups.containsKey(subject)) {
+				subjectGroups.get(subject).add(triple);
+			} else {
+				List<Triple> subjTriples = new ArrayList<Triple>();
+				subjTriples.add(triple);
+				subjectGroups.put(subject, subjTriples);
+			}
+		}
+    	return subjectGroups;
+    }
+    
+    private HashMap<String, List<Triple>> getObjectGroups(List<Triple> triples) {
+    	HashMap<String, List<Triple>> objectGroups = new HashMap<String, List<Triple>>();
+    	for(Triple triple : triples){
+			String object = triple.getObject().toString(prefixes);
+	
+			if (objectGroups.containsKey(object)) {
+				objectGroups.get(object).add(triple);
+			} else {
+				List<Triple> objTriples = new ArrayList<Triple>();
+				objTriples.add(triple);
+				objectGroups.put(object, objTriples);
+			}
+		}
+    	return objectGroups;
+    }
  
     /*
      * findRelateNode, given a source node, finds another node
