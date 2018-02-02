@@ -74,11 +74,17 @@ public class VerticalPartitioningLoader extends Loader {
 		int distinct_subjects = (int) table.select(this.subjectColumnName).distinct().count();
 		boolean is_complex = table_size != distinct_subjects;
 		
+		String query = new String("select is_complex from reverse_properties where p='" + tableName + "'" );
+		int value = spark.sql(query).head().getInt(0);
+		
+		boolean is_revese_complex = spark.sql(query.toString()).head().getInt(0)==1;
+
 		// put them in the protobuf object
 		table_stats_builder.setSize(table_size)
 			.setDistinctSubjects(distinct_subjects)
 			.setIsComplex(is_complex)
-			.setName(tableName);
+			.setName(tableName)
+			.setIsReverseComplex(is_revese_complex);
 		
 		return table_stats_builder.build();
 	}

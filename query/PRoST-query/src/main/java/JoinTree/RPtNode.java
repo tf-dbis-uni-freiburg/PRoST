@@ -21,12 +21,12 @@ public class RPtNode extends Node {
   /*
 	 * The node contains a list of triple patterns with the same subject.
 	 */
-	public RPtNode(List<TriplePattern> tripleGroup, Stats stats, SQLContext sqlContext){	
+	public RPtNode(List<TriplePattern> tripleGroup, Stats stats){	
 		super();
 		this.isReversePropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		this.stats = stats;
-		this.setIsComplex(sqlContext);
+		this.setIsComplex();
 		
 	}
 	
@@ -34,7 +34,7 @@ public class RPtNode extends Node {
 	 * Alternative constructor, used to instantiate a Node directly with
 	 * a list of jena triple patterns.
 	 */
-	public RPtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats, SQLContext sqlContext) {
+	public RPtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
 		this.isReversePropertyTable = true;
 		this.tripleGroup = triplePatterns;
@@ -44,20 +44,13 @@ public class RPtNode extends Node {
 		for (Triple t : jenaTriples){
 		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
 		}
-		this.setIsComplex(sqlContext);
+		this.setIsComplex();
 		
 	}
 
-	private void setIsComplex(SQLContext sqlContext) {
+	private void setIsComplex() {
 		for(TriplePattern triplePattern: this.tripleGroup) {
-			String p = stats.findTableName(triplePattern.predicate.toString());
-			StringBuilder query = new StringBuilder("select is_complex from reverse_properties where p='" + p + "'" );
-			int value = sqlContext.sql(query.toString()).head().getInt(0);
-			if (value==1) {
-				triplePattern.isComplex = true;
-			}else {
-				triplePattern.isComplex = false;
-			}
+			triplePattern.isComplex = stats.isTableReverseComplex(triplePattern.predicate);
 		}
 	}
 

@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 import JoinTree.ProtobufStats;
 import run.Main;
-import JoinTree.ProtobufStats.Table;
+import JoinTree.ProtobufStats.TableStats;
 import Executor.Utils;
 
 /**
@@ -24,10 +24,11 @@ import Executor.Utils;
  */
 public class Stats {
 	String fileName;
-	private HashMap<String, JoinTree.ProtobufStats.Table> tableStats;
+	private HashMap<String, JoinTree.ProtobufStats.TableStats> tableStats;
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
 	public String [] tableNames;
+	public HashMap<String, Boolean> tableIsReverseComplex;
 
 	
 	private static final Logger logger = Logger.getLogger(Main.class);
@@ -36,7 +37,8 @@ public class Stats {
 		this.fileName = fileName;
 		tableSize  = new HashMap<String, Integer>();
 		tableDistinctSubjects = new HashMap<String, Integer>();
-		tableStats = new HashMap<String, Table>();
+		tableStats = new HashMap<String, TableStats>();
+		tableIsReverseComplex = new HashMap<String, Boolean>();
 		this.parseStats();
 	}
 	
@@ -54,11 +56,12 @@ public class Stats {
 		
 		tableNames = new String[graph.getTablesCount()];
 		int i = 0;
-		for(Table table : graph.getTablesList()){
+		for(TableStats table : graph.getTablesList()){
 			tableNames[i] = table.getName();
 			tableStats.put(tableNames[i], table);
 			tableSize.put(tableNames[i], table.getSize());
 			tableDistinctSubjects.put(tableNames[i], table.getDistinctSubjects());
+			tableIsReverseComplex.put(tableNames[i], table.getIsReverseComplex());
 			i++;
 		}
 		logger.info("Statistics correctly parsed");
@@ -76,7 +79,7 @@ public class Stats {
 		return tableDistinctSubjects.get(table);
 	}
 	
-	public Table getTableStats(String table){
+	public TableStats getTableStats(String table){
 	    table = this.findTableName(table);
 		if(table == null) return null;
 		return tableStats.get(table);
@@ -85,6 +88,11 @@ public class Stats {
 	public boolean isTableComplex(String table) {
 	  String cleanedTableName = this.findTableName(table);
       return this.getTableSize(cleanedTableName) != this.getTableDistinctSubjects(cleanedTableName);
+	}
+	
+	public boolean isTableReverseComplex(String table) {
+		table = this.findTableName(table);
+	    return tableIsReverseComplex.get(table);
 	}
 	
 	/*

@@ -218,7 +218,7 @@ public class Translator {
 			// create and add the proper nodes
 			for(String object : objectGroups.keySet()){
 				if (objectGroups.get(object).size() >= minimumGroupSize){
-					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats, this.sqlContext));
+					nodesQueue.add(new RPtNode(objectGroups.get(object), prefixes, this.stats));
 				} else {
 					for (Triple t : objectGroups.get(object)){
 					    String tableName = this.stats.findTableName(t.getPredicate().toString());

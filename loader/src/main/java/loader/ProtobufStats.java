@@ -19,11 +19,11 @@ public final class ProtobufStats {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     java.lang.String getName();
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     com.google.protobuf.ByteString
         getNameBytes();
@@ -33,7 +33,7 @@ public final class ProtobufStats {
      * number of elements
      * </pre>
      *
-     * <code>optional int32 size = 2;</code>
+     * <code>int32 size = 2;</code>
      */
     int getSize();
 
@@ -42,7 +42,7 @@ public final class ProtobufStats {
      * if for the same subject exist more values
      * </pre>
      *
-     * <code>optional bool isComplex = 3;</code>
+     * <code>bool isComplex = 3;</code>
      */
     boolean getIsComplex();
 
@@ -51,9 +51,14 @@ public final class ProtobufStats {
      * distinct subjects in that table
      * </pre>
      *
-     * <code>optional int32 distinctSubjects = 4;</code>
+     * <code>int32 distinctSubjects = 4;</code>
      */
     int getDistinctSubjects();
+
+    /**
+     * <code>bool isReverseComplex = 5;</code>
+     */
+    boolean getIsReverseComplex();
   }
   /**
    * Protobuf type {@code TableStats}
@@ -62,6 +67,7 @@ public final class ProtobufStats {
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TableStats)
       TableStatsOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use TableStats.newBuilder() to construct.
     private TableStats(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
@@ -71,19 +77,25 @@ public final class ProtobufStats {
       size_ = 0;
       isComplex_ = false;
       distinctSubjects_ = 0;
+      isReverseComplex_ = false;
     }
 
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
-      return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+      return this.unknownFields;
     }
     private TableStats(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
         boolean done = false;
         while (!done) {
@@ -93,7 +105,8 @@ public final class ProtobufStats {
               done = true;
               break;
             default: {
-              if (!input.skipField(tag)) {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -119,6 +132,11 @@ public final class ProtobufStats {
               distinctSubjects_ = input.readInt32();
               break;
             }
+            case 40: {
+
+              isReverseComplex_ = input.readBool();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -127,6 +145,7 @@ public final class ProtobufStats {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
     }
@@ -145,7 +164,7 @@ public final class ProtobufStats {
     public static final int NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object name_;
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -160,7 +179,7 @@ public final class ProtobufStats {
       }
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -183,7 +202,7 @@ public final class ProtobufStats {
      * number of elements
      * </pre>
      *
-     * <code>optional int32 size = 2;</code>
+     * <code>int32 size = 2;</code>
      */
     public int getSize() {
       return size_;
@@ -196,7 +215,7 @@ public final class ProtobufStats {
      * if for the same subject exist more values
      * </pre>
      *
-     * <code>optional bool isComplex = 3;</code>
+     * <code>bool isComplex = 3;</code>
      */
     public boolean getIsComplex() {
       return isComplex_;
@@ -209,10 +228,19 @@ public final class ProtobufStats {
      * distinct subjects in that table
      * </pre>
      *
-     * <code>optional int32 distinctSubjects = 4;</code>
+     * <code>int32 distinctSubjects = 4;</code>
      */
     public int getDistinctSubjects() {
       return distinctSubjects_;
+    }
+
+    public static final int ISREVERSECOMPLEX_FIELD_NUMBER = 5;
+    private boolean isReverseComplex_;
+    /**
+     * <code>bool isReverseComplex = 5;</code>
+     */
+    public boolean getIsReverseComplex() {
+      return isReverseComplex_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -239,6 +267,10 @@ public final class ProtobufStats {
       if (distinctSubjects_ != 0) {
         output.writeInt32(4, distinctSubjects_);
       }
+      if (isReverseComplex_ != false) {
+        output.writeBool(5, isReverseComplex_);
+      }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
@@ -261,11 +293,15 @@ public final class ProtobufStats {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, distinctSubjects_);
       }
+      if (isReverseComplex_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, isReverseComplex_);
+      }
+      size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
     public boolean equals(final java.lang.Object obj) {
       if (obj == this) {
@@ -285,6 +321,9 @@ public final class ProtobufStats {
           == other.getIsComplex());
       result = result && (getDistinctSubjects()
           == other.getDistinctSubjects());
+      result = result && (getIsReverseComplex()
+          == other.getIsReverseComplex());
+      result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
 
@@ -294,7 +333,7 @@ public final class ProtobufStats {
         return memoizedHashCode;
       }
       int hash = 41;
-      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
       hash = (37 * hash) + SIZE_FIELD_NUMBER;
@@ -304,11 +343,25 @@ public final class ProtobufStats {
           getIsComplex());
       hash = (37 * hash) + DISTINCTSUBJECTS_FIELD_NUMBER;
       hash = (53 * hash) + getDistinctSubjects();
+      hash = (37 * hash) + ISREVERSECOMPLEX_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsReverseComplex());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
+    public static ProtobufStats.TableStats parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ProtobufStats.TableStats parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static ProtobufStats.TableStats parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -430,6 +483,8 @@ public final class ProtobufStats {
 
         distinctSubjects_ = 0;
 
+        isReverseComplex_ = false;
+
         return this;
       }
 
@@ -456,6 +511,7 @@ public final class ProtobufStats {
         result.size_ = size_;
         result.isComplex_ = isComplex_;
         result.distinctSubjects_ = distinctSubjects_;
+        result.isReverseComplex_ = isReverseComplex_;
         onBuilt();
         return result;
       }
@@ -465,7 +521,7 @@ public final class ProtobufStats {
       }
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          Object value) {
+          java.lang.Object value) {
         return (Builder) super.setField(field, value);
       }
       public Builder clearField(
@@ -478,12 +534,12 @@ public final class ProtobufStats {
       }
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, Object value) {
+          int index, java.lang.Object value) {
         return (Builder) super.setRepeatedField(field, index, value);
       }
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          Object value) {
+          java.lang.Object value) {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -510,6 +566,10 @@ public final class ProtobufStats {
         if (other.getDistinctSubjects() != 0) {
           setDistinctSubjects(other.getDistinctSubjects());
         }
+        if (other.getIsReverseComplex() != false) {
+          setIsReverseComplex(other.getIsReverseComplex());
+        }
+        this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
       }
@@ -538,7 +598,7 @@ public final class ProtobufStats {
 
       private java.lang.Object name_ = "";
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
@@ -553,7 +613,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public com.google.protobuf.ByteString
           getNameBytes() {
@@ -569,7 +629,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder setName(
           java.lang.String value) {
@@ -582,7 +642,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder clearName() {
         
@@ -591,7 +651,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
@@ -611,7 +671,7 @@ public final class ProtobufStats {
        * number of elements
        * </pre>
        *
-       * <code>optional int32 size = 2;</code>
+       * <code>int32 size = 2;</code>
        */
       public int getSize() {
         return size_;
@@ -621,7 +681,7 @@ public final class ProtobufStats {
        * number of elements
        * </pre>
        *
-       * <code>optional int32 size = 2;</code>
+       * <code>int32 size = 2;</code>
        */
       public Builder setSize(int value) {
         
@@ -634,7 +694,7 @@ public final class ProtobufStats {
        * number of elements
        * </pre>
        *
-       * <code>optional int32 size = 2;</code>
+       * <code>int32 size = 2;</code>
        */
       public Builder clearSize() {
         
@@ -649,7 +709,7 @@ public final class ProtobufStats {
        * if for the same subject exist more values
        * </pre>
        *
-       * <code>optional bool isComplex = 3;</code>
+       * <code>bool isComplex = 3;</code>
        */
       public boolean getIsComplex() {
         return isComplex_;
@@ -659,7 +719,7 @@ public final class ProtobufStats {
        * if for the same subject exist more values
        * </pre>
        *
-       * <code>optional bool isComplex = 3;</code>
+       * <code>bool isComplex = 3;</code>
        */
       public Builder setIsComplex(boolean value) {
         
@@ -672,7 +732,7 @@ public final class ProtobufStats {
        * if for the same subject exist more values
        * </pre>
        *
-       * <code>optional bool isComplex = 3;</code>
+       * <code>bool isComplex = 3;</code>
        */
       public Builder clearIsComplex() {
         
@@ -687,7 +747,7 @@ public final class ProtobufStats {
        * distinct subjects in that table
        * </pre>
        *
-       * <code>optional int32 distinctSubjects = 4;</code>
+       * <code>int32 distinctSubjects = 4;</code>
        */
       public int getDistinctSubjects() {
         return distinctSubjects_;
@@ -697,7 +757,7 @@ public final class ProtobufStats {
        * distinct subjects in that table
        * </pre>
        *
-       * <code>optional int32 distinctSubjects = 4;</code>
+       * <code>int32 distinctSubjects = 4;</code>
        */
       public Builder setDistinctSubjects(int value) {
         
@@ -710,7 +770,7 @@ public final class ProtobufStats {
        * distinct subjects in that table
        * </pre>
        *
-       * <code>optional int32 distinctSubjects = 4;</code>
+       * <code>int32 distinctSubjects = 4;</code>
        */
       public Builder clearDistinctSubjects() {
         
@@ -718,14 +778,40 @@ public final class ProtobufStats {
         onChanged();
         return this;
       }
+
+      private boolean isReverseComplex_ ;
+      /**
+       * <code>bool isReverseComplex = 5;</code>
+       */
+      public boolean getIsReverseComplex() {
+        return isReverseComplex_;
+      }
+      /**
+       * <code>bool isReverseComplex = 5;</code>
+       */
+      public Builder setIsReverseComplex(boolean value) {
+        
+        isReverseComplex_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool isReverseComplex = 5;</code>
+       */
+      public Builder clearIsReverseComplex() {
+        
+        isReverseComplex_ = false;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return this;
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return this;
+        return super.mergeUnknownFields(unknownFields);
       }
 
 
@@ -748,7 +834,7 @@ public final class ProtobufStats {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TableStats(input, extensionRegistry);
+        return new TableStats(input, extensionRegistry);
       }
     };
 
@@ -772,11 +858,11 @@ public final class ProtobufStats {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     java.lang.String getName();
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     com.google.protobuf.ByteString
         getNameBytes();
@@ -812,6 +898,7 @@ public final class ProtobufStats {
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Graph)
       GraphOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use Graph.newBuilder() to construct.
     private Graph(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
@@ -824,14 +911,19 @@ public final class ProtobufStats {
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
-      return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+      return this.unknownFields;
     }
     private Graph(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
         boolean done = false;
         while (!done) {
@@ -841,7 +933,8 @@ public final class ProtobufStats {
               done = true;
               break;
             default: {
-              if (!input.skipField(tag)) {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -872,6 +965,7 @@ public final class ProtobufStats {
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           tables_ = java.util.Collections.unmodifiableList(tables_);
         }
+        this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
     }
@@ -891,7 +985,7 @@ public final class ProtobufStats {
     public static final int NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object name_;
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -906,7 +1000,7 @@ public final class ProtobufStats {
       }
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>string name = 1;</code>
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -975,6 +1069,7 @@ public final class ProtobufStats {
       for (int i = 0; i < tables_.size(); i++) {
         output.writeMessage(4, tables_.get(i));
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
@@ -989,11 +1084,11 @@ public final class ProtobufStats {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, tables_.get(i));
       }
+      size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
     public boolean equals(final java.lang.Object obj) {
       if (obj == this) {
@@ -1009,6 +1104,7 @@ public final class ProtobufStats {
           .equals(other.getName());
       result = result && getTablesList()
           .equals(other.getTablesList());
+      result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
 
@@ -1018,7 +1114,7 @@ public final class ProtobufStats {
         return memoizedHashCode;
       }
       int hash = 41;
-      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
       if (getTablesCount() > 0) {
@@ -1030,6 +1126,17 @@ public final class ProtobufStats {
       return hash;
     }
 
+    public static ProtobufStats.Graph parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ProtobufStats.Graph parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static ProtobufStats.Graph parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1196,7 +1303,7 @@ public final class ProtobufStats {
       }
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          Object value) {
+          java.lang.Object value) {
         return (Builder) super.setField(field, value);
       }
       public Builder clearField(
@@ -1209,12 +1316,12 @@ public final class ProtobufStats {
       }
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, Object value) {
+          int index, java.lang.Object value) {
         return (Builder) super.setRepeatedField(field, index, value);
       }
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
-          Object value) {
+          java.lang.Object value) {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -1258,6 +1365,7 @@ public final class ProtobufStats {
             }
           }
         }
+        this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
       }
@@ -1287,7 +1395,7 @@ public final class ProtobufStats {
 
       private java.lang.Object name_ = "";
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
@@ -1302,7 +1410,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public com.google.protobuf.ByteString
           getNameBytes() {
@@ -1318,7 +1426,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder setName(
           java.lang.String value) {
@@ -1331,7 +1439,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder clearName() {
         
@@ -1340,7 +1448,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>optional string name = 1;</code>
+       * <code>string name = 1;</code>
        */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
@@ -1595,12 +1703,12 @@ public final class ProtobufStats {
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return this;
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return this;
+        return super.mergeUnknownFields(unknownFields);
       }
 
 
@@ -1623,7 +1731,7 @@ public final class ProtobufStats {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Graph(input, extensionRegistry);
+        return new Graph(input, extensionRegistry);
       }
     };
 
@@ -1661,11 +1769,11 @@ public final class ProtobufStats {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\023ProtobufStats.proto\"U\n\nTableStats\022\014\n\004n" +
+      "\n\023ProtobufStats.proto\"o\n\nTableStats\022\014\n\004n" +
       "ame\030\001 \001(\t\022\014\n\004size\030\002 \001(\005\022\021\n\tisComplex\030\003 \001" +
-      "(\010\022\030\n\020distinctSubjects\030\004 \001(\005\"2\n\005Graph\022\014\n" +
-      "\004name\030\001 \001(\t\022\033\n\006tables\030\004 \003(\0132\013.TableStats" +
-      "b\006proto3"
+      "(\010\022\030\n\020distinctSubjects\030\004 \001(\005\022\030\n\020isRevers" +
+      "eComplex\030\005 \001(\010\"2\n\005Graph\022\014\n\004name\030\001 \001(\t\022\033\n" +
+      "\006tables\030\004 \003(\0132\013.TableStatsb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1684,7 +1792,7 @@ public final class ProtobufStats {
     internal_static_TableStats_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TableStats_descriptor,
-        new java.lang.String[] { "Name", "Size", "IsComplex", "DistinctSubjects", });
+        new java.lang.String[] { "Name", "Size", "IsComplex", "DistinctSubjects", "IsReverseComplex", });
     internal_static_Graph_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_Graph_fieldAccessorTable = new
