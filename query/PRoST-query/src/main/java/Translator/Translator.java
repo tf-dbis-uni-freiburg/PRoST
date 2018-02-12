@@ -293,7 +293,6 @@ public class Translator {
 		}
     }
     
-    
     private void removeTriplesFromGroups(List<Triple> triples, HashMap<String, List<Triple>> groups) {
     	for (HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
 		    entry.getValue().removeAll(triples);

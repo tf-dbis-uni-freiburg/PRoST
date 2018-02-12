@@ -81,7 +81,7 @@ public class PtNode extends Node {
 				else
 					whereConditions.add(columnName + "='" + t.object + "'");
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" P" + columnName + explodedColumns.size() + " AS " + Utils.removeQuestionMark(t.object) + ",");
 				explodedColumns.add(columnName);
 			} else {
 				query.append(
@@ -95,9 +95,11 @@ public class PtNode extends Node {
 
 		// TODO: parameterize the name of the table
 		query.append(" FROM property_table ");
+		int counter = 0;
 		for (String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
-					+ explodedColumn);
+					+ explodedColumn + Integer.toString(counter));
+			counter++;
 		}
 
 		if (!whereConditions.isEmpty()) {
