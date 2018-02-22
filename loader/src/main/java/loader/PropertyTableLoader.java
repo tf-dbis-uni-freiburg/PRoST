@@ -36,15 +36,24 @@ public class PropertyTableLoader extends Loader{
 	}
 	
 	public void load() {
+		long startTime;
+		long executionTime;
+		
+		startTime = System.currentTimeMillis();
 		//creates non reverse property table
 		buildProperties();		
 		buildComplexPropertyTable().write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputNonReversePropertyTableName);
+		executionTime = System.currentTimeMillis() - startTime;
 		LOGGER.info("Created property table with name: " + outputNonReversePropertyTableName);	
+		LOGGER.info("Property table created in: " + String.valueOf(executionTime));
 		
+		startTime = System.currentTimeMillis();
 		//creates reverse property table
 		buildProperties(reverseTableName, true, false);	
 		buildComplexPropertyTable(reverseTableName, true, false).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputReversePropertyTableName);	
+		executionTime = System.currentTimeMillis() - startTime;
 		LOGGER.info("Created property table with name: " + outputReversePropertyTableName);	
+		LOGGER.info("Reverse Property table created in: " + String.valueOf(executionTime));
 	}
 		
 	/**

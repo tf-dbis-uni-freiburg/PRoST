@@ -161,7 +161,8 @@ public class Main {
 		Translator translator = new Translator(query, statsFile, width, database_name);
 		if (usePropertyTable) {
 			translator.setPropertyTable(true);
-		} else if (useReversePropertyTable) {
+		}
+		if (useReversePropertyTable) {
 			translator.setReversePropertyTable(true);
 		}
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);

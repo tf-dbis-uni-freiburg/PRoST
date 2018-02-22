@@ -176,6 +176,8 @@ public class Translator {
     	if(usePropertyTable && !useReversePropertyTable){
 			HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			
+			logger.info("pt only");
+			
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
 				createPtVPNode(subjectGroups.get(subject), nodesQueue);
@@ -183,6 +185,7 @@ public class Translator {
     	} else if(!usePropertyTable && useReversePropertyTable){
     		HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			
+    		logger.info("ept only");
 			// create and add the proper nodes
 			for(String object : objectGroups.keySet()){
 				createRPtVPNode(objectGroups.get(object), nodesQueue);
@@ -190,6 +193,7 @@ public class Translator {
     	} else if(usePropertyTable && useReversePropertyTable){
     		HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
     		HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+    		logger.info("mixed");
     		
     		while (objectGroups.size()!=0 && subjectGroups.size()!=0) {
     			//Calculate biggest group
@@ -245,19 +249,18 @@ public class Translator {
 					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups); //remove empty groups
 				    subjectGroups.remove(biggestSubjectGroupIndex); //remove group of created node
 	    		}
-	    		
-	    		if (objectGroups.size()!=0) {
-	    			// create and add the proper nodes
-	    			for(String object : objectGroups.keySet()){
-	    				createRPtVPNode(objectGroups.get(object), nodesQueue);
-	    			}
-	    		}
-	    		if (subjectGroups.size()!=0) {
-	    			// create and add the proper nodes
-	    			for(String subject : subjectGroups.keySet()){
-	    				createPtVPNode(subjectGroups.get(subject), nodesQueue);
-	    			}
-	    		}
+    		}
+    		if (objectGroups.size()!=0) {
+    			// create and add the proper nodes
+    			for(String object : objectGroups.keySet()){
+    				createRPtVPNode(objectGroups.get(object), nodesQueue);
+    			}
+    		}
+    		if (subjectGroups.size()!=0) {
+    			// create and add the proper nodes
+    			for(String subject : subjectGroups.keySet()){
+    				createPtVPNode(subjectGroups.get(subject), nodesQueue);
+    			}
     		}
 		} else {
 			for(Triple t : triples){
@@ -294,6 +297,7 @@ public class Translator {
     }
     
     private void removeTriplesFromGroups(List<Triple> triples, HashMap<String, List<Triple>> groups) {
+    	
     	for (HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
 		    entry.getValue().removeAll(triples);
 		}
@@ -349,7 +353,7 @@ public class Translator {
     		// sourceNode is a group
     		for(TriplePattern tripleSource : sourceNode.tripleGroup){
 				for (Node node : availableNodes){
-					if(node.isPropertyTable) {
+					if(node.isPropertyTable||node.isReversePropertyTable) {
 						for(TriplePattern tripleDest : node.tripleGroup)
 	    					if(existsVariableInCommon(tripleSource, tripleDest))
 	    						return node;
@@ -364,7 +368,7 @@ public class Translator {
     		// sourceNode is a group
     		for(TriplePattern tripleSource : sourceNode.tripleGroup){
 				for (Node node : availableNodes){
-					if(node.isReversePropertyTable) {
+					if(node.isReversePropertyTable||node.isPropertyTable) {
 						for(TriplePattern tripleDest : node.tripleGroup)
 	    					if(existsVariableInCommon(tripleSource, tripleDest))
 	    						return node;
