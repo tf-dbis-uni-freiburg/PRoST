@@ -64,7 +64,7 @@ public class Translator {
         
         // extract variables, list of triples and filter
         Op opQuery = Algebra.compile(query);
-        QueryVisitor queryVisitor = new QueryVisitor();
+        QueryVisitor queryVisitor = new QueryVisitor(prefixes, stats.arePrefixesActive());
         OpWalker.walk(opQuery, queryVisitor);
         triples = queryVisitor.getTriple_patterns();
         variables  = queryVisitor.getVariables();
@@ -73,9 +73,9 @@ public class Translator {
         // build the tree
         Node root_node = buildTree();
         JoinTree tree = new JoinTree(root_node, inputFile);
-        
-        // TODO: set the filter when is ready
-        //tree.setFilter(queryVisitor.getFilter());
+        System.out.println("SIMON");
+        System.out.println(queryVisitor.getFilter());
+        tree.setFilter(queryVisitor.getFilter());
         
         // if distinct keyword is present
         tree.setDistinct(query.isDistinct());
@@ -172,7 +172,16 @@ public class Translator {
 			
 			// create and add the proper nodes
 			for(String subject : subjectGroups.keySet()){
-				if (subjectGroups.get(subject).size() >= minimumGroupSize){
+			    if (minimumGroupSize == 0) {
+			      for (Triple t : subjectGroups.get(subject)){
+			        // triple group with a single triple
+			        List<Triple> singleGroup = new ArrayList<Triple>();
+			        singleGroup.add(t);
+                    Node newNode =new PtNode(singleGroup, prefixes, this.stats);
+                    nodesQueue.add(newNode);
+                  }
+			    } 
+			    else if (subjectGroups.get(subject).size() >= minimumGroupSize){
 					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes, this.stats));
 				} else {
 					for (Triple t : subjectGroups.get(subject)){
