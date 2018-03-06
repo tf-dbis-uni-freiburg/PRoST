@@ -7,7 +7,7 @@ import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PropertyTableLoaderTest {
+class LoaderTest {
     private static SparkSession spark;
     private static String INPUT_TEST_GRAPH = "test_dataset/100k.nt";
     private static long numberSubjects;
@@ -56,6 +56,19 @@ class PropertyTableLoaderTest {
         // there should be a column for each distinct property (except the subject column)
         long ptNumberColumns = propertyTable.columns().length - 1;
         assertEquals(numberPredicates, ptNumberColumns, "Number of columns must be " + numberPredicates);
+    }
+
+    @Test
+    void verticalPartitioningTest() {
+        VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(
+                "", "testingDB", spark, false);
+        vp_loader.load();
+        Dataset<Row> tables_list = spark.sql("SHOW tables");
+
+
+        // there should be at least a table for each distinct property
+        long tables_count = tables_list.count();
+        assert(tables_count > numberPredicates);
     }
 
 }
