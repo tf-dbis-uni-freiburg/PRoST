@@ -17,7 +17,7 @@ public class NodeComparator implements Comparator<Node> {
 		
 		float priority = 0;
 		
-		if(node.isPropertyTable) {
+		if(node.isPropertyTable || node.isReversePropertyTable) {
 
 			for(TriplePattern t : node.tripleGroup){
 				boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
@@ -30,20 +30,6 @@ public class NodeComparator implements Comparator<Node> {
 				int size = stats.getTableSize(predicate);	
 				priority += (float) size; 
 			}
-		} else if(node.isReversePropertyTable){
-			for(TriplePattern t : node.tripleGroup){
-				boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
-				boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;
-				if (!isObjectVariable || !isSubjectVariable){
-					priority = 0;
-					break;
-				}
-				String predicate = t.predicate;
-				//TODO This table size is irrelevant when its a reverse table. Stats class must be updated to deal with the reverse case
-				int size = stats.getTableSize(predicate);	
-				priority += (float) size; 
-			}
-			
 		} else {
 			String predicate = node.triplePattern.predicate;
 			boolean isObjectVariable = node.triplePattern.objectType == ElementType.VARIABLE;
