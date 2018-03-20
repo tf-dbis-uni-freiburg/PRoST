@@ -12,14 +12,15 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import Executor.Utils;
 import Translator.Stats;
 
-/*
- * A node of the JoinTree that refers to the Property Table.
+/**
+ * A node of the JoinTree that refers to the Reverse Property Table.
  */
 public class RPtNode extends Node {
+	protected final String reversePropertyTableName = "reverse_property_table";
 	
-
-  /*
-	 * The node contains a list of triple patterns with the same subject.
+	/** The node contains a list of triple patterns with the same object.
+	 * @param tripleGroup List of TriplePattern refering to the same object
+	 * @param stats Database statistics
 	 */
 	public RPtNode(List<TriplePattern> tripleGroup, Stats stats){	
 		super();
@@ -30,9 +31,11 @@ public class RPtNode extends Node {
 		
 	}
 	
-	/*
-	 * Alternative constructor, used to instantiate a Node directly with
-	 * a list of jena triple patterns.
+	/** Alternative constructor, used to instantiate a Node directly with
+	 * a list of jena triple patterns with the same object.
+	 * @param jenaTriples list of Triples refering to the same object
+	 * @param prefixes 
+	 * @param stats Database statistics
 	 */
 	public RPtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
@@ -44,23 +47,26 @@ public class RPtNode extends Node {
 		for (Triple t : jenaTriples){
 		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
 		}
-		this.setIsComplex();
-		
+		this.setIsComplex();	
 	}
 
+	/** Uses the database statistics to determine if the object of triples in the node is complex
+	 */
 	private void setIsComplex() {
 		for(TriplePattern triplePattern: this.tripleGroup) {
 			triplePattern.isComplex = stats.isTableReverseComplex(triplePattern.predicate);
 		}
 	}
 
-  public void computeNodeData(SQLContext sqlContext) {
+  /* (non-Javadoc)
+ * @see JoinTree.Node#computeNodeData(org.apache.spark.sql.SQLContext)
+ */
+public void computeNodeData(SQLContext sqlContext) {
 		StringBuilder query = new StringBuilder("SELECT ");
 		ArrayList<String> whereConditions = new ArrayList<String>();
 		ArrayList<String> explodedColumns = new ArrayList<String>();
 
 		// object
-		// TODO Parametrize the name of the column
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) 
 			  query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
 
@@ -92,9 +98,8 @@ public class RPtNode extends Node {
 
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
-
-		// TODO: parameterize the name of the table
-		query.append(" FROM reverse_property_table ");
+		
+		query.append(" FROM ").append(reversePropertyTableName).append(" ");
 		int counter = 0;
 		for (String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"

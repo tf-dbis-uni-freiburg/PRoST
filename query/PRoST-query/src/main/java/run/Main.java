@@ -17,7 +17,6 @@ import Executor.Executor;
 import JoinTree.JoinTree;
 import Translator.Translator;
 
-
 /**
  * The Main class parses the CLI arguments and calls the translator and the executor
  * 
@@ -38,7 +37,6 @@ public class Main {
 	private static String benchmark_file;
 	
 	public static void main(String[] args) {
-		
 		/*
 		 * Manage the CLI options
 		 */
@@ -52,7 +50,7 @@ public class Main {
 		Option statOpt = new Option("s", "stats", true, "File with statistics (required)");
 		options.addOption(statOpt);
 		statOpt.setRequired(true);
-		Option databaseOpt = new Option("d", "DB", true, "Database containing the VP tables and the PT.");
+		Option databaseOpt = new Option("d", "DB", true, "Database containing the VP, PT, and RPT tables.");
 		databaseOpt.setRequired(true);
 		options.addOption(databaseOpt);
 		Option helpOpt = new Option("h", "help", true, "Print this help.");
@@ -121,7 +119,6 @@ public class Main {
 		
 		// single file
 		if(file.isFile()){
-			
 			// translation phase
 			JoinTree translatedQuery = translateSingleQuery(inputFile, statsFileName, treeWidth);
 			
@@ -129,12 +126,10 @@ public class Main {
 			Executor executor = new Executor(translatedQuery, database_name);
 			if (outputFile != null) executor.setOutputFile(outputFile); 
 			executor.execute();	
-			
 		} 
 		
 		// set of queries
 		else if(file.isDirectory()){
-			
 			// empty executor to initialize Spark
 			Executor executor = new Executor(null, database_name);
 			
@@ -150,7 +145,6 @@ public class Main {
 			if(benchmarkMode) {
 				executor.saveResultsCsv(benchmark_file);
 			}
-			
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
 			return;
@@ -169,7 +163,6 @@ public class Main {
 		
 		return translator.translateQuery();
 	}
-	
 	
 	private static void executeBatch(String[] queries, Executor executor) {
 		for(String fname : queries){
@@ -192,6 +185,4 @@ public class Main {
 		}
 		return sample;
 	}
-	
-
 }

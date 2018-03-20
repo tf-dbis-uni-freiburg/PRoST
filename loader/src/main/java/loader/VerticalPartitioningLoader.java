@@ -28,7 +28,7 @@ public class VerticalPartitioningLoader extends Loader {
 	@Override
 	public void load() {
 		long startTime;
-		long executionTime;
+		long executionTime = 0;
 	
 		startTime = System.currentTimeMillis();
 
@@ -54,8 +54,8 @@ public class VerticalPartitioningLoader extends Loader {
 			executionTime = System.currentTimeMillis() - startTime;
 			
 			LOGGER.info("Created VP table for the property: " + property);
-			LOGGER.info("Vertical partitions created in: " + String.valueOf(executionTime));
 		}
+		LOGGER.info("Vertical partitions created in: " + String.valueOf(executionTime));
 		
 		// save the stats in a file with the same name as the output database
 		if(computeStatistics)
@@ -127,5 +127,4 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		return result_properties;
 	}
-	
 }

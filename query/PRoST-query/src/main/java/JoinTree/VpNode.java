@@ -6,12 +6,11 @@ import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
 
-
 /*
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
 public class VpNode extends Node {
-  private String tableName;
+	private String tableName;
 	
 	/*
 	 * The node contains a single triple pattern.
@@ -24,7 +23,6 @@ public class VpNode extends Node {
 	}
 	
 	public void computeNodeData(SQLContext sqlContext){
-	  
 	    if (tableName == null) {
 	      System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
           return;
@@ -42,7 +40,6 @@ public class VpNode extends Node {
 		else if (triplePattern.objectType == ElementType.VARIABLE) 
 			query.append("o AS " + Utils.removeQuestionMark(triplePattern.object));
 		
-		
 		// FROM
 		query.append(" FROM ");
 		query.append("vp_" + tableName);
@@ -58,5 +55,4 @@ public class VpNode extends Node {
 		
 		this.sparkNodeData = sqlContext.sql(query.toString());
 	}
-
 }

@@ -3,7 +3,6 @@ package JoinTree;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-
 public class TriplePattern {
 	public String subject;
 	public String predicate;
@@ -14,10 +13,8 @@ public class TriplePattern {
 	public boolean isComplex = false;
 	public boolean arePrefixUsed = false;
 	
-	
 	// construct from Jena triple
 	public TriplePattern(Triple triple, PrefixMapping prefixes, boolean datasetUsesPrefixes){
-
 		// extract and set the subject
 		if(triple.getSubject().isVariable()) {
 		  subjectType = ElementType.VARIABLE;
@@ -27,7 +24,6 @@ public class TriplePattern {
 		  subjectType = ElementType.CONSTANT;
 		  subject = datasetUsesPrefixes? triple.getSubject().toString(prefixes) : 
 		    "<" + triple.getSubject().getURI() + ">";
-		  
 		}
 		
 		// extract and set the predicate
@@ -44,12 +40,10 @@ public class TriplePattern {
 		  object = datasetUsesPrefixes ? triple.getObject().toString(prefixes) : 
 		    "<" + triple.getObject().getURI() + ">";
 		}
-		
 	}
 	
 	@Override
 	public String toString(){
 		return String.format("(%s) (%s) (%s)", subject, predicate, object);
-		
 	}
 }

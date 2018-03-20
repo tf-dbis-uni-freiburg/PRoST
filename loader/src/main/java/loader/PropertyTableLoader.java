@@ -41,8 +41,8 @@ public class PropertyTableLoader extends Loader{
 		
 		startTime = System.currentTimeMillis();
 		//creates non reverse property table
-		buildProperties();		
-		buildComplexPropertyTable().write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputNonReversePropertyTableName);
+		buildProperties(nonReversePropertiesTableName, false, false);
+		buildComplexPropertyTable(nonReversePropertiesTableName, false, false).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputNonReversePropertyTableName);
 		executionTime = System.currentTimeMillis() - startTime;
 		LOGGER.info("Created property table with name: " + outputNonReversePropertyTableName);	
 		LOGGER.info("Property table created in: " + String.valueOf(executionTime));
@@ -52,15 +52,15 @@ public class PropertyTableLoader extends Loader{
 		buildProperties(reverseTableName, true, false);	
 		buildComplexPropertyTable(reverseTableName, true, false).write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(outputReversePropertyTableName);	
 		executionTime = System.currentTimeMillis() - startTime;
-		LOGGER.info("Created property table with name: " + outputReversePropertyTableName);	
-		LOGGER.info("Reverse Property table created in: " + String.valueOf(executionTime));
+		LOGGER.info("Created reverse property table with name: " + outputReversePropertyTableName);	
+		LOGGER.info("Reverse property table created in: " + String.valueOf(executionTime));
 	}
 		
 	/**
 	 * Creates a table containing possible properties and their complexities
 	 * 
 	 * <p>The scheme of the created table is (&ltpredicateColumnName&gt: String, is_complex: Integer), where is_complex has the value of 1 in case there is more than one
-	 * triple containing the predicate-object or subject-predicate (depending on the <b>isReverseOrder</b> parameter.
+	 * triple containing the predicate-object or subject-predicate (depending on the <b>isReverseOrder</b> parameter).
 	 * 
 	 * @param propertiesTableName name of the table to be created
 	 * @param isReverseOrder indicates whether the complexity of a property is determined by the count of elements in a predicate-object group (case TRUE),
@@ -120,30 +120,18 @@ public class PropertyTableLoader extends Loader{
 	}
 	
 	/**
-	 * Creates a table of properties and theirs complexities.
-	 * 
-	 * <p>Complexity is checked according to the number of triples in a each group of predicate-object
-	 * 
-	 * @see PropertyTableLoader#buildProperties(String, Boolean, Boolean)
-	 */
-	private void buildProperties() {
-		buildProperties(nonReversePropertiesTableName, false, false);
-	}
-	
-
-	/**
 	 * Returns a dataset with the property table generated from the given triplestore table
 	 * 
 	 * <p>Given a triplestore table (s-p-o), columns of the type List[String] or String are created for each predicate.</p>
 	 * <p>A column named &ltsubjectColumnName&gt is created containing the source column. The source column is either 
 	 * &ltsubjectColumnName&gt if <b>isReverseOrder</b> is <b>false</b>, or &ltpredicateColumnName&gt otherwise</p>
-	 * <p>Each property column contains a List[String] or String with the appropriate entities from the target column</p>
+	 * <p>Each property column contains a List[String] if complex,  or String otherwise, with the appropriate entities from the target column</p>
 	 * 
-	 * @param propertiesTableName name of the properties table to be used
-	 * @param isReverseOrder sets the order of the source and target columns (False = subject->tpredicate->object; True= object->predicate->subject)
-	 * @param removeLiterals sets whether literals should be removed from the source column. Ignored if <b>is_reverse</b> is <b>false</b>
+	 * @param propertiesTableName name of the properties table (schema: properties, is_complex) to be used
+	 * @param isReverseOrder sets the order of the source and target columns (False = subject->predicate->object; True= object->predicate->subject)
+	 * @param removeLiterals sets whether literals should be removed from the source column.
 	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
+	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST&ltSTRING&gt OR STRING).
 	 */
 	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverseOrder, Boolean removeLiterals) {
 		final String sourceColumn;
@@ -187,7 +175,7 @@ public class PropertyTableLoader extends Loader{
 					sourceColumn, predicateColumnName, COLLUMNS_SEPARATOR, targetColumn, predicateObjectColumnName, tripleTableName));
 		}
 		
-		// group by the subject and get all the data
+		// group by the source column and get all the data
 		Dataset<Row> grouped = compressedTriples.groupBy(sourceColumn)
 				.agg(aggregator.apply(compressedTriples.col(predicateObjectColumnName)).alias(groupColumnName));
 
@@ -209,38 +197,11 @@ public class PropertyTableLoader extends Loader{
 		
 		if (isReverseOrder) {
 			// renames the column so that its name is consistent with the non-reverse dataset
+			// this guarantees that any method that access a Property Table can be used with a Reverse Property Table
 			return grouped.selectExpr(selectProperties).withColumnRenamed(sourceColumn, targetColumn);
 		}
 		else{
 			return grouped.selectExpr(selectProperties);
 		}
-	}
-	
-	/**
-	 * Returns a dataset with the property table generated based on the subjects and the previously generated nonReversePropertiesTableName
-	 * 
-	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
-	 * 
-	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
-	 */
-	public Dataset<Row> buildComplexPropertyTable() {
-		return buildComplexPropertyTable(nonReversePropertiesTableName, false, false);
-	}
-	
-	/**
-	 * Returns a dataset with the property table generated and ignoring literals in the &ltobjectColumn&gt if <b>is_reverse</b> is <b>true</b>.
-	 * 
-	 * <p>If <b>is_reverse</b> is <b>false</b>, there are no literals in &ltsubjectColumnName&gt by the definition of RDF triples.
-	 * 
-	 * @param propertiesTableName name of the properties table to be used
-	 * @param isReverse
-	 * @return return a dataset with the following schema: 
-	 * (&ltsubjectColumnName&gt: STRING, p1: LIST&ltSTRING&gt OR STRING, ..., pN: LIST<STRING> OR STRING).
-	 * 
-	 * @see PropertyTableLoader#buildComplexPropertyTable(String, Boolean, Boolean)
-	 */
-	public Dataset<Row> buildComplexPropertyTable(String propertiesTableName, Boolean isReverse) {
-		return buildComplexPropertyTable(propertiesTableName, isReverse, true);
 	}
 }

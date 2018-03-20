@@ -51,16 +51,12 @@ public class JoinTree {
 		if(selectDistinct) results = results.distinct();
 		
 		return results;
-		
 	}
-	
 	
 	@Override
 	public String toString(){
-		
 		return this.node.toString();
 	}
-
 
 	public String getFilter() {
 		return filter;
@@ -83,5 +79,4 @@ public class JoinTree {
 		//TODO: actual translation missing 
 		return sparqlFilter;
 	}
-
 }

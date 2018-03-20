@@ -16,8 +16,6 @@ import Translator.Stats;
  * A node of the JoinTree that refers to the Property Table.
  */
 public class PtNode extends Node {
-	
-
   /*
 	 * The node contains a list of triple patterns with the same subject.
 	 */
@@ -27,7 +25,6 @@ public class PtNode extends Node {
 		this.tripleGroup = tripleGroup;
 		this.stats = stats;
 		this.setIsComplex();
-		
 	}
 	
 	/*
@@ -45,7 +42,6 @@ public class PtNode extends Node {
 		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
 		}
 		this.setIsComplex();
-		
 	}
 
 	private void setIsComplex() {
@@ -55,7 +51,6 @@ public class PtNode extends Node {
     }
 
   public void computeNodeData(SQLContext sqlContext) {
-
 		StringBuilder query = new StringBuilder("SELECT ");
 		ArrayList<String> whereConditions = new ArrayList<String>();
 		ArrayList<String> explodedColumns = new ArrayList<String>();

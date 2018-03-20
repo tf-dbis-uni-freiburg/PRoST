@@ -30,19 +30,16 @@ public abstract class Node {
 	 */
 	public abstract void computeNodeData(SQLContext sqlContext);
 	
-	public Node(){
-				
+	public Node(){	
 		this.children = new ArrayList<Node>();
 		
 		// set the projections (if present)
 		this.projection = Collections.emptyList();
 	}
 	
-	
 	public void setProjectionList(List<String> projections) {
 		this.projection = projections;
 	}
-	
 	
 	// call computeNodeData recursively on the whole subtree
 	public void computeSubTreeData(SQLContext sqlContext){
@@ -64,7 +61,6 @@ public abstract class Node {
 		}
 		return currentResult;
 	}
-	
 	
 	@Override
 	public String toString(){
@@ -98,6 +94,4 @@ public abstract class Node {
 	public int getChildrenCount() {
 		return this.children.size();
 	}
-	
-	
 }

@@ -31,8 +31,8 @@ public class Main {
 	private static String outputDB;
 	private static final Logger logger = Logger.getLogger(Main.class);
 	private static boolean useStatistics = false;
-	public static void main(String[] args) {
-		
+	
+	public static void main(String[] args) {	
 		/*
 		 * Manage the CLI options
 		 */
@@ -91,11 +91,12 @@ public class Main {
 		  .getOrCreate();
 		TripleTableLoader tt_loader = new TripleTableLoader(input_file, outputDB, spark);
 		tt_loader.load();
+		
+		//loads both Property Table and Reverse Property Table
 		PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
 		pt_loader.load();
 		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark, useStatistics);
 		vp_loader.load();
-		
 	}
 
 }

@@ -30,7 +30,6 @@ public class Stats {
 	public String [] tableNames;
 	public HashMap<String, Boolean> tableIsReverseComplex;
 
-	
 	private static final Logger logger = Logger.getLogger(Main.class);
 	
 	public Stats(String fileName){
@@ -125,20 +124,16 @@ public class Stats {
 	  return null;
 	}
 	
-	   /*
+	  /*
      * return true if prefixed are used in the dataset.
      * It tries to guess from the properties names to not query the real data.
      * TODO: query the real data to be sure, or ask the user.
      */
     public boolean arePrefixesActive() {
-      
       for(String propertyName : this.tableNames) {
         if(StringUtils.countMatches(propertyName, "_") > 2)
           return false;
-      }
-      
+      } 
       return true;
     }
-	
-
 }

@@ -38,5 +38,4 @@ public class QueryVisitor extends OpVisitorBase {
 	public String getFilter() {
 		return filter;
 	}
-
 }
