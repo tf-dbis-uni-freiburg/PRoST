@@ -73,8 +73,6 @@ public class Translator {
         // build the tree
         Node root_node = buildTree();
         JoinTree tree = new JoinTree(root_node, inputFile);
-        System.out.println("SIMON");
-        System.out.println(queryVisitor.getFilter());
         tree.setFilter(queryVisitor.getFilter());
         
         // if distinct keyword is present
