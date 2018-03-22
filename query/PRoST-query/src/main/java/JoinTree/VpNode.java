@@ -5,14 +5,14 @@ import java.util.Collections;
 import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
-import Translator.Stats;
 
 
 /*
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
 public class VpNode extends Node {
-  private String tableName;
+
+    private String tableName;
     
     /*
      * The node contains a single triple pattern.

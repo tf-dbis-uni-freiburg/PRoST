@@ -1,4 +1,4 @@
-package Translator;
+package translator;
 
 import java.util.List;
 
@@ -18,11 +18,11 @@ public class QueryVisitor extends OpVisitorBase {
   private String filter;
   private PrefixMapping prefixes;
   private boolean prefixesActive;
-  
-  public QueryVisitor(PrefixMapping prefixes, boolean arePrefixesActive) {
+
+  public QueryVisitor(PrefixMapping prefixes) {
     super();
     this.prefixes = prefixes;
-    this.prefixesActive = arePrefixesActive;
+    this.prefixesActive = Stats.getInstance().arePrefixesActive();
   }
 
   public List<Var> getVariables() {
@@ -39,7 +39,7 @@ public class QueryVisitor extends OpVisitorBase {
 
   public void visit(OpFilter opFilter) {
 
-    FilterVisitor filterVisitor = new FilterVisitor(this.prefixes, this.prefixesActive);
+    FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
     for (Expr e : opFilter.getExprs()) {
       e.visit(filterVisitor);
       filter = filterVisitor.getSQLFilter();

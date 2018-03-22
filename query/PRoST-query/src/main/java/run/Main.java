@@ -12,10 +12,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
-
+import translator.Stats;
 import Executor.Executor;
 import JoinTree.JoinTree;
-import Translator.Translator;
+import translator.Translator;
 
 
 /**
@@ -24,11 +24,13 @@ import Translator.Translator;
  * @author Matteo Cossu
  */
 public class Main {
+
+	private static final Logger logger = Logger.getLogger(Main.class);
+
 	private static String inputFile;
 	private static String outputFile;
 	private static String statsFileName = "";
 	private static String database_name;
-	private static final Logger logger = Logger.getLogger(Main.class);
 	private static int treeWidth = -1;
 	private static boolean useOnlyVP = false;
 	private static int setGroupSize = -1;
@@ -108,14 +110,17 @@ public class Main {
 			benchmarkMode = true;
 			benchmark_file = cmd.getOptionValue("times");
 		}
-		
+
+		// create a singleton parsing a file with statistics
+		Stats.getInstance().parseStats(statsFileName);
+
 		File file = new File(inputFile);
-		
+
 		// single file
 		if(file.isFile()){
 			
 			// translation phase
-			JoinTree translatedQuery = translateSingleQuery(inputFile, statsFileName, treeWidth);
+			JoinTree translatedQuery = translateSingleQuery(inputFile, treeWidth);
 			
 			// execution phase
 			Executor executor = new Executor(translatedQuery, database_name);
@@ -151,9 +156,9 @@ public class Main {
 			
 		
 	}
-	
-	private static JoinTree translateSingleQuery(String query, String statsFile, int width) {
-		Translator translator = new Translator(query, statsFile, width);
+
+	private static JoinTree translateSingleQuery(String query, int width) {
+		Translator translator = new Translator(query, width);
 		if (!useOnlyVP) translator.setPropertyTable(true);
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
 		
@@ -166,7 +171,7 @@ public class Main {
 			logger.info("Starting: " + fname);
 			
 			// translation phase
-			JoinTree translatedQuery = translateSingleQuery(inputFile +  "/" + fname, statsFileName, treeWidth);
+			JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
 			
 			// execution phase
 			executor.setQueryTree(translatedQuery);

@@ -3,13 +3,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
-import Translator.Stats;
 
 /*
  * A single node of the JoinTree
@@ -20,10 +18,9 @@ public abstract class Node {
 	public List<Node> children;
 	public List<String> projection;
 	public List<TriplePattern> tripleGroup;
-	// the spark dataset containing the data relative to this node
+    // the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
-	protected Stats stats;
 	
 	/**
 	 * computeNodeData sets the Dataset<Row> to the data referring to this node

@@ -1,0 +1,107 @@
+2017-05-22 16:38:35 INFO  Main:68 - Output file set to: asd
+2017-05-22 16:38:35 INFO  Main:72 - Input database set to: MMMMM
+2017-05-22 16:38:35 INFO  SparkContext:58 - Running Spark version 1.6.0
+2017-05-22 16:38:36 DEBUG MutableMetricsFactory:42 - field org.apache.hadoop.metrics2.lib.MutableRate org.apache.hadoop.security.UserGroupInformation$UgiMetrics.loginSuccess with annotation @org.apache.hadoop.metrics2.annotation.Metric(about=, always=false, sampleName=Ops, type=DEFAULT, value=[Rate of successful kerberos logins and latency (milliseconds)], valueName=Time)
+2017-05-22 16:38:36 DEBUG MutableMetricsFactory:42 - field org.apache.hadoop.metrics2.lib.MutableRate org.apache.hadoop.security.UserGroupInformation$UgiMetrics.loginFailure with annotation @org.apache.hadoop.metrics2.annotation.Metric(about=, always=false, sampleName=Ops, type=DEFAULT, value=[Rate of failed kerberos logins and latency (milliseconds)], valueName=Time)
+2017-05-22 16:38:36 DEBUG MutableMetricsFactory:42 - field org.apache.hadoop.metrics2.lib.MutableRate org.apache.hadoop.security.UserGroupInformation$UgiMetrics.getGroups with annotation @org.apache.hadoop.metrics2.annotation.Metric(about=, always=false, sampleName=Ops, type=DEFAULT, value=[GetGroups], valueName=Time)
+2017-05-22 16:38:36 DEBUG MutableMetricsFactory:42 - field private org.apache.hadoop.metrics2.lib.MutableGaugeLong org.apache.hadoop.security.UserGroupInformation$UgiMetrics.renewalFailuresTotal with annotation @org.apache.hadoop.metrics2.annotation.Metric(about=, always=false, sampleName=Ops, type=DEFAULT, value=[Renewal failures since startup], valueName=Time)
+2017-05-22 16:38:36 DEBUG MutableMetricsFactory:42 - field private org.apache.hadoop.metrics2.lib.MutableGaugeInt org.apache.hadoop.security.UserGroupInformation$UgiMetrics.renewalFailures with annotation @org.apache.hadoop.metrics2.annotation.Metric(about=, always=false, sampleName=Ops, type=DEFAULT, value=[Renewal failures since last successful login], valueName=Time)
+2017-05-22 16:38:36 DEBUG MetricsSystemImpl:231 - UgiMetrics, User and group related metrics
+2017-05-22 16:38:36 DEBUG SecurityUtil:110 - Setting hadoop.security.token.service.use_ip to true
+2017-05-22 16:38:38 DEBUG KerberosName:89 - Kerberos krb5 configuration not found, setting default realm to empty
+2017-05-22 16:38:38 DEBUG Groups:433 -  Creating new Groups object
+2017-05-22 16:38:38 DEBUG NativeCodeLoader:46 - Trying to load the custom-built native-hadoop library...
+2017-05-22 16:38:38 DEBUG NativeCodeLoader:55 - Failed to load native-hadoop with error: java.lang.UnsatisfiedLinkError: no hadoop in java.library.path
+2017-05-22 16:38:38 DEBUG NativeCodeLoader:56 - java.library.path=C:\Program Files\Java\jre1.8.0_45\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Program Files (x86)/Java/jre1.8.0_45/bin/client;C:/Program Files (x86)/Java/jre1.8.0_45/bin;C:/Program Files (x86)/Java/jre1.8.0_45/lib/i386;C:\ProgramData\Oracle\Java\javapath;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files (x86)\Microsoft SDKs\TypeScript\1.0\;C:\Program Files (x86)\Calibre2\;C:\Program Files (x86)\MySQL\MySQL Fabric 1.5.3 & MySQL Utilities 1.5.3 1.5\;C:\Program Files (x86)\MySQL\MySQL Fabric 1.5.3 & MySQL Utilities 1.5.3 1.5\Doctrine extensions for PHP\;C:\Program Files\TortoiseSVN\bin;C:\Program Files (x86)\Skype\Phone\;C:\HashiCorp\Vagrant\bin;C:\Program Files\Git\cmd;C:\Go\bin;C:\texlive\2014\bin\win32;C:\Program Files (x86)\Google\google_appengine\;C:\Users\matteo\AppData\Local\atom\bin;C:\Users\matteo\AppData\Local\Microsoft\WindowsApps;;C:\Program Files (x86)\Microsoft VS Code\bin;C:\Users\matteo\Documents\eclipse-jee-kepler-SR2-Java8-win32\eclipse;;.
+2017-05-22 16:38:38 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-05-22 16:38:38 DEBUG PerformanceAdvisory:41 - Falling back to shell based
+2017-05-22 16:38:38 DEBUG JniBasedUnixGroupsMappingWithFallback:45 - Group mapping impl=org.apache.hadoop.security.ShellBasedUnixGroupsMapping
+2017-05-22 16:38:39 DEBUG Shell:369 - Failed to detect a valid hadoop home directory
+java.io.IOException: HADOOP_HOME or hadoop.home.dir are not set.
+	at org.apache.hadoop.util.Shell.checkHadoopHome(Shell.java:351)
+	at org.apache.hadoop.util.Shell.<clinit>(Shell.java:376)
+	at org.apache.hadoop.util.StringUtils.<clinit>(StringUtils.java:79)
+	at org.apache.hadoop.security.Groups.parseStaticMapping(Groups.java:168)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:132)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:100)
+	at org.apache.hadoop.security.Groups.getUserToGroupsMappingService(Groups.java:435)
+	at org.apache.hadoop.security.UserGroupInformation.initialize(UserGroupInformation.java:337)
+	at org.apache.hadoop.security.UserGroupInformation.ensureInitialized(UserGroupInformation.java:304)
+	at org.apache.hadoop.security.UserGroupInformation.loginUserFromSubject(UserGroupInformation.java:891)
+	at org.apache.hadoop.security.UserGroupInformation.getLoginUser(UserGroupInformation.java:857)
+	at org.apache.hadoop.security.UserGroupInformation.getCurrentUser(UserGroupInformation.java:724)
+	at org.apache.spark.util.Utils$$anonfun$getCurrentUserName$1.apply(Utils.scala:2214)
+	at org.apache.spark.util.Utils$$anonfun$getCurrentUserName$1.apply(Utils.scala:2214)
+	at scala.Option.getOrElse(Option.scala:120)
+	at org.apache.spark.util.Utils$.getCurrentUserName(Utils.scala:2214)
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:324)
+	at Executor.<init>(Executor.java:38)
+	at Main.main(Main.java:75)
+2017-05-22 16:38:39 ERROR Shell:422 - Failed to locate the winutils binary in the hadoop binary path
+java.io.IOException: Could not locate executable null\bin\winutils.exe in the Hadoop binaries.
+	at org.apache.hadoop.util.Shell.getQualifiedBinPath(Shell.java:404)
+	at org.apache.hadoop.util.Shell.getWinUtilsPath(Shell.java:419)
+	at org.apache.hadoop.util.Shell.<clinit>(Shell.java:412)
+	at org.apache.hadoop.util.StringUtils.<clinit>(StringUtils.java:79)
+	at org.apache.hadoop.security.Groups.parseStaticMapping(Groups.java:168)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:132)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:100)
+	at org.apache.hadoop.security.Groups.getUserToGroupsMappingService(Groups.java:435)
+	at org.apache.hadoop.security.UserGroupInformation.initialize(UserGroupInformation.java:337)
+	at org.apache.hadoop.security.UserGroupInformation.ensureInitialized(UserGroupInformation.java:304)
+	at org.apache.hadoop.security.UserGroupInformation.loginUserFromSubject(UserGroupInformation.java:891)
+	at org.apache.hadoop.security.UserGroupInformation.getLoginUser(UserGroupInformation.java:857)
+	at org.apache.hadoop.security.UserGroupInformation.getCurrentUser(UserGroupInformation.java:724)
+	at org.apache.spark.util.Utils$$anonfun$getCurrentUserName$1.apply(Utils.scala:2214)
+	at org.apache.spark.util.Utils$$anonfun$getCurrentUserName$1.apply(Utils.scala:2214)
+	at scala.Option.getOrElse(Option.scala:120)
+	at org.apache.spark.util.Utils$.getCurrentUserName(Utils.scala:2214)
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:324)
+	at Executor.<init>(Executor.java:38)
+	at Main.main(Main.java:75)
+2017-05-22 16:38:39 DEBUG Groups:150 - Group mapping impl=org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback; cacheTimeout=300000; warningDeltaMs=5000
+2017-05-22 16:38:39 DEBUG UserGroupInformation:244 - hadoop login
+2017-05-22 16:38:39 DEBUG UserGroupInformation:179 - hadoop login commit
+2017-05-22 16:38:39 DEBUG UserGroupInformation:209 - using local user:NTUserPrincipal: matteo
+2017-05-22 16:38:39 DEBUG UserGroupInformation:215 - Using user: "NTUserPrincipal: matteo" with name matteo
+2017-05-22 16:38:39 DEBUG UserGroupInformation:225 - User entry: "matteo"
+2017-05-22 16:38:39 DEBUG UserGroupInformation:936 - UGI loginUser:matteo (auth:SIMPLE)
+2017-05-22 16:38:39 ERROR SparkContext:95 - Error initializing SparkContext.
+org.apache.spark.SparkException: A master URL must be set in your configuration
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:403)
+	at Executor.<init>(Executor.java:38)
+	at Main.main(Main.java:75)
+2017-05-22 16:38:39 INFO  SparkContext:58 - Successfully stopped SparkContext
+2017-06-23 19:48:26 INFO  Main:78 - Output database set to: asd
+2017-06-23 19:48:26 INFO  Main:82 - Input database set to: MMMMM
+2017-06-23 19:48:27 INFO  SparkContext:54 - Running Spark version 2.0.0
+2017-06-23 19:48:30 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-06-23 19:48:31 ERROR SparkContext:91 - Error initializing SparkContext.
+org.apache.spark.SparkException: A master URL must be set in your configuration
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:371)
+	at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2256)
+	at org.apache.spark.sql.SparkSession$Builder$$anonfun$8.apply(SparkSession.scala:831)
+	at org.apache.spark.sql.SparkSession$Builder$$anonfun$8.apply(SparkSession.scala:823)
+	at scala.Option.getOrElse(Option.scala:120)
+	at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:823)
+	at Executor.<init>(Executor.java:50)
+	at Main.main(Main.java:92)
+2017-06-23 19:48:31 INFO  SparkContext:54 - Successfully stopped SparkContext
+2017-06-28 16:09:37 INFO  Main:78 - Output database set to: asd
+2017-06-28 16:09:37 INFO  Main:82 - Input database set to: MMMMM
+2017-06-28 16:09:54 INFO  SparkContext:54 - Running Spark version 2.0.0
+2017-06-28 16:09:57 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-06-28 16:09:58 ERROR SparkContext:91 - Error initializing SparkContext.
+org.apache.spark.SparkException: A master URL must be set in your configuration
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:371)
+	at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2256)
+	at org.apache.spark.sql.SparkSession$Builder$$anonfun$8.apply(SparkSession.scala:831)
+	at org.apache.spark.sql.SparkSession$Builder$$anonfun$8.apply(SparkSession.scala:823)
+	at scala.Option.getOrElse(Option.scala:120)
+	at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:823)
+	at Executor.<init>(Executor.java:50)
+	at Main.main(Main.java:92)
+2017-06-28 16:09:58 INFO  SparkContext:54 - Successfully stopped SparkContext
+2017-07-30 13:10:40 INFO  Main:80 - Output database set to: asd
+2017-07-30 13:10:40 INFO  Main:84 - Input database set to: MMMMM
+2017-07-30 13:10:40 ERROR Main:102 - The input file is not set correctly or contains errors

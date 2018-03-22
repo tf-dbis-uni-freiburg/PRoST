@@ -1,5 +1,6 @@
 package JoinTree;
 
+import translator.Stats;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
@@ -12,11 +13,10 @@ public class TriplePattern {
 	public ElementType objectType;
 	public ElementType predicateType;
 	public boolean isComplex = false;
-	public boolean arePrefixUsed = false;
 	
 	
 	// construct from Jena triple
-	public TriplePattern(Triple triple, PrefixMapping prefixes, boolean datasetUsesPrefixes){
+    public TriplePattern(Triple triple, PrefixMapping prefixes) {
 
 		// extract and set the subject
 		if(triple.getSubject().isVariable()) {
@@ -25,7 +25,7 @@ public class TriplePattern {
 		}
 		else {
 		  subjectType = ElementType.CONSTANT;
-		  subject = datasetUsesPrefixes? triple.getSubject().toString(prefixes) : 
+            subject = Stats.getInstance().arePrefixesActive() ? triple.getSubject().toString(prefixes) :
 		    "<" + triple.getSubject().getURI() + ">";
 		  
 		}
@@ -41,7 +41,7 @@ public class TriplePattern {
 		}
 		else {
 		  objectType = ElementType.CONSTANT;
-		  object = datasetUsesPrefixes ? triple.getObject().toString(prefixes) : 
+            object = Stats.getInstance().arePrefixesActive() ? triple.getObject().toString(prefixes) :
 		    "<" + triple.getObject().getURI() + ">";
 		}
 		

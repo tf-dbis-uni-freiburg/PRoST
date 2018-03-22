@@ -10,7 +10,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import Executor.Utils;
-import Translator.Stats;
+import translator.Stats;
 
 /*
  * A node of the JoinTree that refers to the Property Table.
@@ -21,12 +21,11 @@ public class PtNode extends Node {
   /*
 	 * The node contains a list of triple patterns with the same subject.
 	 */
-	public PtNode(List<TriplePattern> tripleGroup, Stats stats){
+  public PtNode(List<TriplePattern> tripleGroup) {
 		
 		super();
 		this.isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
-		this.stats = stats;
 		this.setIsComplex();
 		
 	}
@@ -35,15 +34,14 @@ public class PtNode extends Node {
 	 * Alternative constructor, used to instantiate a Node directly with
 	 * a list of jena triple patterns.
 	 */
-	public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes, Stats stats) {
+    public PtNode(List<Triple> jenaTriples, PrefixMapping prefixes) {
 		ArrayList<TriplePattern> triplePatterns = new ArrayList<TriplePattern>();
 		this.isPropertyTable = true;
 		this.tripleGroup = triplePatterns;
 		this.children = new ArrayList<Node>();
 		this.projection = Collections.emptyList();
-		this.stats = stats;
 		for (Triple t : jenaTriples){
-		  triplePatterns.add(new TriplePattern(t, prefixes, this.stats.arePrefixesActive()));
+            triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		this.setIsComplex();
 		
@@ -51,7 +49,7 @@ public class PtNode extends Node {
 
 	private void setIsComplex() {
 	  for(TriplePattern triplePattern: this.tripleGroup) {
-	    triplePattern.isComplex = stats.isTableComplex(triplePattern.predicate);
+          triplePattern.isComplex = Stats.getInstance().isTableComplex(triplePattern.predicate);
 	  }
     }
 
@@ -67,7 +65,7 @@ public class PtNode extends Node {
 
 		// objects
 		for (TriplePattern t : tripleGroup) {
-		    String columnName = stats.findTableName(t.predicate.toString());
+            String columnName = Stats.getInstance().findTableName(t.predicate.toString());
 		    if (columnName == null) {
 		      System.err.println("This column does not exists: " + t.predicate);
 		      return;
