@@ -38,12 +38,13 @@ public class QueryVisitor extends OpVisitorBase {
   }
 
   public void visit(OpFilter opFilter) {
-
+    System.out.print("Filter visit");
     FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
     for (Expr e : opFilter.getExprs()) {
       e.visit(filterVisitor);
-      filter = filterVisitor.getSQLFilter();
+      //filter = filterVisitor.getSQLFilter();
     }
+    System.out.print("www");
   }
 
   public void visit(OpProject opProject) {

@@ -2,346 +2,89 @@ package translator;
 
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.expr.*;
-import Executor.Utils;
+
 public class FilterVisitor extends ExprVisitorBase {
+    StringBuilder builder = new StringBuilder();
 
-	String sqlFilter = "";
-	String exprVar = "";
-	String position = "";
-	private PrefixMapping prefixes;
-	private boolean prefixesActive;
+    private PrefixMapping prefixes;
 
-	public FilterVisitor(PrefixMapping prefixes) {
-	    super();
-	    this.prefixes = prefixes;
-		this.prefixesActive = Stats.getInstance().arePrefixesActive();
+    public FilterVisitor(PrefixMapping prefixes) {
+        super();
+        this.prefixes = prefixes;
     }
 
-  public void visit(ExprFunction2 a) {
-        if (a instanceof E_Equals) {
-        	System.out.println("ExprFunction2 - equals - entered");
-        	sqlFilter = this.visit((E_Equals) a);
-        	this.visit((E_Equals) a);
-        	
-        }
-        else if (a instanceof E_NotEquals) {
-        	System.out.println("ExprFunction2 -  NotEquals");
-        	sqlFilter = this.visit((E_NotEquals) a);
-        	this.visit((E_NotEquals) a);
-        }
-        else if (a instanceof E_LogicalAnd) {
-        	System.out.println("ExprFunction2 - LogicalAnd");
-        	sqlFilter = this.visit((E_LogicalAnd) a);
-        }
-        else if (a instanceof E_LogicalOr) {
-        	sqlFilter = this.visit((E_LogicalOr) a);
-        }
-        
-        else {
-        	System.out.println("exprfct2");
-        }
-        
-	}
-	
-	public void visit(ExprFunction1 a) {
-		 if (a instanceof E_Bound) {
-        	sqlFilter = this.visit((E_Bound) a);
-        }
-	}
+    @Override
+    public void visit(ExprFunction0 func) {
+        super.visit(func);
+    }
 
-	public String visit(E_NotEquals a) {
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-			return Utils.removeQuestionMark(a.getArg1().toString()) + " != " + Utils.removeQuestionMark(a.getArg2().toString());
-			}
-		else return "E_NotEquals- Arguments are no ExprVars";
-	}
-
-
-
-	public String visit(E_Equals a) {
-	  String firstPart;
-	  String secondPart;
-	  if (a.getArg1() instanceof ExprVar){
-	    firstPart =  Utils.removeQuestionMark(a.getArg1().toString());
-	  } else {
-	    firstPart = prefixesActive ? "\"" +  prefixes.shortForm(a.getArg1().toString().replaceAll("<|>", ""))  + "\"" :
-	      "\"" + a.getArg1().toString() + "\"";
-	  }
-	  if (a.getArg2() instanceof ExprVar){
-        secondPart =  Utils.removeQuestionMark(a.getArg2().toString());
-      } else {
-        secondPart = prefixesActive ? "\"" +  prefixes.shortForm(a.getArg2().toString().replaceAll("<|>", ""))  + "\"" :
-          "\"" + a.getArg2().toString() + "\"";
-      }
-      
-	  return firstPart + "=" + secondPart;
-	  
-	}
-	
-	public String visit(E_LessThan a) {
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-		return Utils.removeQuestionMark(a.getArg1().toString()) + " < " + Utils.removeQuestionMark(a.getArg2().toString());
-		}
-		else return a.getArg1().toString().replace("?", "") + " < " + a.getArg2().toString().replace("?", "");
-	}
-	
-	public String visit(E_LessThanOrEqual a) {
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-		return Utils.removeQuestionMark(a.getArg1().toString()) + " <= " + Utils.removeQuestionMark(a.getArg2().toString());
-		}
-		else return a.getArg1().toString().replace("?", "") + " <= " + a.getArg2().toString().replace("?", "");
-	}
-	
-	public String visit(E_GreaterThan a) {
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-		return Utils.removeQuestionMark(a.getArg1().toString()) + " > " + Utils.removeQuestionMark(a.getArg2().toString());
-		}
-		else return a.getArg1().toString().replace("?", "") + " > " + a.getArg2().toString().replace("?", "");
-
-	}
-	
-	public String visit(E_GreaterThanOrEqual a) {
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-		return Utils.removeQuestionMark(a.getArg1().toString()) + " >= " + Utils.removeQuestionMark(a.getArg2().toString());
-		}
-		else return a.getArg1().toString().replace("?", "") + " >= " + a.getArg2().toString().replace("?", "");
-	}
-	
-	public String visit(E_LogicalAnd a) {
-		System.out.println("LogicalAND entered");
-		return createSqlString(a, " AND ");
-		
-	}
-	
-	public String visit(E_LogicalOr a) {
-		return createSqlString(a, " OR ");
-		
-	}
-//-----------------------------------------------------------------------------------------------------------	
-	public String visit(E_Bound a) {
-		return a.getFunction().toString();
-	}
-	
-	public String visit(E_IsLiteral a) {
-		return a.getFunction().toString();
-	}
-	
-	public String visit(E_IsIRI a) {
-		return a.getFunction().toString();
-	}
-	
-	public String visit(E_IsBlank a) {
-		return "";
-	}
-	
-	public String visit(E_LogicalNot a) {
-		if (a.getArg() instanceof E_Bound) {
-		return "NOT " + this.visit((E_Bound)a.getArg());
-		}
-		else if (a.getArg() instanceof E_IsIRI) {
-			return "NOT " + this.visit((E_IsIRI)a.getArg());
-			}
-		else if (a.getArg() instanceof E_IsLiteral) {
-			return "NOT " + this.visit((E_IsLiteral)a.getArg());
-			}
-		else return "NOT " + a.getArg().toString();
-	}
-	
-
-	
-//-----------------------------------------------------------------------------------------------------------	
-	public String createSqlString(ExprFunction2 a, String op) {
-		
-		if (a.getArg1() instanceof ExprVar && a.getArg2() instanceof ExprVar) {
-			System.out.println("LogicalAnd - Both are variables ");
-			return Utils.removeQuestionMark(a.getArg1().toString()) + op + Utils.removeQuestionMark(a.getArg2().toString());
-			}
-		
-		else if (a.getArg1() instanceof ExprFunction  && a.getArg2() instanceof ExprFunction) {
-			//E_Equals
-			if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_LogicalAnd) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_Bound) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_Bound) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_Equals && a.getArg2() instanceof E_LogicalNot) {
-				return this.visit((E_Equals) a.getArg1()) + op + this.visit((E_LogicalNot) a.getArg2());
-	        	}
-			
-			
-			//E_NotEquals
-	        else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        	}
-	        else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        	}
-	        else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_NotEquals && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_NotEquals) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-	        	}
-			
-			
-			//LogicalAnd
-	        else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        }
-			else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LogicalAnd && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_LogicalAnd) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-	        	}
-			
-			//E_LessThan
-			else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThan && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_LessThan) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-			}
-			
-			//E_LessThanOrEqual
-			else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_LessThanOrEqual && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_LessThanOrEqual) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-			}
-			
-			//E_GreaterThan
-			else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThan && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_GreaterThan) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-			}
-			
-			
-			//E_GreaterThanOrEqual
-			else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_Equals) {
-	        	return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_Equals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_NotEquals) {
-	        	return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_NotEquals) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_LogicalAnd) {
-	        	return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_LogicalAnd) a.getArg2());
-	        }
-	        else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_GreaterThanOrEqual) {
-				return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_GreaterThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_GreaterThan) {
-				return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_GreaterThan) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_LessThanOrEqual) {
-				return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_LessThanOrEqual) a.getArg2());
-	        	}
-			else if (a.getArg1() instanceof E_GreaterThanOrEqual && a.getArg2() instanceof E_LessThan) {
-				return this.visit((E_GreaterThanOrEqual) a.getArg1()) + op + this.visit((E_LessThan) a.getArg2());
-			}
-			else return "";
-			
-			
-		}
-		else {
-        	return "LogicalAnd - Expression not recognized";
+    @Override
+    public void visit(ExprFunction1 func) {
+        builder.append(" ");
+        // variable in the beginning
+        if (func instanceof E_Bound || func instanceof E_IsIRI) {
+            func.getArg().visit(this);
+            builder.append(" ");
+            builder.append(ToSQLExp.getSqlExpr(func));
+            // variable in middle
+        } else if (func instanceof E_DateTimeDay) {
+            builder.append(ToSQLExp.getSqlExpr(func));
+            func.getArg().visit(this);
+            builder.append(")");
+            // variable at the end
+        } else if (func instanceof E_LogicalNot) {
+            builder.append(ToSQLExp.getSqlExpr(func));
+            func.getArg().visit(this);
         }
-		
-		
-	}
-	
-	
-	
-	public String getSQLFilter() {
-		// TODO Auto-generated method stub
-		return sqlFilter;
-	}
+        builder.append(" ");
+    }
+
+    @Override
+    public void visit(ExprFunction2 func) {
+        func.getArg1().visit(this);
+        builder.append(" ");
+        builder.append(ToSQLExp.getSqlExpr(func));
+        builder.append(" ");
+        func.getArg2().visit(this);
+    }
+
+    @Override
+    public void visit(ExprFunction3 func) {
+        super.visit(func);
+    }
+
+    @Override
+    public void visit(ExprFunctionN func) {
+        super.visit(func);
+    }
+
+    @Override
+    public void visit(ExprFunctionOp op) {
+        super.visit(op);
+    }
+
+    @Override
+    public void visit(NodeValue nv) {
+        // for literals and URIs
+        if (nv.isIRI()) {
+            if (Stats.getInstance().arePrefixesActive()) {
+                // use the short form
+                builder.append(this.prefixes.shortForm(nv.asString()));
+            } else {
+                builder.append("<" + nv.asString() + ">");
+            }
+        } else {
+            builder.append(nv.getString());
+        }
+    }
+
+    @Override
+    public void visit(ExprVar var) {
+        builder.append(var.getVarName());
+    }
+
+    @Override
+    public void visit(ExprAggregator eAgg) {
+        super.visit(eAgg);
+    }
 }
