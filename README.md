@@ -4,6 +4,9 @@
 PRoST allows to load and query very large RDF graphs in Hadoop clusters.
 Input graphs are partitioned efficiently and stored across several tables registered in the Hive Metastore. PRoST contains an optimized engine that executes SPARQL queries on its particular data representation. For alternative ad hoc solutions, a graph can be also queried using common Hadoop technologies, e.g Spark SQL, Hive or Impala. 
 
+## Publications
+  - Cossu, Matteo, Michael Färber, and Georg Lausen. "PRoST: Distributed Execution of SPARQL Queries Using Mixed Partitioning Strategies." (EDBT 2018).
+
 ## Requirements
   - Apache Spark 2+
   - Hive
