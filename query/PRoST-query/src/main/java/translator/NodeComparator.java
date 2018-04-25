@@ -6,7 +6,7 @@ import JoinTree.*;
 
 public class NodeComparator implements Comparator<Node> {
 
-	
+	// used to sort nodes when building a join tree
 	public float heuristicNodePriority(Node node){
 		
 		float priority = 0;
@@ -35,7 +35,6 @@ public class NodeComparator implements Comparator<Node> {
                 priority = (float) size;
 			}
 		}
-		
 		return priority;
 	}
 	

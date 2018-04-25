@@ -4,8 +4,8 @@ import translator.Stats;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-
 public class TriplePattern {
+	
 	public String subject;
 	public String predicate;
 	public String object;
@@ -49,7 +49,6 @@ public class TriplePattern {
 	
 	@Override
 	public String toString(){
-		return String.format("(%s) (%s) (%s)", subject, predicate, object);
-		
+		return String.format("(%s) (%s) (%s)", subject, predicate, object);	
 	}
 }

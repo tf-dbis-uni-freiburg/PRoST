@@ -34,11 +34,17 @@ public class Translator {
     int treeWidth;
     int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
     PrefixMapping prefixes;
+    
     List<Var> variables;
     List<Triple> triples;
+    
+    // if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable;
-    private static final Logger logger = Logger.getLogger(run.Main.class);
+    private static final Logger logger = Logger.getLogger(Translator.class);
 
+    // TODO check this, if you do not specify the treeWidth in the input parameters when
+    // you are running the jar, its default value is -1. 
+    // TODO Move this logic to the translator
 	public Translator(String input, int treeWidth) {
     	this.inputFile = input;
     	this.treeWidth = treeWidth;
@@ -47,17 +53,17 @@ public class Translator {
     public JoinTree translateQuery(){
     	
     	// parse the query and extract prefixes
-        Query query = QueryFactory.read("file:"+inputFile);
-        prefixes = query.getPrefixMapping();
+        Query query = QueryFactory.read("file:" + inputFile);
+        this.prefixes = query.getPrefixMapping();
 
-        logger.info("** SPARQL QUERY **\n" + query +"\n****************"  );
+        logger.info("** SPARQL QUERY **\n" + query + "\n****************");
         
         // extract variables, list of triples and filter
         Op opQuery = Algebra.compile(query);
-		QueryVisitor queryVisitor = new QueryVisitor(prefixes);
+        QueryVisitor queryVisitor = new QueryVisitor(prefixes);
         OpWalker.walk(opQuery, queryVisitor);
-        triples = queryVisitor.getTriple_patterns();
-        variables  = queryVisitor.getVariables();
+        this.triples = queryVisitor.getTriples();
+        this.variables  = queryVisitor.getVariables();
         
         
         // build the tree
