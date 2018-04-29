@@ -1,55 +1,81 @@
 package translator;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.algebra.OpVisitorBase;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
 import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
+import com.hp.hpl.jena.sparql.algebra.op.OpLeftJoin;
 import com.hp.hpl.jena.sparql.algebra.op.OpProject;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.expr.Expr;
 
 public class QueryVisitor extends OpVisitorBase {
 
-  private List<Triple> triple;
-  private List<Var> variables;
-  private String filter;
-  private PrefixMapping prefixes;
+	private QueryTree mainQueryTree;
+	private List<QueryTree> optionalQueryTrees;
+	private List<Var> projectionVariables;
+	private PrefixMapping prefixes;
 
-  public QueryVisitor(PrefixMapping prefixes) {
-    super();
-    this.prefixes = prefixes;
-  }
+	public QueryVisitor(PrefixMapping prefixes) {
+		super();
+		this.prefixes = prefixes;
+		this.optionalQueryTrees = new ArrayList<>();
+	}
 
-  public List<Var> getVariables() {
-    return this.variables;
-  }
+	public List<Var> getProjectionVariables() {
+		return this.projectionVariables;
+	}
 
-  public List<Triple> getTriples() {
-    return this.triple;
-  }
+	public List<QueryTree> getOptionalQueryTrees() {
+		return this.optionalQueryTrees;
+	}
 
-  public void visit(OpBGP opBGP) {
-	  this.triple = opBGP.getPattern().getList();
-  }
+	public QueryTree getMainQueryTree() {
+		return this.mainQueryTree;
+	}
 
-  public void visit(OpFilter opFilter) {
-	// TODO filter visitor
-    FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
-    for (Expr e : opFilter.getExprs()) {
-      e.visit(filterVisitor);
-      //filter = filterVisitor.getSQLFilter();
-    }
-  }
+	public void visit(OpBGP opBGP, boolean isOptional, String filter) {
+		if (!isOptional) {
+			// main join tree triples
+			this.mainQueryTree = new QueryTree(opBGP.getPattern().getList());
+		} else {
+			// optional triples
+			this.optionalQueryTrees.add(new QueryTree(opBGP.getPattern().getList(), filter));
+		}
+	}
 
-  public void visit(OpProject opProject) {
-    this.variables = opProject.getVars();
-  }
+	public void visit(OpLeftJoin opLeftJoin) {
+		if (opLeftJoin.getLeft() instanceof OpBGP) {
+			this.visit((OpBGP) opLeftJoin.getLeft(), false, null);
+		}
+		// set optional triples
+		if (opLeftJoin.getRight() instanceof OpBGP) {
+			// filter expression for the optional
+			if (opLeftJoin.getExprs() != null) {
+				FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
+				for (Expr e : opLeftJoin.getExprs()) {
+					e.visit(filterVisitor);
+				}
+				String optionalFilter = filterVisitor.getSQLFilter();
+				this.visit((OpBGP) opLeftJoin.getRight(), true, optionalFilter);
+			} else {
+				this.visit((OpBGP) opLeftJoin.getRight(), true, null);
+			}
+		}
+	}
 
-  public String getFilter() {
-    return filter;
-  }
+	public void visit(OpFilter opFilter) {
+		FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
+		for (Expr e : opFilter.getExprs()) {
+			e.visit(filterVisitor);
+		}
+		this.mainQueryTree.setFilter(filterVisitor.getSQLFilter());
+	}
 
+	public void visit(OpProject opProject) {
+		this.projectionVariables = opProject.getVars();
+	}
 }

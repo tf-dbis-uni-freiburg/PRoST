@@ -151,17 +151,13 @@ public class Main {
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
 			return;
-		}
-			
-			
-		
+		}	
 	}
 
 	private static JoinTree translateSingleQuery(String query, int width) {
 		Translator translator = new Translator(query, width);
 		if (!useOnlyVP) translator.setPropertyTable(true);
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
-		
 		return translator.translateQuery();
 	}
 	

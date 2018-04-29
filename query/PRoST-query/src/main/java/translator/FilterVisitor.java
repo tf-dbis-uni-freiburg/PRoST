@@ -4,6 +4,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.expr.*;
 
 public class FilterVisitor extends ExprVisitorBase {
+	
     StringBuilder builder = new StringBuilder();
 
     private PrefixMapping prefixes;
@@ -74,7 +75,7 @@ public class FilterVisitor extends ExprVisitorBase {
                 builder.append("<" + nv.asString() + ">");
             }
         } else {
-            builder.append(nv.getString());
+            builder.append(nv.asString());
         }
     }
 
@@ -86,5 +87,13 @@ public class FilterVisitor extends ExprVisitorBase {
     @Override
     public void visit(ExprAggregator eAgg) {
         super.visit(eAgg);
+    }
+    
+    /**
+     * Return SQL Filter expression.
+     * @return
+     */
+    public String getSQLFilter() {
+    	return this.builder.toString();
     }
 }
