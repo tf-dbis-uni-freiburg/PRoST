@@ -43,8 +43,8 @@ public class Executor {
 		this.databaseName = databaseName;
 		this.queryTree = queryTree;
 		this.query_time_results = new ArrayList<String[]>();
+	
 		
-		// TODO local only for development. It has to be changed!
 		// initialize the Spark environment 
 		spark = SparkSession
 				  .builder()
@@ -88,7 +88,6 @@ public class Executor {
 		long executionTime;
 		
 		// compute the joins
-		
 		Dataset<Row> results = queryTree.computeJoins(sqlContext);
 		startTime = System.currentTimeMillis();
 		long number_results = -1;
