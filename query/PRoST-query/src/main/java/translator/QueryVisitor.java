@@ -37,6 +37,10 @@ public class QueryVisitor extends OpVisitorBase {
 		return this.mainQueryTree;
 	}
 
+	public void visit(OpBGP opBGP) {
+		this.mainQueryTree = new QueryTree(opBGP.getPattern().getList());
+	}
+	
 	public void visit(OpBGP opBGP, boolean isOptional, String filter) {
 		if (!isOptional) {
 			// main join tree triples
