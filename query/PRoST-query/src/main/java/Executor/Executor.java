@@ -36,7 +36,7 @@ public class Executor {
 	SQLContext sqlContext;
 
 
-	private static final Logger logger = Logger.getLogger(run.Main.class);
+	private static final Logger logger = Logger.getLogger("PRoST");
 	
 	public Executor(JoinTree queryTree, String databaseName){
 		

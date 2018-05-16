@@ -4,6 +4,12 @@ import loader.PropertyTableLoader;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Properties;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -13,6 +19,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -32,11 +39,16 @@ import org.apache.spark.sql.SparkSession;
 public class Main {
     private static String input_file;
     private static String outputDB;
-    private static final Logger logger = Logger.getLogger(Main.class);
+    private static String loj4jFileName="log4j.properties";
+    private static final Logger logger = Logger.getLogger("PRoST");
     private static boolean useStatistics = false;
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
+    	InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
+    	Properties props = new Properties();
+    	props.load(inStream);
+    	PropertyConfigurator.configure(props);
+    	
         /*
          * Manage the CLI options
          */
@@ -111,8 +123,5 @@ public class Main {
         vp_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
         System.out.println("Time Vertical partitioning: " + String.valueOf(executionTime));
-
     }
-
-
 }

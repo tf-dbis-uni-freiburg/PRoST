@@ -21,7 +21,7 @@ import Executor.Utils;
  */
 public class Stats {
 
-	private static final Logger logger = Logger.getLogger(Stats.class);
+	private static final Logger logger = Logger.getLogger("PRoST");
 
 	// single instance of the statistics
 	private static Stats instance = null;

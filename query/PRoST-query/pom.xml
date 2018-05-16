@@ -65,9 +65,16 @@
 			<artifactId>commons-csv</artifactId>
 			<version>1.5</version>
 		</dependency>
-
 	</dependencies>
 	<build>
+	<resources>
+       	<resource>
+            <directory>${basedir}/src/main/resources</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </resource>
+     </resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

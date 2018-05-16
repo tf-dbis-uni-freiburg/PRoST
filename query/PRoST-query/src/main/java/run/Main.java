@@ -1,6 +1,9 @@
 package run;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.cli.CommandLine;
@@ -12,6 +15,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 import translator.Stats;
 import Executor.Executor;
 import JoinTree.JoinTree;
@@ -25,7 +30,7 @@ import translator.Translator;
  */
 public class Main {
 
-	private static final Logger logger = Logger.getLogger(Main.class);
+	private static final Logger logger = Logger.getLogger("PRoST");
 
 	private static String inputFile;
 	private static String outputFile;
@@ -36,8 +41,13 @@ public class Main {
 	private static int setGroupSize = -1;
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
+    private static String loj4jFileName="log4j.properties";
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+    	InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
+    	Properties props = new Properties();
+    	props.load(inStream);
+    	PropertyConfigurator.configure(props);
 		
 		/*
 		 * Manage the CLI options
@@ -121,6 +131,9 @@ public class Main {
 			
 			// translation phase
 			JoinTree translatedQuery = translateSingleQuery(inputFile, treeWidth);
+			//System.out.println("****************************************************");
+			//System.out.println(translatedQuery);
+			//System.out.println("****************************************************");
 			
 			// execution phase
 			Executor executor = new Executor(translatedQuery, database_name);

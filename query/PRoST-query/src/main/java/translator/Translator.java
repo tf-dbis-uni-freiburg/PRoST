@@ -39,7 +39,7 @@ public class Translator {
 
 	// if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable;
-	private static final Logger logger = Logger.getLogger(Translator.class);
+	private static final Logger logger = Logger.getLogger("PRoST");
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when
