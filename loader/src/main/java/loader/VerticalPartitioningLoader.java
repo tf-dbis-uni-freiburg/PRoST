@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -26,11 +27,9 @@ public class VerticalPartitioningLoader extends Loader {
 
     @Override
     public void load() {
-
-        logger.info("Beginning the creation of VP tables.");
+    	logger.info("PHASE 3: creating the VP tables...");     
 
         if (this.properties_names == null) {
-            logger.error("Properties not calculated yet. Extracting them");
             this.properties_names = extractProperties();
         }
 
@@ -43,8 +42,9 @@ public class VerticalPartitioningLoader extends Loader {
             // save the table
             table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);
             // calculate stats
-            if (computeStatistics)
+            if (computeStatistics){
                 tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
+            }
 
             logger.info("Created VP table for the property: " + property);
         }
@@ -75,6 +75,8 @@ public class VerticalPartitioningLoader extends Loader {
                 .setDistinctSubjects(distinct_subjects)
                 .setIsComplex(is_complex)
                 .setName(tableName);
+        
+        logger.info("Adding these properties to Protobuf object. Table size:"+table_size+", Distinct subjects: "+distinct_subjects+", Is complex:"+ is_complex+", tableName:"+tableName);
 
         return table_stats_builder.build();
     }
@@ -114,6 +116,10 @@ public class VerticalPartitioningLoader extends Loader {
         for (int i = 0; i < props.size(); i++) {
             result_properties[i] = props.get(i).getString(0);
         }
+        
+        List recalculatedPropertiesList = Arrays.asList(result_properties);
+        logger.error("List of predicates had to be recomputed: " + recalculatedPropertiesList);
+        
         return result_properties;
     }
 
