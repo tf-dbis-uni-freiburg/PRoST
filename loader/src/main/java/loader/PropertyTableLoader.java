@@ -1,8 +1,11 @@
 package loader;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
@@ -42,22 +45,29 @@ public class PropertyTableLoader extends Loader {
     }
 
     public void load() {
+    	logger.info("PHASE 2: creating the property table...");
 
         buildProperties();
 
         // collect information for all properties
         List<Row> props = spark.sql(String.format("SELECT * FROM %s", tablename_properties)).collectAsList();
         String[] allProperties = new String[props.size()];
-        Boolean[] isComplexProperty = new Boolean[props.size()];
+        Boolean[] isMultivaluedProperty = new Boolean[props.size()];
 
         for (int i = 0; i < props.size(); i++) {
             allProperties[i] = props.get(i).getString(0);
-            isComplexProperty[i] = props.get(i).getInt(1) == 1;
+            isMultivaluedProperty[i] = props.get(i).getInt(1) == 1;
         }
         this.properties_names = allProperties;
-        // create complex property table
-        buildComplexPropertyTable(allProperties, isComplexProperty);
-
+        
+        List<String> allPropertiesList = Arrays.asList(allProperties);
+        List<Boolean> isMultivaluedPropertyList = Arrays.asList(isMultivaluedProperty);
+        
+        logger.info("All properties as array: " + allPropertiesList);
+        logger.info("Multi-values flag as array: " + isMultivaluedPropertyList);
+        
+        // create multivalued property table               
+        buildMultivaluedPropertyTable(allProperties, isMultivaluedProperty);
     }
 
 
@@ -66,29 +76,69 @@ public class PropertyTableLoader extends Loader {
         // is_complex can be 1 or 0
         // 1 for multivalued predicate, 0 for single predicate
 
-        // select the properties that are complex
+        // select the properties that are multivalued
         Dataset<Row> multivaluedProperties = spark.sql(String.format(
                 "SELECT DISTINCT(%1$s) AS %1$s FROM "
                         + "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
                 column_name_predicate, column_name_subject, name_tripletable));
+        
+        List<String> multivaluedPropertiesList = multivaluedProperties.as(Encoders.STRING()).collectAsList();
+        if (multivaluedPropertiesList.size() > 0) {
+            logger.info("Multivalued Properties found:");
+            for (String property: multivaluedPropertiesList) {
+            	logger.info(property);
+            }
+        }        
 
         // select all the properties
         Dataset<Row> allProperties = spark.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s",
                 column_name_predicate, name_tripletable));
-
-        // select the properties that are not complex
+        
+        List<String> allPropertiesList = allProperties.as(Encoders.STRING()).collectAsList();
+        if (allPropertiesList.size() > 0) {
+            logger.info("All Properties found:");
+            for (String property: allPropertiesList) {
+            	logger.info(property);
+            }
+        }
+        
+        // select the properties that are not multivalued
         Dataset<Row> singledValueProperties = allProperties.except(multivaluedProperties);
+        
+        List<String> singledValuePropertiesList  = singledValueProperties.as(Encoders.STRING()).collectAsList();
+        if (singledValuePropertiesList.size() > 0) {
+            logger.info("Single-valued Properties found:");
+            for (String property: singledValuePropertiesList) {
+            	logger.info(property);
+            }
+        }
 
         // combine them
         Dataset<Row> combinedProperties = singledValueProperties
                 .selectExpr(column_name_predicate, "0 AS is_complex")
-                .union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
+                .union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));        
+        
+        List combinedPropertiesList = combinedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT())).collectAsList();
+        if (combinedPropertiesList.size() > 0) {
+            logger.info("All Properties with a flag to specify whether they are multi-valued:");
+            for (Object property: combinedPropertiesList) {
+            	logger.info(property);
+            }
+        }
 
         // remove '<' and '>', convert the characters
         Dataset<Row> cleanedProperties = combinedProperties.withColumn("p",
                 functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""),
                         "[[^\\w]+]", "_"));
 
+        List cleanedPropertiesList = cleanedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT())).collectAsList();
+        if (cleanedPropertiesList.size() > 0) {
+            logger.info("Clean Properties (stored):");
+            for (Object property: cleanedPropertiesList) {
+            	logger.info(property);
+            }
+        } 
+        
         // write the result
         cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
         logger.info("Created properties table with name: " + tablename_properties);
@@ -96,11 +146,12 @@ public class PropertyTableLoader extends Loader {
 
     /**
      * Create the final property table, allProperties contains the list of all
-     * possible properties isComplexProperty contains (in the same order used by
+     * possible properties isMultivaluedProperty contains (in the same order used by
      * allProperties) the boolean value that indicates if that property is
-     * complex (called also multi valued) or simple.
+     * multi-valued or not.
      */
-    public void buildComplexPropertyTable(String[] allProperties, Boolean[] isComplexProperty) {
+    public void buildMultivaluedPropertyTable(String[] allProperties, Boolean[] isMultivaluedProperty) {
+    	logger.info("Building the complete property table.");
 
         // create a new aggregation environment
         PropertiesAggregateFunction aggregator = new PropertiesAggregateFunction(allProperties, columns_separator);
@@ -125,12 +176,19 @@ public class PropertyTableLoader extends Loader {
             String rawProperty = allProperties[i].startsWith("<") && allProperties[i].endsWith(">") ?
                     allProperties[i].substring(1, allProperties[i].length() - 1) : allProperties[i];
             // if is not a complex type, extract the value
-            String newProperty = isComplexProperty[i]
+            String newProperty = isMultivaluedProperty[i]
                     ? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
                     : " " + groupColumn + "[" + String.valueOf(i) + "][0] AS " + getValidHiveName(rawProperty);
             selectProperties[i + 1] = newProperty;
         }
+        
+        List<String> allPropertiesList = Arrays.asList(selectProperties);
+        logger.info("Columns of  Property Table: " + allPropertiesList);
+        
         Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
+        
+        Row sampledRow = propertyTable.first();
+        logger.info("****" + sampledRow);    
 
         // write the final one, partitioned by subject
         propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);

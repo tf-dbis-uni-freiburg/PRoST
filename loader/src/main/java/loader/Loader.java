@@ -17,7 +17,7 @@ public abstract class Loader {
     protected SparkSession spark;
     protected String database_name;
     protected String hdfs_input_directory;
-    protected static final Logger logger = Logger.getLogger(Main.class);
+    protected static final Logger logger = Logger.getLogger("PRoST");
     public boolean keep_temporary_tables = false;
     public static final String table_format = "parquet";
     /**

@@ -110,18 +110,18 @@ public class Main {
         TripleTableLoader tt_loader = new TripleTableLoader(input_file, outputDB, spark);
         tt_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        System.out.println("Time Tripletable: " + String.valueOf(executionTime));
+        logger.info("Time Tripletable: " + String.valueOf(executionTime));
 
         startTime = System.currentTimeMillis();
         PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
         pt_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        System.out.println("Time Property Table: " + String.valueOf(executionTime));
+        logger.info("Time Property Table: " + String.valueOf(executionTime));
 
         startTime = System.currentTimeMillis();
         VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark, useStatistics);
         vp_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        System.out.println("Time Vertical partitioning: " + String.valueOf(executionTime));
+        logger.info("Time Vertical partitioning: " + String.valueOf(executionTime));
     }
 }
