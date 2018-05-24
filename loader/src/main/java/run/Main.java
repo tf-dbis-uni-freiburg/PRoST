@@ -103,6 +103,10 @@ public class Main {
                 .appName("PRoST-Loader")
                 .getOrCreate();
 
+        //Removing previous instances of the database in case a database with the same name already exists.
+        //In this case a new dataset with the same name will be created.
+    	spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
+        
         long startTime;
         long executionTime;
 
@@ -110,18 +114,18 @@ public class Main {
         TripleTableLoader tt_loader = new TripleTableLoader(input_file, outputDB, spark);
         tt_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time Tripletable: " + String.valueOf(executionTime));
+        logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
 
         startTime = System.currentTimeMillis();
         PropertyTableLoader pt_loader = new PropertyTableLoader(input_file, outputDB, spark);
         pt_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time Property Table: " + String.valueOf(executionTime));
+        logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
 
         startTime = System.currentTimeMillis();
         VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_file, outputDB, spark, useStatistics);
         vp_loader.load();
         executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time Vertical partitioning: " + String.valueOf(executionTime));
+        logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
     }
 }

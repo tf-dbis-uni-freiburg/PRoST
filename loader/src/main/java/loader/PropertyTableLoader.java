@@ -30,12 +30,15 @@ import org.apache.spark.sql.functions;
  * this property/predicate. Then the predicate column is of type LIST<STRING>.
  *
  * @author Matteo Cossu
+ * @author Victor Anthony Arrascue Ayala
  */
 public class PropertyTableLoader extends Loader {
 
 	protected String hdfs_input_directory;
 
 	private String tablename_properties = "properties";
+	
+	private String name_tripletable = "tripletable_fixed";
 
 	/**
 	 * Separator used internally to distinguish two values in the same string
@@ -87,9 +90,9 @@ public class PropertyTableLoader extends Loader {
 		logger.info("All properties as array: " + allPropertiesList);
 		logger.info("Multi-values flag as array: " + isMultivaluedPropertyList);
 		
-		allProperties = (String[]) allPropertiesList.toArray();
+		allProperties = allPropertiesList.toArray(new String[allPropertiesList.size()]);
 		this.properties_names = allProperties;
-		isMultivaluedProperty = (Boolean[]) isMultivaluedPropertyList.toArray();
+		isMultivaluedProperty = isMultivaluedPropertyList.toArray(new Boolean[allPropertiesList.size()]);
 
 		// create multivalued property table
 		buildMultivaluedPropertyTable(allProperties, isMultivaluedProperty);
@@ -192,7 +195,6 @@ public class PropertyTableLoader extends Loader {
 
 		// write the result
 		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
-		logger.info("Created properties table with name: " + tablename_properties);
 	}
 
 	/**
@@ -239,8 +241,9 @@ public class PropertyTableLoader extends Loader {
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
+		//TODO: this throws exception if line is empty.
 		Row sampledRow = propertyTable.first();
-		logger.info("****" + sampledRow);
+		logger.info("First row sampled: " + sampledRow);
 
 		// write the final one, partitioned by subject
 		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
