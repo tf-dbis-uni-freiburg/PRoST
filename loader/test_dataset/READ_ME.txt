@@ -1,3 +1,6 @@
-test_case1: contains one triple with 4 resources. PRoST-loader should discard triples which have more then 3 elements.
-test_case2: contains incomplete triples. In one triple the object is missing. In another triple there is only subject. PRoST-loader should discard incomplete triples.
-test_case3: contains empty lines in between triples and at the end of file. PRoST-loader should ignore those lines.
+test_case1: contains one triple with 4 resources. PRoST-loader should discard triples which have more than 3 elements.
+test_case2: contains incomplete triples. In one triple the object is missing. In another triple there is only a subject. PRoST-loader should discard incomplete triples.
+test_case3: contains empty lines in between triples at the beginning and at end of the file. PRoST-loader should ignore those lines.
+test_case4: to assess whether the dot at the end of each line is removed correctly and it does not appear in the PT or VP. At the same time, only the final dot should be removed (this is particularly important for literals).
+test_case5: two predicates can be equal in a case insensitive comparison, but distinct in a case sensitive comparison. Example: pred1/givenName and pred1/givenname. Hive's table and column names are case insentive. Therefore, one of this predicates is discarded in the PT and VP.
+test_case6: It contains an empty file (it only contains a dot, otherwise it cannot be uploaded to HDFS). This leads to empty tables. PRoST-loader should raise an exception.

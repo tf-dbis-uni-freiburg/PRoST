@@ -121,7 +121,8 @@ public class PropertyTableLoader extends Loader {
     	    	}    	    		
     	    }    	    
     	    if (originalRemovedPredicates.size() > 0)
-    	    	logger.info("The following predicates had to be removed from the list of predicates: " + originalRemovedPredicates);    				
+    	    	logger.info("The following predicates had to be removed from the list of predicates "
+    	    			+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);		
     	    return propertiesMultivaluesMap;
     }
 
@@ -241,9 +242,8 @@ public class PropertyTableLoader extends Loader {
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		//TODO: this throws exception if line is empty.
-		Row sampledRow = propertyTable.first();
-		logger.info("First row sampled: " + sampledRow);
+		List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
+		logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there are less): " + sampledRowsList);
 
 		// write the final one, partitioned by subject
 		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);

@@ -6,6 +6,8 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import static org.apache.spark.sql.functions.regexp_replace;
+
 
 /**
  * Class that constructs the triple table. It is created as external table, so
@@ -23,7 +25,7 @@ public class TripleTableLoader extends Loader {
 	}
 
 	@Override
-	public void load() {
+	public void load() throws Exception {
 		logger.info("PHASE 1: loading all triples to a generic table...");
 		String createTripleTable = String.format(
 				"CREATE EXTERNAL TABLE IF NOT EXISTS %s(%s STRING, %s STRING, %s STRING) ROW FORMAT  SERDE"
@@ -38,8 +40,9 @@ public class TripleTableLoader extends Loader {
 
 	/**
 	 * Searches for different kinds of corrupted triples and removes them.
+	 * @throws Exception 
 	 */
-	public void repairCorruptedTriples() {
+	public void repairCorruptedTriples() throws Exception {
 		String queryDropTempTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable+"_temp");
 		spark.sql(queryDropTempTable);
 		String queryDropFixedTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable+"_fixed");
@@ -67,10 +70,8 @@ public class TripleTableLoader extends Loader {
 			
 		if ((numFailedSubjects + numFailedPredicates + numFailedObjects) > 0) {
 			triplesWithNulls = identifyNullsInTriples();
-			List corruptedList = triplesWithNulls.as(Encoders.tuple(
-					Encoders.STRING(), Encoders.STRING(), Encoders.STRING())).collectAsList();
-			corruptedList = corruptedList.subList(0, Math.min(corruptedList.size(), 9));
-			logger.info("First 10 triples with nulls (less if there are less): " + corruptedList);
+			List corruptedList = triplesWithNulls.limit(5).collectAsList();
+			logger.info("First 5 triples with nulls (less if there are less): " + corruptedList);
 		}
 		
 		String querySubjectsAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$'", name_tripletable,
@@ -88,10 +89,8 @@ public class TripleTableLoader extends Loader {
 		
 		if ((numSubjectsAreDots + numPredicatesAreDots + numObjectsAreDots) > 0) {
 			triplesWithDotRes = identifyDotsInTriples();
-			List corruptedList = triplesWithDotRes.as(Encoders.tuple(
-					Encoders.STRING(), Encoders.STRING(), Encoders.STRING())).collectAsList();
-			corruptedList = corruptedList.subList(0, Math.min(corruptedList.size(), 9));
-			logger.info("First 10 triples with dots (less if there are less): " + corruptedList);
+			List corruptedList = triplesWithDotRes.limit(5).collectAsList();
+			logger.info("First 5 triples with dots (less if there are less): " + corruptedList);
 		}
 		
 		String queryMultipleObjectItems = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*<.*<.*>' "
@@ -101,10 +100,8 @@ public class TripleTableLoader extends Loader {
 		
 		if (numObjectsWithMultipleObjects > 0) {
 			objectsWithMultipleItems = identifyMultipleObjects();
-			List corruptedList = objectsWithMultipleItems.as(Encoders.tuple(
-					Encoders.STRING(), Encoders.STRING(), Encoders.STRING())).collectAsList();
-			corruptedList = corruptedList.subList(0, Math.min(corruptedList.size(), 9));
-			logger.info("First 10 triples with multiple items as object (less if there are less): " + corruptedList);
+			List corruptedList = objectsWithMultipleItems.limit(5).collectAsList();
+			logger.info("First 5 triples with multiple items as object (less if there are less): " + corruptedList);
 		}
 		
 		//After all potential problems have been identified now we remove the identified triples:
@@ -120,9 +117,20 @@ public class TripleTableLoader extends Loader {
 			allTriples = allTriples.except(objectsWithMultipleItems);
 		}
 		
-		List cleanedList = allTriples.as(Encoders.tuple(
-				Encoders.STRING(), Encoders.STRING(), Encoders.STRING())).collectAsList();
-		cleanedList = cleanedList.subList(0, Math.min(cleanedList.size(), 9));
+		//One last step is required. If the triples contain a final .
+		//it is necessary to remove it remove from the table, because it will appear there.
+		allTriples = allTriples.withColumn(column_name_object+"_clean",  
+				regexp_replace(allTriples.col(column_name_object), "(\\s*\\.\\s*)+$", ""));
+		allTriples = allTriples.selectExpr(
+				column_name_subject, column_name_predicate, column_name_object+"_clean AS " + column_name_object);
+		
+		if (allTriples.count()==0) {
+			logger.error("Either your HDFS path does not contain any files or no triples were accepted in the given format (nt)");
+			logger.error("The program will stop here.");
+			throw new Exception("Empty HDFS directory or empty files within.");
+		}
+		
+		List cleanedList = allTriples.limit(10).collectAsList();
 		logger.info("First 10 cleaned triples with dots (less if there are less): " + cleanedList);
 				
 		allTriples.createOrReplaceTempView(name_tripletable+"_temp");

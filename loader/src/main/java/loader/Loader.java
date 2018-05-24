@@ -12,7 +12,7 @@ import run.Main;
  */
 public abstract class Loader {
 
-    public abstract void load();
+    public abstract void load() throws Exception;
 
     protected SparkSession spark;
     protected String database_name;

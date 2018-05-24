@@ -47,8 +47,10 @@ public class VerticalPartitioningLoader extends Loader {
             if (computeStatistics){
                 tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
             }
-
+            
             logger.info("Created VP table for the property: " + property);
+    		List<Row> sampledRowsList = table_VP.limit(3).collectAsList();
+    		logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
         }
 
         // save the stats in a file with the same name as the output database
