@@ -2,3 +2,4 @@
 <http://dbpedia.org/resource/Anarchism2> <http://dbpedia.org/property/pro2> <http://dbpedia.org/resource/Res1> <http://dbpedia.org/resource/Res2> .
 <http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1> <http://dbpedia.org/resource/Res3> .
 <http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1> "wow" "hi" .
+<http://dbpedia.org/resource/Anarchism3> <http://dbpedia.org/property/pro3> "wow\" \" \"ok\" hi" .

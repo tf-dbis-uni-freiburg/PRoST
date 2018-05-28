@@ -39,7 +39,7 @@ public class VerticalPartitioningLoader extends Loader {
 
         for (int i = 0; i < this.properties_names.length; i++) {
             String property = this.properties_names[i];
-            Dataset<Row> table_VP = spark.sql("SELECT s AS s, o AS o FROM tripletable_fixed WHERE p='" + property + "'");
+            Dataset<Row> table_VP = spark.sql("SELECT s AS s, o AS o FROM " + name_tripletable + " WHERE p='" + property + "'");
             String table_name_VP = "vp_" + this.getValidHiveName(property);
             // save the table
             table_VP.write().mode(SaveMode.Overwrite).saveAsTable(table_name_VP);

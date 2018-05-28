@@ -112,14 +112,15 @@ public class PropertyTableLoader extends Loader {
     		Iterator it = propertiesMultivaluesMap.keySet().iterator();
     	    while (it.hasNext()) {
     	    	String predicate = (String)it.next();
-    	    	if (seenPredicates.contains(predicate.toLowerCase())){
-    	    		propertiesMultivaluesMap.remove(predicate);
+    	    	if (seenPredicates.contains(predicate.toLowerCase()))
     	    		originalRemovedPredicates.add(predicate); 
-    	    	}
-    	    	else{
-    	    		seenPredicates.add(predicate.toLowerCase());
-    	    	}    	    		
-    	    }    	    
+    	    	else
+    	    		seenPredicates.add(predicate.toLowerCase());    		
+    	    }
+    	    
+    	    for (String predicateToBeRemoved:originalRemovedPredicates )
+    	    	propertiesMultivaluesMap.remove(predicateToBeRemoved);
+    	    
     	    if (originalRemovedPredicates.size() > 0)
     	    	logger.info("The following predicates had to be removed from the list of predicates "
     	    			+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);		
@@ -242,8 +243,8 @@ public class PropertyTableLoader extends Loader {
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
-		logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there are less): " + sampledRowsList);
+		//List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
+		//logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there are less): " + sampledRowsList);
 
 		// write the final one, partitioned by subject
 		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);

@@ -5,8 +5,11 @@ import java.util.List;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import static org.apache.spark.sql.functions.regexp_replace;
+import static org.apache.spark.sql.functions.col;
+
 
 
 /**
@@ -53,6 +56,9 @@ public class TripleTableLoader extends Loader {
 		Dataset<Row> triplesWithDotRes = null;
 		Dataset<Row> objectsWithMultipleItems = null;
 		
+		String queryAllTriples = String.format("SELECT * FROM %s", name_tripletable);
+		allTriples = spark.sql(queryAllTriples);
+		
 		long numLoadedTriples = spark.sql(String.format("SELECT * FROM %s", name_tripletable)).count();
 		logger.info("Number of raw triples loaded: " + numLoadedTriples);
 		String queryFailedSubjects = String.format("SELECT * FROM %s WHERE %s IS NULL", name_tripletable,
@@ -71,30 +77,36 @@ public class TripleTableLoader extends Loader {
 		if ((numFailedSubjects + numFailedPredicates + numFailedObjects) > 0) {
 			triplesWithNulls = identifyNullsInTriples();
 			List corruptedList = triplesWithNulls.limit(5).collectAsList();
-			logger.info("First 5 triples with nulls (less if there are less): " + corruptedList);
+			logger.info("First 5 triples with nulls (less if there are less): " + corruptedList);			
+			allTriples = allTriples.filter(column_name_subject+" is not null AND "+
+					column_name_predicate+" is not null AND "+
+					column_name_object+" is not null");
 		}
 		
-		String querySubjectsAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$'", name_tripletable,
+		String querySubjectsAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$' ", name_tripletable,
 				column_name_subject);	
 		long numSubjectsAreDots = spark.sql(querySubjectsAreDots).count();
-		logger.info("Number of lines in which subject is a dot: " + numSubjectsAreDots);
-		String queryPredicatesAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$'", name_tripletable,
+		logger.info("Number of lines in which subject is not a valid resource: " + numSubjectsAreDots);
+		String queryPredicatesAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$' ", name_tripletable,
 				column_name_predicate);	
 		long numPredicatesAreDots = spark.sql(queryPredicatesAreDots).count();
-		logger.info("Number of lines in which predicate is a dot: " + numPredicatesAreDots);
-		String queryObjectsAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$'", name_tripletable,
+		logger.info("Number of lines in which predicate is not a valid resource: " + numPredicatesAreDots);
+		String queryObjectsAreDots = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\\.\\s*$' ", name_tripletable,
 				column_name_object);	
 		long numObjectsAreDots = spark.sql(queryObjectsAreDots).count();
-		logger.info("Number of lines in which object is a dot: " + numObjectsAreDots);
+		logger.info("Number of lines in which object is not a valid resource/literal: " + numObjectsAreDots);
 		
 		if ((numSubjectsAreDots + numPredicatesAreDots + numObjectsAreDots) > 0) {
 			triplesWithDotRes = identifyDotsInTriples();
 			List corruptedList = triplesWithDotRes.limit(5).collectAsList();
-			logger.info("First 5 triples with dots (less if there are less): " + corruptedList);
+			logger.info("First 5 triples with unvalid triples (less if there are less): " + corruptedList);
+			allTriples = allTriples.filter("NOT("+column_name_subject+" rlike '^\\s*\\.\\s*$') AND "+
+					"NOT("+column_name_predicate+" rlike '^\\s*\\.\\s*$' )  AND "+
+					"NOT("+column_name_object+"  rlike '^\\s*\\.\\s*$' )" );
 		}
 		
 		String queryMultipleObjectItems = String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*<.*<.*>' "
-				+ "or %s RLIKE '^\\s*\"[^\"]+\".*\\s*\"'", name_tripletable,
+				+ "or %s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"'", name_tripletable,
 				column_name_object, column_name_object);	
 		long numObjectsWithMultipleObjects = spark.sql(queryMultipleObjectItems).count();
 		
@@ -102,22 +114,11 @@ public class TripleTableLoader extends Loader {
 			objectsWithMultipleItems = identifyMultipleObjects();
 			List corruptedList = objectsWithMultipleItems.limit(5).collectAsList();
 			logger.info("First 5 triples with multiple items as object (less if there are less): " + corruptedList);
+			allTriples = allTriples.filter("NOT("+column_name_object+" rlike '^\\s*<.*<.*>') AND "+
+					"NOT("+column_name_object+" rlike '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\" ')");
 		}
 		
-		//After all potential problems have been identified now we remove the identified triples:
-		String queryAllTriples = String.format("SELECT * FROM %s", name_tripletable);
-		allTriples = spark.sql(queryAllTriples);
-		if (triplesWithNulls != null) {
-			allTriples = allTriples.except(triplesWithNulls);
-		}
-		if (triplesWithDotRes != null) {
-			allTriples = allTriples.except(triplesWithDotRes);
-		}
-		if (objectsWithMultipleItems != null) {
-			allTriples = allTriples.except(objectsWithMultipleItems);
-		}
-		
-		//One last step is required. If the triples contain a final .
+		//One last step is required. If the triples contain a final "."
 		//it is necessary to remove it remove from the table, because it will appear there.
 		allTriples = allTriples.withColumn(column_name_object+"_clean",  
 				regexp_replace(allTriples.col(column_name_object), "(\\s*\\.\\s*)+$", ""));
@@ -131,16 +132,21 @@ public class TripleTableLoader extends Loader {
 		}
 		
 		List cleanedList = allTriples.limit(10).collectAsList();
-		logger.info("First 10 cleaned triples with dots (less if there are less): " + cleanedList);
-				
+		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
+		
+		/*
 		allTriples.createOrReplaceTempView(name_tripletable+"_temp");
+		//allTriples.createOrReplaceTempView(name_tripletable+"_fixed");
 		String queryCreateFixedTable = 
-				String.format("CREATE TABLE %s AS SELECT * FROM %s", 
+				String.format("CREATE TABLE %s AS SELECT * FROM %s ", 
 						name_tripletable+"_fixed", name_tripletable+"_temp");
 		spark.sql(queryCreateFixedTable);
 		String queryDropOriginalTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
-		spark.sql(queryDropOriginalTable);
-		name_tripletable = name_tripletable+"_fixed";		
+		spark.sql(queryDropOriginalTable);*/
+						
+		allTriples.repartition(col(column_name_subject), col(column_name_predicate))
+			.write().partitionBy(column_name_subject, column_name_predicate).mode(SaveMode.Overwrite)
+			.format(table_format).saveAsTable(name_tripletable+"_fixed");
 	}
 	
 	/**
@@ -167,7 +173,7 @@ public class TripleTableLoader extends Loader {
 						+ "'^\\s*\\.\\s*$' or %s RLIKE '^\\s*\\.\\s*$'", name_tripletable, 
 						column_name_subject, column_name_predicate, column_name_object);
 		Dataset<Row> rowsWithDots = spark.sql(noDotsQuery);					
-		logger.info("Number of triples containing dots : " + rowsWithDots.count());
+		logger.info("Number of invalid triples : " + rowsWithDots.count());
 		return rowsWithDots;
 	}
 	
@@ -185,12 +191,12 @@ public class TripleTableLoader extends Loader {
 						column_name_object);
 		Dataset<Row> rowsWithMultipleResources = spark.sql(queryMultipleResources);		
 		String queryMultipleLiterals = 
-				String.format("SELECT * FROM %s WHERE %s RLIKE '^\\s*\"[^\"]+\".*\\s*\"'", name_tripletable, 
+				String.format("SELECT * FROM %s WHERE %s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"'", name_tripletable, 
 						column_name_object);
 		Dataset<Row> rowsWithMultipleLiterals = spark.sql(queryMultipleLiterals);	
 		
 		Dataset<Row> rowsWithMultipleItems = rowsWithMultipleResources.union(rowsWithMultipleLiterals);								
-		logger.info("Number of triples containing dots : " + rowsWithMultipleItems.count());
+		logger.info("Number of triples containing more than one resource or literal in the object column : " + rowsWithMultipleItems.count());
 		return rowsWithMultipleItems;
 	}
 
