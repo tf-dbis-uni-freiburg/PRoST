@@ -55,13 +55,20 @@ public class TripleTableLoader extends Loader {
 		
 		logger.info("Created tripletable with: " + createTripleTableRaw);
 		logger.info("Cleaned tripletable created with: " + repairTripleTableFixed);
-				
+		
+		String queryRawTriples = String.format("SELECT * FROM %s", name_tripletable+"_raw");
 		String queryAllTriples = String.format("SELECT * FROM %s", name_tripletable+"_fixed");
+		
 		Dataset<Row>  allTriples = spark.sql(queryAllTriples);
+		Dataset<Row>  rawTriples = spark.sql(queryRawTriples);
 		if (allTriples.count()==0) {
 			logger.error("Either your HDFS path does not contain any files or no triples were accepted in the given format (nt)");
 			logger.error("The program will stop here.");
 			throw new Exception("Empty HDFS directory or empty files within.");
+		} else
+			logger.info("Total number of triples loaded: " + allTriples.count());
+		if (rawTriples.count()!=allTriples.count()) {
+			logger.info("Number of corrupted triples found: " + (rawTriples.count()-allTriples.count()));
 		}
 		List cleanedList = allTriples.limit(10).collectAsList();
 		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
