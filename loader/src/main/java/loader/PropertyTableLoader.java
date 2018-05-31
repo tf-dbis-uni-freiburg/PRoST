@@ -37,7 +37,7 @@ public class PropertyTableLoader extends Loader {
 	protected String hdfs_input_directory;
 
 	private String tablename_properties = "properties";
-	
+
 	private String name_tripletable = "tripletable_fixed";
 
 	/**
@@ -66,8 +66,8 @@ public class PropertyTableLoader extends Loader {
 			allProperties[i] = props.get(i).getString(0);
 			isMultivaluedProperty[i] = props.get(i).getInt(1) == 1;
 		}
-	
-		//We create a map with the properties and the boolean.
+
+		// We create a map with the properties and the boolean.
 		Map<String, Boolean> propertiesMultivaluesMap = new HashMap<String, Boolean>();
 		for (int i = 0; i < allProperties.length; i++) {
 			String property = allProperties[i];
@@ -75,21 +75,20 @@ public class PropertyTableLoader extends Loader {
 			propertiesMultivaluesMap.put(property, multivalued);
 		}
 
-		Map<String, Boolean> fixedPropertiesMultivaluesMap 
-			= handleCaseInsPred(propertiesMultivaluesMap);
-		
+		Map<String, Boolean> fixedPropertiesMultivaluesMap = handleCaseInsPred(propertiesMultivaluesMap);
+
 		List<String> allPropertiesList = new ArrayList<String>();
 		List<Boolean> isMultivaluedPropertyList = new ArrayList<Boolean>();
 		allPropertiesList.addAll(fixedPropertiesMultivaluesMap.keySet());
-		
+
 		for (int i = 0; i < allPropertiesList.size(); i++) {
 			String property = allPropertiesList.get(i);
 			isMultivaluedPropertyList.add(fixedPropertiesMultivaluesMap.get(property));
 		}
-		
+
 		logger.info("All properties as array: " + allPropertiesList);
 		logger.info("Multi-values flag as array: " + isMultivaluedPropertyList);
-		
+
 		allProperties = allPropertiesList.toArray(new String[allPropertiesList.size()]);
 		this.properties_names = allProperties;
 		isMultivaluedProperty = isMultivaluedPropertyList.toArray(new Boolean[allPropertiesList.size()]);
@@ -99,38 +98,43 @@ public class PropertyTableLoader extends Loader {
 	}
 
 	/**
-     * This method handles the problem when two predicate are the same in a 
-     * case-insensitive context but different in a case-sensitve one. For instance: 
-     * <http://example.org/somename> and <http://example.org/someName>.
-     *  Since Hive is case insensitive the problem will be solved removing one of 
-     *  the entries from the list of predicates.
-     */
-    public Map<String, Boolean> handleCaseInsPred(Map<String, Boolean> propertiesMultivaluesMap) {
-    		Set<String> seenPredicates = new HashSet<String>();
-    		Set<String> originalRemovedPredicates = new HashSet<String>(); 
-    		
-    		Iterator it = propertiesMultivaluesMap.keySet().iterator();
-    	    while (it.hasNext()) {
-    	    	String predicate = (String)it.next();
-    	    	if (seenPredicates.contains(predicate.toLowerCase()))
-    	    		originalRemovedPredicates.add(predicate); 
-    	    	else
-    	    		seenPredicates.add(predicate.toLowerCase());    		
-    	    }
-    	    
-    	    for (String predicateToBeRemoved:originalRemovedPredicates )
-    	    	propertiesMultivaluesMap.remove(predicateToBeRemoved);
-    	    
-    	    if (originalRemovedPredicates.size() > 0)
-    	    	logger.info("The following predicates had to be removed from the list of predicates "
-    	    			+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);		
-    	    return propertiesMultivaluesMap;
-    }
+	 * This method handles the problem when two predicate are the same in a
+	 * case-insensitive context but different in a case-sensitve one. For instance:
+	 * <http://example.org/somename> and <http://example.org/someName>. Since Hive
+	 * is case insensitive the problem will be solved removing one of the entries
+	 * from the list of predicates.
+	 */
+	public Map<String, Boolean> handleCaseInsPred(Map<String, Boolean> propertiesMultivaluesMap) {
+		Set<String> seenPredicates = new HashSet<String>();
+		Set<String> originalRemovedPredicates = new HashSet<String>();
+
+		Iterator it = propertiesMultivaluesMap.keySet().iterator();
+		while (it.hasNext()) {
+			String predicate = (String) it.next();
+			if (seenPredicates.contains(predicate.toLowerCase()))
+				originalRemovedPredicates.add(predicate);
+			else
+				seenPredicates.add(predicate.toLowerCase());
+		}
+
+		for (String predicateToBeRemoved : originalRemovedPredicates)
+			propertiesMultivaluesMap.remove(predicateToBeRemoved);
+
+		if (originalRemovedPredicates.size() > 0)
+			logger.info("The following predicates had to be removed from the list of predicates "
+					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
+		return propertiesMultivaluesMap;
+	}
 
 	public void buildProperties() {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
 		// 1 for multivalued predicate, 0 for single predicate
+		// select all the properties
+		Dataset<Row> allProperties = spark
+				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", column_name_predicate, name_tripletable));
+
+		logger.info("Total Number of Properties found: " + allProperties.count());
 
 		// select the properties that are multivalued
 		Dataset<Row> multivaluedProperties = spark.sql(String.format(
@@ -138,49 +142,15 @@ public class PropertyTableLoader extends Loader {
 						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
 				column_name_predicate, column_name_subject, name_tripletable));
 
-		List<String> multivaluedPropertiesList = multivaluedProperties.as(Encoders.STRING()).collectAsList();
-		if (multivaluedPropertiesList.size() > 0) {
-			logger.info("Multivalued Properties found:");
-			for (String property : multivaluedPropertiesList) {
-				logger.info(property);
-			}
-		}
-
-		// select all the properties
-		Dataset<Row> allProperties = spark
-				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", column_name_predicate, name_tripletable));
-
-		List<String> allPropertiesList = allProperties.as(Encoders.STRING()).collectAsList();
-		if (allPropertiesList.size() > 0) {
-			logger.info("All Properties found:");
-			for (String property : allPropertiesList) {
-				logger.info(property);
-			}
-		}
+		logger.info("Number of Multivalued Properties found: " + multivaluedProperties.count());
 
 		// select the properties that are not multivalued
 		Dataset<Row> singledValueProperties = allProperties.except(multivaluedProperties);
-
-		List<String> singledValuePropertiesList = singledValueProperties.as(Encoders.STRING()).collectAsList();
-		if (singledValuePropertiesList.size() > 0) {
-			logger.info("Single-valued Properties found:");
-			for (String property : singledValuePropertiesList) {
-				logger.info(property);
-			}
-		}
+		logger.info("Number of Single-valued Properties found: " + singledValueProperties.count());
 
 		// combine them
 		Dataset<Row> combinedProperties = singledValueProperties.selectExpr(column_name_predicate, "0 AS is_complex")
 				.union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
-
-		List combinedPropertiesList = combinedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT()))
-				.collectAsList();
-		if (combinedPropertiesList.size() > 0) {
-			logger.info("All Properties with a flag to specify whether they are multi-valued:");
-			for (Object property : combinedPropertiesList) {
-				logger.info(property);
-			}
-		}
 
 		// remove '<' and '>', convert the characters
 		Dataset<Row> cleanedProperties = combinedProperties.withColumn("p",
@@ -189,10 +159,7 @@ public class PropertyTableLoader extends Loader {
 		List cleanedPropertiesList = cleanedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT()))
 				.collectAsList();
 		if (cleanedPropertiesList.size() > 0) {
-			logger.info("Clean Properties (stored):");
-			for (Object property : cleanedPropertiesList) {
-				logger.info(property);
-			}
+			logger.info("Clean Properties (stored): " + cleanedPropertiesList);
 		}
 
 		// write the result
@@ -201,9 +168,9 @@ public class PropertyTableLoader extends Loader {
 
 	/**
 	 * Create the final property table, allProperties contains the list of all
-	 * possible properties isMultivaluedProperty contains (in the same order
-	 * used by allProperties) the boolean value that indicates if that property
-	 * is multi-valued or not.
+	 * possible properties isMultivaluedProperty contains (in the same order used by
+	 * allProperties) the boolean value that indicates if that property is
+	 * multi-valued or not.
 	 */
 	public void buildMultivaluedPropertyTable(String[] allProperties, Boolean[] isMultivaluedProperty) {
 		logger.info("Building the complete property table.");
@@ -230,7 +197,8 @@ public class PropertyTableLoader extends Loader {
 			// if property is a full URI, remove the < at the beginning end > at
 			// the end
 			String rawProperty = allProperties[i].startsWith("<") && allProperties[i].endsWith(">")
-					? allProperties[i].substring(1, allProperties[i].length() - 1) : allProperties[i];
+					? allProperties[i].substring(1, allProperties[i].length() - 1)
+					: allProperties[i];
 			// if is not a complex type, extract the value
 			String newProperty = isMultivaluedProperty[i]
 					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
@@ -243,13 +211,12 @@ public class PropertyTableLoader extends Loader {
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		//List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
-		//logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there are less): " + sampledRowsList);
+		// List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
+		// logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there
+		// are less): " + sampledRowsList);
 
 		// write the final one, partitioned by subject
 		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		logger.info("Created property table with name: " + output_tablename);
-
 	}
-
 }

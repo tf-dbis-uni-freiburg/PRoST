@@ -101,6 +101,7 @@ public class Main {
         SparkSession spark = SparkSession
                 .builder()
                 .appName("PRoST-Loader")
+                .enableHiveSupport() 
                 .getOrCreate();
 
         //Removing previous instances of the database in case a database with the same name already exists.

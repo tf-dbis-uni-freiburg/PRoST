@@ -13,7 +13,7 @@ Expected Results:
  [<http://dbpedia.org/resource/Anarchism3>,<http://dbpedia.org/property/pro3>,"wow\" \" . \"ok\" hi"],
  [<http://dbpedia.org/resource/Anarchism4>,<http://dbpedia.org/property/pro2>,<http://dbpedia.org/resource/Res4>],
  [<http://dbpedia.org/resource/Anarchism2>,<http://dbpedia.org/property/pro3>,"wow hi"]]
-
+ 
 ****test_case2  -> PASSED
 [[<http://dbpedia.org/resource/Anarchism1>,<http://dbpedia.org/property/pro1>,<http://dbpedia.org/resource/Template:Sisterlinks>],
  [<http://dbpedia.org/resource/Anarchism5>,<http://dbpedia.org/property/pro3>,<http://dbpedia.org/resource/Res2>]]
