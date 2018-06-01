@@ -48,9 +48,10 @@ public class TripleTableLoader extends Loader {
 		String repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s, trim(%4$s) "
 				+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
 				+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
-				+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') ",
+				+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
+				+ "LENGTH(%3$s) < %6$s" ,
 				name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
-				name_tripletable + "_raw");
+				name_tripletable + "_raw", max_length_col_name);
 		spark.sql(repairTripleTableFixed);
 
 		logger.info("Created tripletable with: " + createTripleTableRaw);

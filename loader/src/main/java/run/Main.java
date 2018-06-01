@@ -3,11 +3,7 @@ package run;
 import loader.PropertyTableLoader;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
-
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -20,113 +16,106 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-
 
 /**
  * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options:
- * -h, --help prints the usage help message.
- * -i, --input <file> HDFS input path of the RDF graph.
- * -o, --output <DBname> output database name.
- * -s, compute statistics
+ * Options: -h, --help prints the usage help message. -i, --input <file> HDFS
+ * input path of the RDF graph. -o, --output <DBname> output database name. -s,
+ * compute statistics
  *
  * @author Matteo Cossu
  */
 public class Main {
-    private static String input_location;
-    private static String outputDB;
-    private static String loj4jFileName="log4j.properties";
-    private static final Logger logger = Logger.getLogger("PRoST");
-    private static boolean useStatistics = false;
+	private static String input_location;
+	private static String outputDB;
+	private static String loj4jFileName = "log4j.properties";
+	private static final Logger logger = Logger.getLogger("PRoST");
+	private static boolean useStatistics = false;
 
-    public static void main(String[] args) throws Exception {
-    	InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
-    	Properties props = new Properties();
-    	props.load(inStream);
-    	PropertyConfigurator.configure(props);
-    	
-        /*
-         * Manage the CLI options
-         */
-        CommandLineParser parser = new PosixParser();
-        Options options = new Options();
+	public static void main(String[] args) throws Exception {
+		InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
+		Properties props = new Properties();
+		props.load(inStream);
+		PropertyConfigurator.configure(props);
 
-        Option inputOpt = new Option("i", "input", true, "HDFS input path of the RDF graph.");
-        inputOpt.setRequired(true);
-        options.addOption(inputOpt);
+		/*
+		 * Manage the CLI options
+		 */
+		CommandLineParser parser = new PosixParser();
+		Options options = new Options();
 
-        Option outputOpt = new Option("o", "output", true, "Output database name.");
-        outputOpt.setRequired(true);
-        options.addOption(outputOpt);
+		Option inputOpt = new Option("i", "input", true, "HDFS input path of the RDF graph.");
+		inputOpt.setRequired(true);
+		options.addOption(inputOpt);
 
-        Option helpOpt = new Option("h", "help", false, "Print this help.");
-        options.addOption(helpOpt);
+		Option outputOpt = new Option("o", "output", true, "Output database name.");
+		outputOpt.setRequired(true);
+		options.addOption(outputOpt);
 
-        Option statsOpt = new Option("s", "stats", false, "Flag to produce the statistics");
-        options.addOption(statsOpt);
+		Option helpOpt = new Option("h", "help", false, "Print this help.");
+		options.addOption(helpOpt);
 
-        HelpFormatter formatter = new HelpFormatter();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse(options, args);
-        } catch (MissingOptionException e) {
-            formatter.printHelp("JAR", "Load an RDF graph", options, "", true);
-            return;
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+		Option statsOpt = new Option("s", "stats", false, "Flag to produce the statistics");
+		options.addOption(statsOpt);
 
-        if (cmd.hasOption("help")) {
-            formatter.printHelp("JAR", "Load an RDF graph as Property Table using SparkSQL", options, "", true);
-            return;
-        }
-        if (cmd.hasOption("input")) {
-            input_location = cmd.getOptionValue("input");
-            logger.info("Input path set to: " + input_location);
-        }
-        if (cmd.hasOption("output")) {
-            outputDB = cmd.getOptionValue("output");
-            logger.info("Output database set to: " + outputDB);
-        }
-        if (cmd.hasOption("stats")) {
-            useStatistics = true;
-            logger.info("Statistics active!");
-        }
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cmd = null;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (MissingOptionException e) {
+			formatter.printHelp("JAR", "Load an RDF graph", options, "", true);
+			return;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
-        // Set the loader from the inputFile to the outputDB
-        SparkSession spark = SparkSession
-                .builder()
-                .appName("PRoST-Loader")
-                .enableHiveSupport() 
-                .getOrCreate();
+		if (cmd.hasOption("help")) {
+			formatter.printHelp("JAR", "Load an RDF graph as Property Table using SparkSQL", options, "", true);
+			return;
+		}
+		if (cmd.hasOption("input")) {
+			input_location = cmd.getOptionValue("input");
+			logger.info("Input path set to: " + input_location);
+		}
+		if (cmd.hasOption("output")) {
+			outputDB = cmd.getOptionValue("output");
+			logger.info("Output database set to: " + outputDB);
+		}
+		if (cmd.hasOption("stats")) {
+			useStatistics = true;
+			logger.info("Statistics active!");
+		}
 
-        //Removing previous instances of the database in case a database with the same name already exists.
-        //In this case a new dataset with the same name will be created.
-    	spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
-        
-        long startTime;
-        long executionTime;
+		// Set the loader from the inputFile to the outputDB
+		SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
 
-        startTime = System.currentTimeMillis();
-        TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark);
-        tt_loader.load();
-        executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
+		// Removing previous instances of the database in case a database with the same
+		// name already exists.
+		// In this case a new dataset with the same name will be created.
+		spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
 
-        startTime = System.currentTimeMillis();
-        PropertyTableLoader pt_loader = new PropertyTableLoader(input_location, outputDB, spark);
-        pt_loader.load();
-        executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
+		long startTime;
+		long executionTime;
 
-        startTime = System.currentTimeMillis();
-        VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark, useStatistics);
-        vp_loader.load();
-        executionTime = System.currentTimeMillis() - startTime;
-        logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
-    }
+		startTime = System.currentTimeMillis();
+		TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark);
+		tt_loader.load();
+		executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
+
+		startTime = System.currentTimeMillis();
+		PropertyTableLoader pt_loader = new PropertyTableLoader(input_location, outputDB, spark);
+		pt_loader.load();
+		executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
+
+		startTime = System.currentTimeMillis();
+		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
+				useStatistics);
+		vp_loader.load();
+		executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+	}
 }

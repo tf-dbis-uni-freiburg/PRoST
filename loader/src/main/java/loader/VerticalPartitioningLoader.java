@@ -133,7 +133,7 @@ public class VerticalPartitioningLoader extends Loader {
 			result_properties[i] = props.get(i).getString(0);
 		}
 		List recalculatedPropertiesList = Arrays.asList(result_properties);
-		logger.error("List of predicates had to be recomputed: " + recalculatedPropertiesList);
+		logger.info("List of predicates had to be recomputed: " + recalculatedPropertiesList);
 
 		return result_properties;
 	}

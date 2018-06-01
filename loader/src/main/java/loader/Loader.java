@@ -21,6 +21,7 @@ public abstract class Loader {
 	protected static final Logger logger = Logger.getLogger("PRoST");
 	public boolean keep_temporary_tables = false;
 	public static final String table_format = "parquet";
+	public static final String max_length_col_name = "128";
 	/**
 	 * The separators used in the RDF data.
 	 */
