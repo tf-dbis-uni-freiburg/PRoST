@@ -31,7 +31,7 @@ To build PRoST, run:
 
     mvn package
 
-## PRoST loader: foading RDF graphs and creating the logical partitions.
+## PRoST loader: loading RDF graphs and creating the logical partitions.
 NEW: Support for N-Triples documents.
 You can load a graph with PRoST in the following way:
 
