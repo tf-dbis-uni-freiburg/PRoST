@@ -1,8 +1,9 @@
 package run;
 
-import loader.PropertyTableLoader;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
+import loader.WidePropertyTableLoader;
+
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -131,7 +132,7 @@ public class Main {
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			PropertyTableLoader pt_loader = new PropertyTableLoader(input_location, outputDB, spark);
+			WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(input_location, outputDB, spark);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
