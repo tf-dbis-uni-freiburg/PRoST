@@ -27,7 +27,7 @@ The setting names are specific to Cloudera 5.10.0.
 ## Getting the code and compiling
 First, clone this repository. The project contains two separate components, one for loading the data (/loader) and the other for querying (/query).
 Both are built using [Apache Maven](http://maven.apache.org/).
-To build PRoST, run:
+To build PRoST run:
 
     mvn package
 
