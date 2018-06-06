@@ -92,7 +92,7 @@ public class Main {
 			logger.info("Output database set to: " + outputDB);
 		}
 		//default if a logical partition is not specified is to consider all three strategies.
-		if (!cmd.hasOption("logicalPartitionStrategy")) {
+		if (!cmd.hasOption("logicalPartitionStrategies")) {
 			generateWPT = true;
 			generateVP = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
