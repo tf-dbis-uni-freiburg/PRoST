@@ -31,7 +31,7 @@ To build PRoST, run:
 
     mvn package
 
-## PRoST loader: loading RDF graphs and creating the logical partitions.
+## PRoST-Loader: loading RDF graphs and creating the logical partitions.
 NEW: Support for N-Triples documents.
 NEW: Added an option "lp" to specify a logical partition strategy
 You can load a graph with PRoST in the following way:
@@ -42,15 +42,32 @@ You can load a graph with PRoST in the following way:
 	
 
 The input RDF graph is loaded from the HDFS path specified with the -i option.
-The option -o contains the name of the database in which PRoST will store the graph using its own representation.
-The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies. Possible values are "WPT" for Wide Property Table and "VP" for Vertical Partitioning. Note, that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. Moreover, -lp is optional. In case this parameter is missing the default behavior is to use all possible strategies.
-If the option -s is present, the loader produces a .stats file in the local node, required for querying.
-Note, that this file will be generated in the same path from which the application is run. 
 
-PRoST loader generates partitions according to the following three strategies: Triple Table (TT), Wide Property Table (WPT), and Vertical Partitioning (VP).
+The option -o contains the name of the database in which PRoST will store the graph using its own representation.
+
+The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies. Possible values are "WPT" for Wide Property Table and "VP" for Vertical Partitioning. Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. Moreover, -lp is optional. In case this parameter is missing the default behavior is to use all possible strategies.
+
+If the option -s is present, the loader produces a .stats file in the local node, required for querying.
+Note that this file will be generated in the same path from which the application is run. 
+
+PRoST-Loader generates partitions according to the following three strategies: Triple Table (TT), Wide Property Table (WPT), and Vertical Partitioning (VP).
 
 Please be aware that there might be limitations in the number of columns a wide property table might have in order to be written.
 We have successfully tested our approach on approx. 1500 columns without problem.
+
+PRoST-Loader defines its own logger (Logger.getLogger("PRoST")) and uses it to log all relevant information related to loading and partitioning the dataset. If no actions are taken, the messages will end up in Spark's logger.
+You can modify Spark's log4j.properties to forward the messages to a different place, e.g. a file.
+If you wish to do so, add the following lines to the log4j.properties file:
+
+	log4j.logger.PRoST=INFO, fileAppender
+	log4j.additivity.PRoST=false
+	log4j.appender.fileAppender=org.apache.log4j.RollingFileAppender
+	log4j.appender.fileAppender.File=/var/log/PRoST/PRoST-loader.log
+	log4j.appender.fileAppender.MaxFileSize=100MB
+	log4j.appender.fileAppender.MaxBackupIndex=1
+	log4j.appender.fileAppender.layout=org.apache.log4j.PatternLayout
+	log4j.appender.fileAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n
+
 
 ## Querying with SPARQL
 To query the data use the following command:
