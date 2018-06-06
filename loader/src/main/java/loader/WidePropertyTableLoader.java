@@ -32,7 +32,7 @@ import org.apache.spark.sql.functions;
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
  */
-public class PropertyTableLoader extends Loader {
+public class WidePropertyTableLoader extends Loader {
 
 	protected String hdfs_input_directory;
 
@@ -48,14 +48,14 @@ public class PropertyTableLoader extends Loader {
 	protected String output_db_name;
 	protected static final String output_tablename = "property_table";
 
-	public PropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark) {
+	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark) {
 		super(hdfs_input_directory, database_name, spark);
 	}
 
 	public void load() {
 		logger.info("PHASE 2: creating the property table...");
 
-		buildProperties();
+		buildPropertiesAndCardinalities();
 
 		// collect information for all properties
 		List<Row> props = spark.sql(String.format("SELECT * FROM %s", tablename_properties)).collectAsList();
@@ -75,7 +75,7 @@ public class PropertyTableLoader extends Loader {
 			propertiesMultivaluesMap.put(property, multivalued);
 		}
 
-		Map<String, Boolean> fixedPropertiesMultivaluesMap = handleCaseInsPred(propertiesMultivaluesMap);
+		Map<String, Boolean> fixedPropertiesMultivaluesMap = handleCaseInsPredAndCard(propertiesMultivaluesMap);
 
 		List<String> allPropertiesList = new ArrayList<String>();
 		List<Boolean> isMultivaluedPropertyList = new ArrayList<Boolean>();
@@ -93,8 +93,8 @@ public class PropertyTableLoader extends Loader {
 		this.properties_names = allProperties;
 		isMultivaluedProperty = isMultivaluedPropertyList.toArray(new Boolean[allPropertiesList.size()]);
 
-		// create multivalued property table
-		buildMultivaluedPropertyTable(allProperties, isMultivaluedProperty);
+		// create wide property table
+		buildWidePropertyTable(allProperties, isMultivaluedProperty);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class PropertyTableLoader extends Loader {
 	 * is case insensitive the problem will be solved removing one of the entries
 	 * from the list of predicates.
 	 */
-	public Map<String, Boolean> handleCaseInsPred(Map<String, Boolean> propertiesMultivaluesMap) {
+	public Map<String, Boolean> handleCaseInsPredAndCard(Map<String, Boolean> propertiesMultivaluesMap) {
 		Set<String> seenPredicates = new HashSet<String>();
 		Set<String> originalRemovedPredicates = new HashSet<String>();
 
@@ -126,7 +126,7 @@ public class PropertyTableLoader extends Loader {
 		return propertiesMultivaluesMap;
 	}
 
-	public void buildProperties() {
+	public void buildPropertiesAndCardinalities() {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
 		// 1 for multivalued predicate, 0 for single predicate
@@ -172,7 +172,7 @@ public class PropertyTableLoader extends Loader {
 	 * allProperties) the boolean value that indicates if that property is
 	 * multi-valued or not.
 	 */
-	public void buildMultivaluedPropertyTable(String[] allProperties, Boolean[] isMultivaluedProperty) {
+	public void buildWidePropertyTable(String[] allProperties, Boolean[] isMultivaluedProperty) {
 		logger.info("Building the complete property table.");
 
 		// create a new aggregation environment

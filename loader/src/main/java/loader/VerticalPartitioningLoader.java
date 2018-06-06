@@ -5,7 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.spark.sql.Dataset;
@@ -127,15 +131,45 @@ public class VerticalPartitioningLoader extends Loader {
 		List<Row> props = spark
 				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", column_name_predicate, name_tripletable))
 				.collectAsList();
-		String[] result_properties = new String[props.size()];
+		String[] properties = new String[props.size()];
 
 		for (int i = 0; i < props.size(); i++) {
-			result_properties[i] = props.get(i).getString(0);
+			properties[i] = props.get(i).getString(0);
 		}
-		List recalculatedPropertiesList = Arrays.asList(result_properties);
-		logger.info("List of predicates had to be recomputed: " + recalculatedPropertiesList);
+		
+		List propertiesList = Arrays.asList(properties);	
+		logger.info("Number of distinct predicates found: " + propertiesList.size());
+		String[] cleanedProperties  = handleCaseInsPred(properties); 
+		List cleanedPropertiesList = Arrays.asList(cleanedProperties);
+		logger.info("Final list of predicates: " + cleanedPropertiesList);
+		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
+		return cleanedProperties;
+	}
+	
 
-		return result_properties;
+	private String[] handleCaseInsPred(String[] properties) {
+		Set<String> seenPredicates = new HashSet<String>();
+		Set<String> originalRemovedPredicates = new HashSet<String>();
+		
+		Set<String> propertiesSet = new HashSet<String>(Arrays.asList(properties));
+
+		Iterator it = propertiesSet.iterator();
+		while (it.hasNext()) {
+			String predicate = (String) it.next();
+			if (seenPredicates.contains(predicate.toLowerCase()))
+				originalRemovedPredicates.add(predicate);
+			else
+				seenPredicates.add(predicate.toLowerCase());
+		}
+
+		for (String predicateToBeRemoved : originalRemovedPredicates)
+			propertiesSet.remove(predicateToBeRemoved);
+
+		if (originalRemovedPredicates.size() > 0)
+			logger.info("The following predicates had to be removed from the list of predicates "
+					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
+		String[] cleanedProperties = propertiesSet.toArray(new String[propertiesSet.size()]);
+		return cleanedProperties;
 	}
 
 	/**

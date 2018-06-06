@@ -30,6 +30,7 @@ import org.apache.spark.sql.SparkSession;
 public class Main {
 	private static String input_location;
 	private static String outputDB;
+	private static String lpStrategies;
 	private static String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private static boolean useStatistics = false;
@@ -39,6 +40,8 @@ public class Main {
 		Properties props = new Properties();
 		props.load(inStream);
 		PropertyConfigurator.configure(props);
+		boolean generateWPT = false;
+		boolean generateVP = false;
 
 		/*
 		 * Manage the CLI options
@@ -53,6 +56,10 @@ public class Main {
 		Option outputOpt = new Option("o", "output", true, "Output database name.");
 		outputOpt.setRequired(true);
 		options.addOption(outputOpt);
+		
+		Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy. ");
+		lpOpt.setRequired(false);
+		options.addOption(lpOpt);
 
 		Option helpOpt = new Option("h", "help", false, "Print this help.");
 		options.addOption(helpOpt);
@@ -83,6 +90,23 @@ public class Main {
 			outputDB = cmd.getOptionValue("output");
 			logger.info("Output database set to: " + outputDB);
 		}
+		//default if a logical partition is not specified is to consider all three strategies.
+		if (!cmd.hasOption("logicalPartitionStrategy")) {
+			generateWPT = true;
+			generateVP = true;
+			logger.info("Logical strategy used: TT + WPT + VP");
+		} else {
+			logger.info("Logical strategy used: TT (mandatory)");
+			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+			if (lpStrategies.contains("WPT")) {
+				generateWPT = true;
+				logger.info("Logical strategy used: WPT");				
+			}
+			if (lpStrategies.contains("VP")) {
+				generateVP = true;
+				logger.info("Logical strategy used: VP");
+			}
+		}
 		if (cmd.hasOption("stats")) {
 			useStatistics = true;
 			logger.info("Statistics active!");
@@ -105,17 +129,21 @@ public class Main {
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
 
-		startTime = System.currentTimeMillis();
-		PropertyTableLoader pt_loader = new PropertyTableLoader(input_location, outputDB, spark);
-		pt_loader.load();
-		executionTime = System.currentTimeMillis() - startTime;
-		logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
-
-		startTime = System.currentTimeMillis();
-		VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
+		if (generateWPT) {
+			startTime = System.currentTimeMillis();
+			PropertyTableLoader pt_loader = new PropertyTableLoader(input_location, outputDB, spark);
+			pt_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
+		}
+		
+		if (generateVP) {
+			startTime = System.currentTimeMillis();
+			VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
 				useStatistics);
-		vp_loader.load();
-		executionTime = System.currentTimeMillis() - startTime;
-		logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+			vp_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+		}
 	}
 }
