@@ -57,7 +57,7 @@ public final class ProtobufStats {
   /**
    * Protobuf type {@code TableStats}
    */
-  public  static final class TableStats extends
+  public static final class TableStats extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TableStats)
       TableStatsOrBuilder {

@@ -42,6 +42,7 @@ public class Main {
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
     private static String loj4jFileName="log4j.properties";
+    private static boolean useExtVP = false;
 	
 	public static void main(String[] args) throws IOException {
     	InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
@@ -74,7 +75,9 @@ public class Main {
 		Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
 		Option groupsizeOpt = new Option("g", "groupsize", true, "Minimum Group Size for Property Table nodes");
-		options.addOption(groupsizeOpt);
+		options.addOption(groupsizeOpt);	
+		Option extVPOpt = new Option("e", "extVP", false, "Uses extVP");
+		options.addOption(extVPOpt);
 		
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -119,6 +122,10 @@ public class Main {
 		if(cmd.hasOption("times")){
 			benchmarkMode = true;
 			benchmark_file = cmd.getOptionValue("times");
+		}
+		if(cmd.hasOption("extVP")){
+			useExtVP = true;
+			logger.info("Using extVP");
 		}
 
 		// create a singleton parsing a file with statistics
@@ -168,8 +175,11 @@ public class Main {
 	}
 
 	private static JoinTree translateSingleQuery(String query, int width) {
-		Translator translator = new Translator(query, width);
-		if (!useOnlyVP) translator.setPropertyTable(true);
+		Translator translator = new Translator(query, width, database_name);
+		if (!useOnlyVP) {
+			translator.setPropertyTable(true);
+		}
+		translator.setUseExtVP(useExtVP);
 		if (setGroupSize != -1) translator.setMinimumGroupSize(setGroupSize);
 		return translator.translateQuery();
 	}

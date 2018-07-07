@@ -3,6 +3,8 @@ package translator;
 import java.util.*;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 
 import JoinTree.ElementType;
 import JoinTree.JoinTree;
@@ -10,6 +12,7 @@ import JoinTree.Node;
 import JoinTree.PtNode;
 import JoinTree.TriplePattern;
 import JoinTree.VpNode;
+import extVp.ExtVpCreator;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
@@ -27,6 +30,8 @@ import com.hp.hpl.jena.sparql.core.Var;
  * @author Matteo Cossu
  */
 public class Translator {
+	SparkSession spark;
+	SQLContext sqlContext;
 
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
@@ -37,17 +42,27 @@ public class Translator {
 	int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
 	PrefixMapping prefixes;
 
+	
 	// if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable;
+	private boolean useExtVP = false;
+	
 	private static final Logger logger = Logger.getLogger("PRoST");
+	private String databaseName; 
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when
 	// you are running the jar, its default value is -1.
 	// TODO Move this logic to the translator
-	public Translator(String input, int treeWidth) {
+	public Translator(String input, int treeWidth, String databaseName) {
 		this.inputFile = input;
 		this.treeWidth = treeWidth;
+		this.databaseName = databaseName;
+		
+		// initialize the Spark environment 
+		spark = SparkSession.builder().appName("PRoST-Translator").enableHiveSupport().getOrCreate();
+		sqlContext = spark.sqlContext();
+		sqlContext.sql("USE "+ this.databaseName);
 	}
 
 	public JoinTree translateQuery() {
@@ -158,7 +173,13 @@ public class Translator {
 
 	private PriorityQueue<Node> getNodesQueue(List<Triple> triples) {
 		PriorityQueue<Node> nodesQueue = new PriorityQueue<Node>(triples.size(), new NodeComparator());
-		if (usePropertyTable) {
+		
+		if (useExtVP) {
+			ExtVpCreator extVPcreator = new ExtVpCreator();
+			logger.info("Creating extVP tables");
+			extVPcreator.createExtVPFromTriples(triples, prefixes, spark);
+		}
+		else if (usePropertyTable) {
 			HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
 
 			// group by subjects
@@ -280,6 +301,10 @@ public class Translator {
 
 	public void setMinimumGroupSize(int size) {
 		this.minimumGroupSize = size;
+	}
+	
+	public void setUseExtVP(boolean b) {
+		this.useExtVP = b;
 	}
 
 }
