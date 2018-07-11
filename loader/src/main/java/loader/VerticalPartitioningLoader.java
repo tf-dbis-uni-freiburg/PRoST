@@ -48,13 +48,22 @@ public class VerticalPartitioningLoader extends Loader {
 
 		for (int i = 0; i < this.properties_names.length; i++) {
 			String property = this.properties_names[i];
-			String createVPTableFixed = String.format(
+			/*String createVPTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
+					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);*/
+			//Commented code is partitioning by subject
+			String createVPTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
 					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);
 			spark.sql(createVPTableFixed);
 
-			String populateVPTable = String.format(
+			/*String populateVPTable = String.format(
 					"INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
+					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
+					column_name_predicate, property);*/
+			//Commented code is partitioning by subject
+			String populateVPTable = String.format(
+					"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
 					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
 					column_name_predicate, property);
 			spark.sql(populateVPTable);

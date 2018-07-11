@@ -47,9 +47,11 @@ public class WidePropertyTableLoader extends Loader {
 
 	protected String output_db_name;
 	protected static final String output_tablename = "property_table";
+	protected boolean wptPartitionedBySub = false;
 
-	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark) {
+	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark, boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
+		this.wptPartitionedBySub = wptPartitionedBySub;
 	}
 
 	public void load() {
@@ -216,7 +218,12 @@ public class WidePropertyTableLoader extends Loader {
 		// are less): " + sampledRowsList);
 
 		// write the final one, partitioned by subject
-		propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
+		//propertyTable = propertyTable.repartition(1000, column_name_subject);
+		if (wptPartitionedBySub) {
+			propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_subject).format(table_format).saveAsTable(output_tablename);
+		} else if (!wptPartitionedBySub) {
+			propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
+		}
 		logger.info("Created property table with name: " + output_tablename);
 	}
 }

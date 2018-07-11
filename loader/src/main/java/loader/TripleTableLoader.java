@@ -17,9 +17,14 @@ import org.apache.spark.sql.SparkSession;
  * @author Victor Anthony Arrascue Ayala
  */
 public class TripleTableLoader extends Loader {
+	protected boolean ttPartitionedBySub = false;
+	protected boolean ttPartitionedByPred = false;
 
-	public TripleTableLoader(String hdfs_input_directory, String database_name, SparkSession spark) {
+	public TripleTableLoader(String hdfs_input_directory, String database_name, SparkSession spark, 
+			boolean ttPartitionedBySub, boolean ttPartitionedByPred) {
 		super(hdfs_input_directory, database_name, spark);
+		this.ttPartitionedBySub = ttPartitionedBySub;
+		this.ttPartitionedByPred = ttPartitionedByPred;
 	}
 
 	@Override
@@ -27,7 +32,9 @@ public class TripleTableLoader extends Loader {
 		logger.info("PHASE 1: loading all triples to a generic table...");
 		String queryDropTripleTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
 		String queryDropTripleTableFixed = String.format("DROP TABLE IF EXISTS %s", name_tripletable + "_fixed");
-
+		String createTripleTableFixed = null;
+		String repairTripleTableFixed = null;
+		
 		spark.sql(queryDropTripleTable);
 		spark.sql(queryDropTripleTableFixed);
 
@@ -39,19 +46,50 @@ public class TripleTableLoader extends Loader {
 				name_tripletable + "_raw", column_name_subject, column_name_predicate, column_name_object,
 				hdfs_input_directory);
 		spark.sql(createTripleTableRaw);
+		
+		if (!ttPartitionedBySub && !ttPartitionedByPred) {
+			createTripleTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
+					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);			
+		}  else if (ttPartitionedBySub){
+			createTripleTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING, %4$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
+					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);	
+		} else if (ttPartitionedByPred){
+			createTripleTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %4$s STRING) PARTITIONED BY (%3$s STRING) STORED AS PARQUET",
+					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);	
+		}
+		spark.sql(createTripleTableFixed);			
 
-		String createTripleTableFixed = String.format(
-				"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
-				name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);
-		spark.sql(createTripleTableFixed);
-
-		String repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s, trim(%4$s) "
-				+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
-				+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
-				+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
-				+ "LENGTH(%3$s) < %6$s" ,
-				name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
-				name_tripletable + "_raw", max_length_col_name);
+		if (!ttPartitionedBySub && !ttPartitionedByPred) {
+			repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s  " 
+			+ "SELECT %2$s, %3$s, trim(%4$s)  "
+			+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
+			+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
+			+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
+			+ "LENGTH(%3$s) < %6$s" ,
+			name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
+			name_tripletable + "_raw", max_length_col_name);
+		}  else if (ttPartitionedBySub) {
+			repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " 
+					+ "SELECT %3$s, trim(%4$s), %2$s "
+					+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
+					+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
+					+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
+					+ "LENGTH(%3$s) < %6$s" ,
+					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
+					name_tripletable + "_raw", max_length_col_name);
+		} else if (ttPartitionedByPred) {
+			repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s PARTITION (%3$s) " 
+					+ "SELECT %2$s, trim(%4$s), %3$s "
+					+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
+					+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
+					+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
+					+ "LENGTH(%3$s) < %6$s" ,
+					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
+					name_tripletable + "_raw", max_length_col_name);
+		}
 		spark.sql(repairTripleTableFixed);
 
 		logger.info("Created tripletable with: " + createTripleTableRaw);
