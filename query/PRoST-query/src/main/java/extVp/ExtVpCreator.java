@@ -2,11 +2,10 @@ package extVp;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.catalog.Catalog;
-
 import com.hp.hpl.jena.graph.Triple;
 
 
@@ -18,27 +17,27 @@ public class ExtVpCreator {
 	
 	private static final Logger logger = Logger.getLogger("PRoST");
 	
+	
+	
 	public enum extVPType {
 	    SS, SO, OS, OO
 	}
 	
-	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark) {
-		//TODO Check if table exists 
-		
+	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, Map<String, TableStatistic> statistics, String extVPDatabaseName) {
 		String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
 		String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
+		String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
+		
+		String tableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVpTableName;
+		
+		spark.sql("CREATE DATABASE IF NOT EXISTS " + extVPDatabaseName);
 		
 		
-		String extVpTableName = "extVP_" + extVPType.toString() + "_" + getValidHiveName(predicate1) + "__" + getValidHiveName(predicate2);
-		
-		if (!spark.catalog().tableExists(extVpTableName)) {
-			String createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", extVpTableName);
+		if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
+			String createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", tableNameWithDatabaseIdentifier);
 			
-			logger.info(createTableQuery);
 			spark.sql(createTableQuery);
-			logger.info("table created");
-					
-			
+							
 			String queryOnCommand = "";	
 			switch (extVPType) {
 				case SO:
@@ -56,19 +55,22 @@ public class ExtVpCreator {
 					break;
 			}
 				
-			String insertDataQuery = String.format("insert overwrite table %1$s select %2$s.s as s, %2$s.o as o from %2$s left semi join %3$s on %4$s", extVpTableName, vp1TableName, vp2TableName, queryOnCommand);
+			String insertDataQuery = String.format("insert overwrite table %1$s select %2$s.s as s, %2$s.o as o from %2$s left semi join %3$s on %4$s", tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
 			
-			logger.info(insertDataQuery);
 			spark.sql(insertDataQuery);
-			logger.info("data inserted");
-		} else {
-			logger.info("Table " + extVpTableName +"already exists");
+			
+			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
+			
+			//TODO get correct values
+			logger.info("tablename: " + extVpTableName);
+			statistics.put(extVpTableName, new TableStatistic(extVpTableName, 1, 1));
+			
+			
+			
 		}
 	}
 	
-	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark){
-		logger.info("triples list size: " + triples.size());
-		
+	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, Map<String, TableStatistic> statistics, String extVPDatabaseName){
 		for(ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator.hasNext() ; ) {
 		    Triple outerTriple = outerTriplesListIterator.next();
 		    String outerSubject = outerTriple.getSubject().toString(prefixes);
@@ -83,36 +85,37 @@ public class ExtVpCreator {
 			    
 			    if (outerSubject.equals(innerSubject)) {
 			    	//SS
-			    	logger.info("creating SS extVP table");
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, statistics, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, statistics, extVPDatabaseName); 
 			    }
-			    else if (outerObject.equals(innerObject)) {
+			    if (outerObject.equals(innerObject)) {
 			    	//OO
-			    	logger.info("creating OO extVP table");
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, statistics, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, statistics, extVPDatabaseName); 
 			    }
-			    else if (outerObject.equals(innerSubject)) {
+			    if (outerObject.equals(innerSubject)) {
 			    	//OS
-			    	logger.info("creating OS-SO extVP table");
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, statistics, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, statistics, extVPDatabaseName); 
 			    }
-			    else if (outerSubject.equals(innerObject)) {
+			    if (outerSubject.equals(innerObject)) {
 			    	//SO
-			    	logger.info("creating SO-OS extVP table");
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark); 
-			    }
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, statistics, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, statistics, extVPDatabaseName); 
+			    } 
 		    }
+		   
 		}
 	}
 	
-	protected String getValidHiveName(String columnName) {
+	public static String getValidHiveName(String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
+	
+	public static String getExtVPTableName(String predicate1, String predicate2, extVPType type) {	
+		String extVpTableName = "extVP_" + type.toString() + "_" + getValidHiveName(predicate1) + "__" + getValidHiveName(predicate2);
+		
+		return extVpTableName;
+	}
 }
-		
-		
 

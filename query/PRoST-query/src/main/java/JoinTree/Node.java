@@ -22,6 +22,7 @@ public abstract class Node {
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
+	public boolean isExtVPNode = false;
 	public String filter;
 	
 	/**
