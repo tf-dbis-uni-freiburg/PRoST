@@ -46,7 +46,7 @@ public class WidePropertyTableLoader extends Loader {
 	public String columns_separator = "\\$%";
 
 	protected String output_db_name;
-	protected static final String output_tablename = "property_table";
+	protected static final String output_tablename = "wide_property_table";
 	protected boolean wptPartitionedBySub = false;
 
 	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark, boolean wptPartitionedBySub) {
@@ -225,5 +225,33 @@ public class WidePropertyTableLoader extends Loader {
 			propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		}
 		logger.info("Created property table with name: " + output_tablename);
+		
+		//This code is to create a TT partitioned by subject with a fixed number of partiitions. 
+		//Run the code with: 
+		//Delete after results are there.
+		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
+		Dataset<Row> propertyTable1000 = propertyTable.repartition(1000, propertyTable.col(column_name_subject));
+		propertyTable1000.write().saveAsTable("wpt_partBySub_1000");
+		logger.info("Number of partitions after repartitioning: " + propertyTable1000.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
+		Dataset<Row> propertyTable500 = propertyTable.repartition(500, propertyTable.col(column_name_subject));
+		propertyTable500.write().saveAsTable("wpt_partBySub_500");
+		logger.info("Number of partitions after repartitioning: " + propertyTable500.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
+		Dataset<Row> propertyTable100 = propertyTable.repartition(100, propertyTable.col(column_name_subject));
+		propertyTable100.write().saveAsTable("wpt_partBySub_100");
+		logger.info("Number of partitions after repartitioning: " + propertyTable100.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
+		Dataset<Row> propertyTable25 = propertyTable.repartition(25, propertyTable.col(column_name_subject));
+		propertyTable25.write().saveAsTable("wpt_partBySub_25");
+		logger.info("Number of partitions after repartitioning: " + propertyTable25.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
+		Dataset<Row> propertyTable10 = propertyTable.repartition(10, propertyTable.col(column_name_subject));
+		propertyTable10.write().saveAsTable("wpt_partBySub_10");
+		logger.info("Number of partitions after repartitioning: " + propertyTable10.rdd().getNumPartitions());
 	}
 }

@@ -112,5 +112,35 @@ public class TripleTableLoader extends Loader {
 		}
 		List cleanedList = allTriples.limit(10).collectAsList();
 		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
+		
+		//This code is to create a TT partitioned by subject with a fixed number of partiitions. 
+		//Run the code with: 
+		//Delete after results are there.
+		//allTriples.repartition(100, allTriples.col(column_name_subject));
+		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
+		Dataset<Row> allTriples1000 = allTriples.repartition(1000, allTriples.col(column_name_subject));
+		allTriples1000.write().saveAsTable("tripletable_partBySub_1000");
+		logger.info("Number of partitions after repartitioning: " + allTriples1000.rdd().getNumPartitions());		
+		
+		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
+		Dataset<Row> allTriples500 = allTriples.repartition(500, allTriples.col(column_name_subject));
+		allTriples500.write().saveAsTable("tripletable_partBySub_500");
+		logger.info("Number of partitions after repartitioning: " + allTriples500.rdd().getNumPartitions());		
+		
+		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
+		Dataset<Row> allTriples100 = allTriples.repartition(100, allTriples.col(column_name_subject));
+		allTriples100.write().saveAsTable("tripletable_partBySub_100");
+		logger.info("Number of partitions after repartitioning: " + allTriples100.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
+		Dataset<Row> allTriples25 = allTriples.repartition(25, allTriples.col(column_name_subject));
+		allTriples25.write().saveAsTable("tripletable_partBySub_25");
+		logger.info("Number of partitions after repartitioning: " + allTriples25.rdd().getNumPartitions());
+		
+		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
+		Dataset<Row> allTriples10 = allTriples.repartition(10, allTriples.col(column_name_subject));
+		allTriples10.write().saveAsTable("tripletable_partBySub_10");
+		logger.info("Number of partitions after repartitioning: " + allTriples10.rdd().getNumPartitions());			
+		
 	}
 }
