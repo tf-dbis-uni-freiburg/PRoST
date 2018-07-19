@@ -5,6 +5,8 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import com.hp.hpl.jena.graph.Triple;
 
@@ -63,10 +65,19 @@ public class ExtVpCreator {
 			
 			//TODO get correct values
 			logger.info("tablename: " + extVpTableName);
-			statistics.put(extVpTableName, new TableStatistic(extVpTableName, 1, 1));
+			
+			Dataset<Row> vpDF = spark.sql("SELECT * FROM " + vp1TableName);
+					
+			Long vpTableSize = vpDF.count();
 			
 			
+			Dataset<Row> extVPDF = spark.sql("SELECT * FROM " + tableNameWithDatabaseIdentifier);
+				
+			Long extVPSize = extVPDF.count();
 			
+			logger.info("size: " + extVPSize + " - selectivity: " + (float)extVPSize/(float)vpTableSize + " vp table size: " + vpTableSize);
+		
+			statistics.put(extVpTableName, new TableStatistic(extVpTableName, (float)extVPSize/(float)vpTableSize, extVPSize));	
 		}
 	}
 	

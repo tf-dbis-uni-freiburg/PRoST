@@ -222,11 +222,44 @@ public class Translator {
 	            ioe.printStackTrace();
 	        }
 			logger.info("ExtVP statistics saved!");
+			
+			
+			List<Triple> remainingTriples = new ArrayList<Triple>();
+			remainingTriples.addAll(triples);
+			
+			//uses property table when group is bigger than minimum group size
+			if (usePropertyTable) {
+				HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
+				// group by subjects
+				for (Triple triple : triples) {
+					String subject = triple.getSubject().toString(prefixes);
 
-			for (Triple currentTriple : triples) {
+					if (subjectGroups.containsKey(subject)) {
+						subjectGroups.get(subject).add(triple);
+					} else {
+						List<Triple> subjTriples = new ArrayList<Triple>();
+						subjTriples.add(triple);
+						subjectGroups.put(subject, subjTriples);
+					}
+				}
+				
+				// create and add the proper nodes
+				for (String subject : subjectGroups.keySet()) {
+					if (subjectGroups.get(subject).size() >= minimumGroupSize) {
+						List<Triple> groupedTriples = subjectGroups.get(subject);
+						nodesQueue.add(new PtNode(groupedTriples, prefixes));
+						logger.info("added PTNode with subject " + subject + ", group size: " + subjectGroups.get(subject).size());
+						remainingTriples.removeAll(groupedTriples);
+					}
+				}
+			}
+			
+			// remaining triples uses ExtVP
+			for (Triple currentTriple : remainingTriples) {
 				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples, extVpStatistics, prefixes);
 				Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
 				nodesQueue.add(newNode);
+				logger.info("added ExtVpNode for triple " + currentTriple.toString());
 			}
 		}
 		else if (usePropertyTable) {

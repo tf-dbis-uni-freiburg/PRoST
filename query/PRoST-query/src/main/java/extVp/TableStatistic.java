@@ -17,12 +17,12 @@ public class TableStatistic implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	//private static final Logger logger = Logger.getLogger("PRoST");
+	private static final Logger logger = Logger.getLogger("PRoST");
 	private String tableName;
 	private float selectivity;
-	private int size;
+	private long size;
 	
-	public TableStatistic (String tableName, float selectivity, int size) {
+	public TableStatistic (String tableName, float selectivity, long size) {
 		this.tableName = tableName;
 		this.selectivity = selectivity;
 		this.size = size;
@@ -36,7 +36,7 @@ public class TableStatistic implements Serializable{
 		return selectivity;
 	}
 	
-	public int getSize() {
+	public long getSize() {
 		return size;
 	}
 	
@@ -46,7 +46,7 @@ public class TableStatistic implements Serializable{
 		String currentPredicate = currentTriple.getPredicate().toString(prefixes);
 		
 		String selectedTableName = new String();
-		float currentTableScore = 0;
+		float currentTableScore = 1;
 		
 		ListIterator<Triple> triplesIterator = triples.listIterator();
 		while (triplesIterator.hasNext()) {
@@ -59,8 +59,9 @@ public class TableStatistic implements Serializable{
 					//SS
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SS);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()>currentTableScore) {
+					if (tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
+						currentTableScore = tableStatistic.getSelectivity();
 					}
 				}
 				if (currentObject.equals(outerObject)) {
@@ -68,8 +69,9 @@ public class TableStatistic implements Serializable{
 					
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OO);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()>currentTableScore) {
+					if (tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
+						currentTableScore = tableStatistic.getSelectivity();
 					}
 				}
 				if (currentSubject.equals(outerObject)) {
@@ -77,8 +79,9 @@ public class TableStatistic implements Serializable{
 					
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SO);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()>currentTableScore) {
+					if (tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
+						currentTableScore = tableStatistic.getSelectivity();
 					}
 				}
 				if (currentObject.equals(outerSubject)) {
@@ -86,12 +89,15 @@ public class TableStatistic implements Serializable{
 					
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OS);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()>currentTableScore) {
+					if (tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
+						currentTableScore = tableStatistic.getSelectivity();
 					}
 				}
 			}
-		}	
+		}
+		
+		logger.info("select table selectivity: " + currentTableScore + ", table name: " + selectedTableName);
 		return selectedTableName;
 	}
 }
