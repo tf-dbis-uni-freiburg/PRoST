@@ -16,16 +16,18 @@ public class TableStatistic implements Serializable{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -4633496814794267474L;
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private String tableName;
 	private float selectivity;
 	private long size;
+	private Boolean tableExists;
 	
 	public TableStatistic (String tableName, float selectivity, long size) {
 		this.tableName = tableName;
 		this.selectivity = selectivity;
 		this.size = size;
+		this.tableExists = true;
 	}
 	
 	public String getTableName() {
@@ -40,14 +42,25 @@ public class TableStatistic implements Serializable{
 		return size;
 	}
 	
+	public Boolean getTableExists() {
+		return tableExists;
+	}
+	
+	public void setTableExists(Boolean tableExists) {
+		this.tableExists = tableExists;
+	}
+	
 	public static String selectExtVPTable(Triple currentTriple, List<Triple> triples, Map<String, TableStatistic> statistics, PrefixMapping prefixes) {
 		String currentSubject = currentTriple.getSubject().toString(prefixes);
 		String currentObject = currentTriple.getObject().toString(prefixes);
 		String currentPredicate = currentTriple.getPredicate().toString(prefixes);
 		
-		String selectedTableName = new String();
+		String selectedTableName = "";
 		float currentTableScore = 1;
 		
+		String unidexedSelectedTableName = "";
+		float unindexeCurrentdTableScore = 1;
+				
 		ListIterator<Triple> triplesIterator = triples.listIterator();
 		while (triplesIterator.hasNext()) {
 			Triple outerTriple = triplesIterator.next();
@@ -59,45 +72,60 @@ public class TableStatistic implements Serializable{
 					//SS
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SS);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()<currentTableScore) {
+					if (tableStatistic.getTableExists()==true && tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
 						currentTableScore = tableStatistic.getSelectivity();
+					} else if (tableStatistic.getTableExists()==false && tableStatistic.getSelectivity()<unindexeCurrentdTableScore) {
+						unidexedSelectedTableName = tableName;
+						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}
 				}
 				if (currentObject.equals(outerObject)) {
-					//OO
-					
+					//OO	
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OO);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()<currentTableScore) {
+					if (tableStatistic.getTableExists()==true && tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
 						currentTableScore = tableStatistic.getSelectivity();
-					}
+					} else if (tableStatistic.getTableExists()==false && tableStatistic.getSelectivity()<unindexeCurrentdTableScore) {
+						unidexedSelectedTableName = tableName;
+						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
+					}	
 				}
 				if (currentSubject.equals(outerObject)) {
 					//SO
-					
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SO);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()<currentTableScore) {
+					if (tableStatistic.getTableExists()==true && tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
 						currentTableScore = tableStatistic.getSelectivity();
+					} else if (tableStatistic.getTableExists()==false && tableStatistic.getSelectivity()<unindexeCurrentdTableScore) {
+						unidexedSelectedTableName = tableName;
+						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}
 				}
 				if (currentObject.equals(outerSubject)) {
-					//OS
-					
+					//OS	
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OS);
 					TableStatistic tableStatistic = statistics.get(tableName);
-					if (tableStatistic.getSelectivity()<currentTableScore) {
+					if (tableStatistic.getTableExists()==true && tableStatistic.getSelectivity()<currentTableScore) {
 						selectedTableName = tableName;
 						currentTableScore = tableStatistic.getSelectivity();
+					} else if (tableStatistic.getTableExists()==false && tableStatistic.getSelectivity()<unindexeCurrentdTableScore) {
+						unidexedSelectedTableName = tableName;
+						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}
 				}
 			}
 		}
 		
-		logger.info("select table selectivity: " + currentTableScore + ", table name: " + selectedTableName);
+		if (selectedTableName != "") {
+			logger.info("selected table selectivity: " + currentTableScore + ", table name: " + selectedTableName);
+		}
+		if (unidexedSelectedTableName != "") {
+			logger.info("best unindexed table selectivity: " + unindexeCurrentdTableScore + ", table name: " + unidexedSelectedTableName);
+		}
+		
 		return selectedTableName;
 	}
 }

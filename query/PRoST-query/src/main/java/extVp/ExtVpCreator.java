@@ -25,7 +25,7 @@ public class ExtVpCreator {
 	    SS, SO, OS, OO
 	}
 	
-	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, Map<String, TableStatistic> statistics, String extVPDatabaseName) {
+	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, DatabaseStatistic databaseStatistics, String extVPDatabaseName) {
 		String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
 		String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
 		String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
@@ -76,12 +76,14 @@ public class ExtVpCreator {
 			Long extVPSize = extVPDF.count();
 			
 			logger.info("size: " + extVPSize + " - selectivity: " + (float)extVPSize/(float)vpTableSize + " vp table size: " + vpTableSize);
-		
-			statistics.put(extVpTableName, new TableStatistic(extVpTableName, (float)extVPSize/(float)vpTableSize, extVPSize));	
+			
+	
+			databaseStatistics.getTables().put(extVpTableName, new TableStatistic(extVpTableName, (float)extVPSize/(float)vpTableSize, extVPSize));	
+			databaseStatistics.setSize(databaseStatistics.getSize() + extVPSize);
 		}
 	}
 	
-	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, Map<String, TableStatistic> statistics, String extVPDatabaseName){
+	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, DatabaseStatistic databaseStatistic, String extVPDatabaseName){
 		for(ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator.hasNext() ; ) {
 		    Triple outerTriple = outerTriplesListIterator.next();
 		    String outerSubject = outerTriple.getSubject().toString(prefixes);
@@ -96,23 +98,23 @@ public class ExtVpCreator {
 			    
 			    if (outerSubject.equals(innerSubject)) {
 			    	//SS
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, statistics, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, statistics, extVPDatabaseName); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName); 
 			    }
 			    if (outerObject.equals(innerObject)) {
 			    	//OO
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, statistics, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, statistics, extVPDatabaseName); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName); 
 			    }
 			    if (outerObject.equals(innerSubject)) {
 			    	//OS
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, statistics, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, statistics, extVPDatabaseName); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName); 
 			    }
 			    if (outerSubject.equals(innerObject)) {
 			    	//SO
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, statistics, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, statistics, extVPDatabaseName); 
+			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName);
+				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName); 
 			    } 
 		    }
 		   

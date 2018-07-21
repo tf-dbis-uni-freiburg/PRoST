@@ -8,10 +8,10 @@ import org.apache.spark.sql.SQLContext;
 import Executor.Utils;
 
 public class ExtVpNode extends Node{
-	private static final Logger logger = Logger.getLogger("PRoST");
+	//private static final Logger logger = Logger.getLogger("PRoST");
 	
 	private String tableName;
-	private String extVPDatabaseName;
+	//private String extVPDatabaseName;
 	private String tableNameWithDatabaseIdentifier;
 	
 	public ExtVpNode(TriplePattern triplePattern, String tableName, String databaseName) {
@@ -20,7 +20,7 @@ public class ExtVpNode extends Node{
 		this.triplePattern = triplePattern;
         this.tripleGroup = Collections.emptyList();    
 		this.tableName = tableName;
-		this.extVPDatabaseName = databaseName;
+		//this.extVPDatabaseName = databaseName;
 		this.tableNameWithDatabaseIdentifier = databaseName + "." + tableName;
 	}
 
@@ -53,7 +53,7 @@ public class ExtVpNode extends Node{
 			}
 		}
 		
-		logger.info(query.toString());
+		//logger.info(query.toString());
 		this.sparkNodeData = sqlContext.sql(query.toString());
 	}
 	

@@ -19,6 +19,7 @@ import JoinTree.Node;
 import JoinTree.PtNode;
 import JoinTree.TriplePattern;
 import JoinTree.VpNode;
+import extVp.DatabaseStatistic;
 import extVp.ExtVpCreator;
 import extVp.TableStatistic;
 import parquet.org.codehaus.jackson.map.ObjectMapper;
@@ -60,7 +61,8 @@ public class Translator {
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private String databaseName;
 	private String extVPDatabaseName;
-	private Map<String, TableStatistic> extVpStatistics;
+	private DatabaseStatistic extVPDatabaseStatistic;
+	//private Map<String, TableStatistic> extVpStatistics;
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when
@@ -77,16 +79,16 @@ public class Translator {
 		sqlContext = spark.sqlContext();
 		sqlContext.sql("USE "+ this.databaseName);	
 		
-		this.extVpStatistics = new HashMap<String, TableStatistic>();
+		this.extVPDatabaseStatistic = new DatabaseStatistic();
 		
 		File file = new File(extVPDatabaseName + ".stats");
 		if (file.exists()) {
 			logger.info("ExtVP statistic file found!");
-			this.extVpStatistics = null;
+			this.extVPDatabaseStatistic = null;
 			try {
 			    FileInputStream fis = new FileInputStream(extVPDatabaseName + ".stats");
 			    ObjectInputStream ois = new ObjectInputStream(fis);
-			    this.extVpStatistics = (HashMap) ois.readObject();
+			    this.extVPDatabaseStatistic = (DatabaseStatistic) ois.readObject();
 			    ois.close();
 			    fis.close();
 			}catch(Exception e) {
@@ -208,13 +210,13 @@ public class Translator {
 		
 		if (useExtVP) {
 			ExtVpCreator extVPcreator = new ExtVpCreator();
-			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVpStatistics, extVPDatabaseName);
+			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
 			logger.info("ExtVP: all tables created!");
 			
 			try{
 				FileOutputStream fos = new FileOutputStream(extVPDatabaseName + ".stats");
 	            ObjectOutputStream oos = new ObjectOutputStream(fos);
-	            oos.writeObject(extVpStatistics);
+	            oos.writeObject(extVPDatabaseStatistic);
 	            oos.close();
 	            fos.close();
 	            System.out.printf("Serialized HashMap data is saved in extVPDatabaseName.stats");
@@ -222,6 +224,8 @@ public class Translator {
 	            ioe.printStackTrace();
 	        }
 			logger.info("ExtVP statistics saved!");
+			
+			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
 			
 			
 			List<Triple> remainingTriples = new ArrayList<Triple>();
@@ -254,12 +258,21 @@ public class Translator {
 				}
 			}
 			
-			// remaining triples uses ExtVP
+			// remaining triples uses ExtVP or VP
 			for (Triple currentTriple : remainingTriples) {
-				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples, extVpStatistics, prefixes);
-				Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
-				nodesQueue.add(newNode);
-				logger.info("added ExtVpNode for triple " + currentTriple.toString());
+				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples, extVPDatabaseStatistic.getTables(), prefixes);
+				if (tableName != "") {
+					//ExtVp
+					Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
+					nodesQueue.add(newNode);
+					logger.info("added ExtVpNode for triple " + currentTriple.toString());
+				} else {
+					//VP
+					tableName = Stats.getInstance().findTableName(currentTriple.getPredicate().toString());
+					Node newNode = new VpNode(new TriplePattern(currentTriple, prefixes), tableName);
+					nodesQueue.add(newNode);
+					logger.info("added VpNode for triple " + currentTriple.toString());
+				}
 			}
 		}
 		else if (usePropertyTable) {
