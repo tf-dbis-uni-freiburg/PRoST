@@ -20,6 +20,7 @@ import org.apache.log4j.PropertyConfigurator;
 import translator.Stats;
 import Executor.Executor;
 import JoinTree.JoinTree;
+import extVp.DatabaseStatistics;
 import translator.Translator;
 
 
@@ -43,6 +44,10 @@ public class Main {
 	private static String benchmark_file;
     private static String loj4jFileName="log4j.properties";
     private static boolean useExtVP = false;
+    private static long extVPMaximumSize = 25000; //=~5gb
+    
+    private static DatabaseStatistics extVPDatabaseStatistics;
+    private static String extVPDatabaseName;
 	
 	public static void main(String[] args) throws IOException {
     	InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
@@ -78,6 +83,8 @@ public class Main {
 		options.addOption(groupsizeOpt);	
 		Option extVPOpt = new Option("e", "extVP", false, "Uses extVP");
 		options.addOption(extVPOpt);
+		Option extVPMaximumSizeOpt = new Option("extvpsize", "extVPSize", false, "Maximum size of ExtVP database");
+		options.addOption(extVPMaximumSizeOpt);
 		
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -118,6 +125,7 @@ public class Main {
 		}
 		if(cmd.hasOption("DB")){
 			database_name = cmd.getOptionValue("DB");
+			extVPDatabaseName = "extVP_" + database_name;
 		}
 		if(cmd.hasOption("times")){
 			benchmarkMode = true;
@@ -127,6 +135,13 @@ public class Main {
 			useExtVP = true;
 			logger.info("Using extVP");
 		}
+		if(cmd.hasOption("extVPSize")){
+			extVPMaximumSize = Long.valueOf(cmd.getOptionValue("extVPSize"));
+			logger.info("ExtVP maximum size set to " + extVPMaximumSize);
+		}
+		
+		extVPDatabaseStatistics = new DatabaseStatistics();
+		extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
@@ -146,6 +161,8 @@ public class Main {
 			Executor executor = new Executor(translatedQuery, database_name);
 			if (outputFile != null) executor.setOutputFile(outputFile); 
 			executor.execute();	
+			
+			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 			
 		} 
 		
@@ -168,6 +185,8 @@ public class Main {
 				executor.saveResultsCsv(benchmark_file);
 			}
 			
+			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
 			return;
@@ -175,7 +194,7 @@ public class Main {
 	}
 
 	private static JoinTree translateSingleQuery(String query, int width) {
-		Translator translator = new Translator(query, width, database_name);
+		Translator translator = new Translator(query, width, database_name, extVPDatabaseName,  extVPDatabaseStatistics);
 		if (!useOnlyVP) {
 			translator.setPropertyTable(true);
 		}

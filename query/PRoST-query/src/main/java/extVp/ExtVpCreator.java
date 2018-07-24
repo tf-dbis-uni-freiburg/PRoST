@@ -25,7 +25,7 @@ public class ExtVpCreator {
 	    SS, SO, OS, OO
 	}
 	
-	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, DatabaseStatistic databaseStatistics, String extVPDatabaseName) {
+	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, DatabaseStatistics databaseStatistics, String extVPDatabaseName) {
 		String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
 		String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
 		String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
@@ -83,7 +83,7 @@ public class ExtVpCreator {
 		}
 	}
 	
-	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, DatabaseStatistic databaseStatistic, String extVPDatabaseName){
+	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, DatabaseStatistics databaseStatistic, String extVPDatabaseName){
 		for(ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator.hasNext() ; ) {
 		    Triple outerTriple = outerTriplesListIterator.next();
 		    String outerSubject = outerTriple.getSubject().toString(prefixes);
