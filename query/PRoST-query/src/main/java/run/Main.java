@@ -16,6 +16,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 
 import translator.Stats;
 import Executor.Executor;
@@ -140,8 +142,12 @@ public class Main {
 			logger.info("ExtVP maximum size set to " + extVPMaximumSize);
 		}
 		
-		extVPDatabaseStatistics = new DatabaseStatistics();
+		extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
 		extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+		
+		// initialize the Spark environment 
+		SparkSession spark = SparkSession.builder().appName("PRoST-Query").getOrCreate();
+		//SQLContext sqlContext = spark.sqlContext();
 
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
@@ -162,6 +168,7 @@ public class Main {
 			if (outputFile != null) executor.setOutputFile(outputFile); 
 			executor.execute();	
 			
+			extVPDatabaseStatistics.clearCache(extVPMaximumSize, spark);
 			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 			
 		} 
@@ -174,12 +181,12 @@ public class Main {
 			
 			if(benchmarkMode) {
 				//executor.cacheTables();
-				executeBatch(random_sample(file.list(), 3), executor);
+				executeBatch(random_sample(file.list(), 3), executor, spark);
 				executor.clearQueryTimes();
 			}
 			
 			// if the path is a directory execute every files inside
-			executeBatch(file.list(), executor);
+			executeBatch(file.list(), executor, spark);
 			
 			if(benchmarkMode) {
 				executor.saveResultsCsv(benchmark_file);
@@ -204,7 +211,7 @@ public class Main {
 	}
 	
 	
-	private static void executeBatch(String[] queries, Executor executor) {
+	private static void executeBatch(String[] queries, Executor executor, SparkSession spark) {
 		for(String fname : queries){
 			logger.info("Starting: " + fname);
 			
@@ -214,6 +221,7 @@ public class Main {
 			// execution phase
 			executor.setQueryTree(translatedQuery);
 			executor.execute();	
+			extVPDatabaseStatistics.clearCache(extVPMaximumSize, spark);
 		}
 	}
 	

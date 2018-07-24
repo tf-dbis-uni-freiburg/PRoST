@@ -1,5 +1,6 @@
 package extVp;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -16,10 +17,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import translator.Stats;
 
 public class ExtVpCreator {
-	
 	private static final Logger logger = Logger.getLogger("PRoST");
-	
-	
 	
 	public enum extVPType {
 	    SS, SO, OS, OO
@@ -131,4 +129,3 @@ public class ExtVpCreator {
 		return extVpTableName;
 	}
 }
-
