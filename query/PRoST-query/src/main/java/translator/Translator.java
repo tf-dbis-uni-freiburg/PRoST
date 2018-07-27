@@ -1,11 +1,5 @@
 package translator;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.*;
 
 import org.apache.log4j.Logger;
@@ -22,9 +16,6 @@ import JoinTree.VpNode;
 import extVp.DatabaseStatistics;
 import extVp.ExtVpCreator;
 import extVp.TableStatistic;
-import parquet.org.codehaus.jackson.map.ObjectMapper;
-import parquet.org.codehaus.jackson.type.TypeReference;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
@@ -46,7 +37,7 @@ public class Translator {
 
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
-	final int DEFAULT_MIN_GROUP_SIZE = 2;
+	final static int DEFAULT_MIN_GROUP_SIZE = 2;
 
 	String inputFile;
 	int treeWidth;
@@ -64,22 +55,19 @@ public class Translator {
 	private DatabaseStatistics extVPDatabaseStatistic;
 	//private Map<String, TableStatistic> extVpStatistics;
 
-	// TODO check this, if you do not specify the treeWidth in the input parameters
-	// when
-	// you are running the jar, its default value is -1.
+	// TODO check this, if you do not specify the treeWidth in the input parameters when you are running the jar, its default value is -1.
 	// TODO Move this logic to the translator
 	public Translator(String input, int treeWidth, String databaseName, String extVPDatabaseName,  DatabaseStatistics extVPDatabaseStatistic) {
 		this.inputFile = input;
 		this.treeWidth = treeWidth;
 		this.databaseName = databaseName;
 		this.extVPDatabaseName = extVPDatabaseName;
+		this.extVPDatabaseStatistic = extVPDatabaseStatistic;
 		
-		// initialize the Spark environment 
+		// initialize the Spark environment used by extVP tables creation
 		spark = SparkSession.builder().appName("PRoST-Translator").enableHiveSupport().getOrCreate();
 		sqlContext = spark.sqlContext();
 		sqlContext.sql("USE "+ this.databaseName);	
-		
-		this.extVPDatabaseStatistic = extVPDatabaseStatistic;
 	}
 
 	public JoinTree translateQuery() {
@@ -181,10 +169,8 @@ public class Translator {
 			// next Node is one of the children
 			if (!visitableNodes.isEmpty() && !nodesQueue.isEmpty()) {
 				currentNode = visitableNodes.pop();
-
 			}
 		}
-
 		return tree;
 	}
 
@@ -218,7 +204,7 @@ public class Translator {
 					}
 				}
 				
-				// create and add the proper nodes
+				// create and adds the proper nodes
 				for (String subject : subjectGroups.keySet()) {
 					if (subjectGroups.get(subject).size() >= minimumGroupSize) {
 						List<Triple> groupedTriples = subjectGroups.get(subject);
@@ -298,7 +284,6 @@ public class Translator {
 	 * variable in common, if there isn't return null
 	 */
 	private Node findRelateNode(Node sourceNode, PriorityQueue<Node> availableNodes) {
-
 		if (sourceNode.isPropertyTable) {
 			// sourceNode is a group
 			for (TriplePattern tripleSource : sourceNode.tripleGroup) {

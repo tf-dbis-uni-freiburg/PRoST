@@ -2,7 +2,7 @@ package JoinTree;
 
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import Executor.Utils;
@@ -11,8 +11,7 @@ public class ExtVpNode extends Node{
 	//private static final Logger logger = Logger.getLogger("PRoST");
 	
 	private String tableName;
-	//private String extVPDatabaseName;
-	private String tableNameWithDatabaseIdentifier;
+	private String tableNameWithDatabaseIdentifier; //databaseName.tableName
 	
 	public ExtVpNode(TriplePattern triplePattern, String tableName, String databaseName) {
 		super();
@@ -26,7 +25,6 @@ public class ExtVpNode extends Node{
 
 	@Override
 	public void computeNodeData(SQLContext sqlContext) {
-		
 		TriplePattern mainPattern = triplePattern;
 
 		StringBuilder query = new StringBuilder("Select distinct ");

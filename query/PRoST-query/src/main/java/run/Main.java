@@ -46,7 +46,7 @@ public class Main {
 	private static String benchmark_file;
     private static String loj4jFileName="log4j.properties";
     private static boolean useExtVP = false;
-    private static long extVPMaximumSize = 25000; //=~5gb
+    private static long extVPMaximumSize = 25000; //25000=~5gb
     
     private static DatabaseStatistics extVPDatabaseStatistics;
     private static String extVPDatabaseName;
@@ -142,6 +142,7 @@ public class Main {
 			logger.info("ExtVP maximum size set to " + extVPMaximumSize);
 		}
 		
+		// initializes ExtVP database statistics
 		extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
 		extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 		
@@ -168,7 +169,7 @@ public class Main {
 			if (outputFile != null) executor.setOutputFile(outputFile); 
 			executor.execute();	
 			
-			extVPDatabaseStatistics.clearCache(extVPMaximumSize, spark);
+			extVPDatabaseStatistics.clearCache(extVPMaximumSize/2, extVPMaximumSize, spark);
 			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 			
 		} 
@@ -221,7 +222,7 @@ public class Main {
 			// execution phase
 			executor.setQueryTree(translatedQuery);
 			executor.execute();	
-			extVPDatabaseStatistics.clearCache(extVPMaximumSize, spark);
+			extVPDatabaseStatistics.clearCache(extVPMaximumSize/2, extVPMaximumSize,spark);
 		}
 	}
 	
