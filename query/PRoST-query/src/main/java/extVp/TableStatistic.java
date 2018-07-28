@@ -77,8 +77,6 @@ public class TableStatistic implements Serializable{
 		String unidexedSelectedTableName = "";
 		float unindexeCurrentdTableScore = 1; //score of 1 means that the extVP table is equal to the VP table
 		
-		
-		//TODO check if subjects and objects are variables or literals, before choosing ExtVP table type
 		ListIterator<Triple> triplesIterator = triples.listIterator();
 		while (triplesIterator.hasNext()) {
 			Triple outerTriple = triplesIterator.next();
@@ -86,7 +84,7 @@ public class TableStatistic implements Serializable{
 				String outerSubject = outerTriple.getSubject().toString(prefixes);
 				String outerObject = outerTriple.getObject().toString(prefixes);
 				String outerPredicate = outerTriple.getPredicate().toString(prefixes);
-				if (currentSubject.equals(outerSubject)) {
+				if (currentTriple.getSubject().isVariable() && outerTriple.getSubject().isVariable() && currentSubject.equals(outerSubject)) {
 					//SS
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SS);
 					TableStatistic tableStatistic = statistics.get(tableName);
@@ -98,7 +96,8 @@ public class TableStatistic implements Serializable{
 						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}
 				}
-				if (currentObject.equals(outerObject)) {
+		
+				if (currentTriple.getObject().isVariable() && outerTriple.getObject().isVariable() && currentObject.equals(outerObject)) {
 					//OO	
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OO);
 					TableStatistic tableStatistic = statistics.get(tableName);
@@ -110,7 +109,7 @@ public class TableStatistic implements Serializable{
 						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}	
 				}
-				if (currentSubject.equals(outerObject)) {
+				if (currentTriple.getSubject().isVariable() && outerTriple.getObject().isVariable() && currentSubject.equals(outerObject)) {
 					//SO
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SO);
 					TableStatistic tableStatistic = statistics.get(tableName);
@@ -122,7 +121,7 @@ public class TableStatistic implements Serializable{
 						unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 					}
 				}
-				if (currentObject.equals(outerSubject)) {
+				if (currentTriple.getObject().isVariable() && outerTriple.getSubject().isVariable() &&  currentObject.equals(outerSubject)) {
 					//OS	
 					String tableName = ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OS);
 					TableStatistic tableStatistic = statistics.get(tableName);

@@ -46,8 +46,7 @@ public class ExtVpCreator {
 		String tableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVpTableName;
 		
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + extVPDatabaseName);
-		
-		
+				
 		if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
 			String createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", 
 					tableNameWithDatabaseIdentifier);
@@ -77,7 +76,6 @@ public class ExtVpCreator {
 			
 			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
 			logger.info("tablename: " + extVpTableName);
-			
 			
 			
 			//TODO Check if table statistics already exists in the database statistics. Update it if it exists. Do not search for table sizes if they have already been calculates (statistic exists)
@@ -122,22 +120,22 @@ public class ExtVpCreator {
 			    
 			    //TODO Check if table exists in the statistics. If it exists, do not create it again
 			    
-			    if (outerSubject.equals(innerSubject)) {
+			    if (outerTriple.getSubject().isVariable() && innerTriple.getSubject().isVariable() && outerSubject.equals(innerSubject)) {
 			    	//SS
 			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName);
 				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName); 
 			    }
-			    if (outerObject.equals(innerObject)) {
+			    if (outerTriple.getObject().isVariable() && innerTriple.getObject().isVariable() &&  outerObject.equals(innerObject)) {
 			    	//OO
 			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName);
 				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName); 
 			    }
-			    if (outerObject.equals(innerSubject)) {
+			    if (outerTriple.getObject().isVariable() && innerTriple.getSubject().isVariable() && outerObject.equals(innerSubject)) {
 			    	//OS
 			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName);
 				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName); 
 			    }
-			    if (outerSubject.equals(innerObject)) {
+			    if (outerTriple.getSubject().isVariable() && innerTriple.getObject().isVariable() && outerSubject.equals(innerObject)) {
 			    	//SO
 			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName);
 				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName); 
@@ -150,7 +148,6 @@ public class ExtVpCreator {
 	public static String getValidHiveName(String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
-	
 	
 	/**
 	 * Creates a ExtVP table name for the given predicates and join type
