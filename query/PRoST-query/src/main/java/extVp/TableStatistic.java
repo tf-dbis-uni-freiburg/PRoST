@@ -1,6 +1,7 @@
 package extVp;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -25,12 +26,21 @@ public class TableStatistic implements Serializable{
 	private float selectivity;
 	private long size; //number of rows
 	private Boolean tableExists; //True if table currently exists in the database
+	private HashSet<LiteralsTuple> containedLiterals;
 	
 	public TableStatistic (String tableName, float selectivity, long size) {
 		this.tableName = tableName;
 		this.selectivity = selectivity;
 		this.size = size;
 		this.tableExists = true;
+	}
+	
+	public TableStatistic (String tableName, float selectivity, long size, HashSet<LiteralsTuple> containedLiterals) {
+		this.tableName = tableName;
+		this.selectivity = selectivity;
+		this.size = size;
+		this.tableExists = true;
+		this.containedLiterals = containedLiterals;
 	}
 	
 	public String getTableName() {
@@ -51,6 +61,15 @@ public class TableStatistic implements Serializable{
 	
 	public void setTableExists(Boolean tableExists) {
 		this.tableExists = tableExists;
+	}
+	
+	public Boolean containLiteralsTuple(String outerLiteral, String innerLiteral) {
+		LiteralsTuple literalsTuple = new LiteralsTuple(outerLiteral, innerLiteral);
+		return containedLiterals.contains(literalsTuple);
+	}
+	
+	public void insertLiteralsTuple(String outerLiteral, String innerLiteral) {
+		containedLiterals.add(new LiteralsTuple(outerLiteral, innerLiteral));
 	}
 	
 	/**

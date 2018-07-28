@@ -83,7 +83,6 @@ public class Executor {
 		queryTree.computeSingularNodeData(sqlContext);
 		logger.info("COMPUTED nodes data");
 		
-		
 		long startTime;
 		long executionTime;
 		
