@@ -5,7 +5,6 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 public class TriplePattern {
-	
 	public String subject;
 	public String predicate;
 	public String object;
@@ -13,10 +12,12 @@ public class TriplePattern {
 	public ElementType objectType;
 	public ElementType predicateType;
 	public boolean isComplex = false;
+	public Triple triple;
 	
 	
 	// construct from Jena triple
     public TriplePattern(Triple triple, PrefixMapping prefixes) {
+    	this.triple = triple;
 
 		// extract and set the subject
 		if(triple.getSubject().isVariable()) {

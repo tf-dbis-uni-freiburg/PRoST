@@ -10,6 +10,8 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import translator.Stats;
+import JoinTree.ElementType;
+import JoinTree.TriplePattern;
 
 /**
  * Class for the creation and maintenance of ExtVP database and tables
@@ -37,11 +39,12 @@ public class ExtVpCreator {
 	 * @param databaseStatistics
 	 * @param extVPDatabaseName
 	 */
-	public void createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, 
+	public static String createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, 
 			DatabaseStatistics databaseStatistics, String extVPDatabaseName) {
 		String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
 		String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
 		String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
+		String createdTableName = "";
 		
 		String tableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVpTableName;
 		
@@ -75,8 +78,6 @@ public class ExtVpCreator {
 			spark.sql(insertDataQuery);
 			
 			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
-			logger.info("tablename: " + extVpTableName);
-			
 			
 			//TODO Check if table statistics already exists in the database statistics. Update it if it exists. Do not search for table sizes if they have already been calculates (statistic exists)
 			//calculates table size and selectivity
@@ -91,7 +92,39 @@ public class ExtVpCreator {
 			
 			databaseStatistics.getTables().put(extVpTableName, new TableStatistic(extVpTableName, (float)extVPSize/(float)vpTableSize, extVPSize));	
 			databaseStatistics.setSize(databaseStatistics.getSize() + extVPSize);
+			createdTableName = extVpTableName;
 		}
+		
+		return createdTableName;
+	}
+	
+	public String createExtVPTable(TriplePattern pattern1, TriplePattern pattern2, SparkSession spark, DatabaseStatistics databaseStatistics, String extVPDatabaseName, PrefixMapping prefixes){
+		String extVpTableName = "";
+		
+		if (pattern1.subjectType==ElementType.VARIABLE && pattern2.subjectType==ElementType.VARIABLE && pattern1.subject.equals(pattern2.subject)) {
+			extVPType vpType = extVPType.SS;
+			//String extVpTableName = getExtVPTableName(pattern1.predicate, pattern2.predicate, vpType);
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
+		} else if (pattern1.objectType==ElementType.VARIABLE && pattern2.objectType==ElementType.VARIABLE && pattern1.object.equals(pattern2.object)){
+			extVPType vpType = extVPType.OO;
+			//String extVpTableName = getExtVPTableName(pattern1.predicate, pattern2.predicate, vpType);
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
+		} else if (pattern1.objectType==ElementType.VARIABLE && pattern2.subjectType==ElementType.VARIABLE && pattern1.object.equals(pattern2.subject)){
+			extVPType vpType = extVPType.OS;
+			//String extVpTableName = getExtVPTableName(pattern1.predicate, pattern2.predicate, vpType);
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
+			//vpType = extVPType.SO;
+			//extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
+			//createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics, extVPDatabaseName);
+		} else if (pattern1.subjectType==ElementType.VARIABLE && pattern2.objectType==ElementType.VARIABLE && pattern1.subject.equals(pattern2.object)){
+			extVPType vpType = extVPType.SO;
+			//String extVpTableName = getExtVPTableName(pattern1.predicate, pattern2.predicate, vpType);
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
+			//vpType = extVPType.OS;
+			//extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
+			//createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics, extVPDatabaseName);
+		}
+		return extVpTableName;
 	}
 	
 	/**

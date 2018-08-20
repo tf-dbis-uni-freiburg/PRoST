@@ -3,6 +3,8 @@ package translator;
 import java.util.*;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
 
@@ -24,6 +26,7 @@ import com.hp.hpl.jena.sparql.algebra.Algebra;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
+import Executor.Utils;
 
 /**
  * This class parses the SPARQL query, build the Tree and save its serialization
@@ -100,13 +103,66 @@ public class Translator {
 		}
 
 		JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
-
+		
 		// if distinct keyword is present
 		tree.setDistinct(query.isDistinct());
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
+		
+		if(useExtVP) {
+			changeVpNodesToExtVPNodes(tree.getRoot(), null);
+		}
+		
+		logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
 
 		return tree;
+	}
+	
+	private void changeVpNodesToExtVPNodes(Node node, TriplePattern parentPattern) {
+		
+		
+		List<Node> children = node.children;
+		
+		//if (node.isVPNode) {
+		//	logger.info(node.triplePattern.toString());
+		//}
+		
+		List<Node> nodesToTemove = new ArrayList<Node>();
+		List<Node> nodesToAdd = new ArrayList<Node>();
+		
+		for (Node child : children) {
+			changeVpNodesToExtVPNodes(child, node.triplePattern);
+			
+			if (child.isVPNode && node.isVPNode) {
+				ExtVpCreator extVPcreator = new ExtVpCreator();
+				String createdTable = extVPcreator.createExtVPTable(child.triplePattern, node.triplePattern, this.spark, this.extVPDatabaseStatistic, this.extVPDatabaseName, prefixes);
+				
+				if (createdTable!="") {
+					ExtVpNode newNode = new ExtVpNode(child.triplePattern, createdTable, extVPDatabaseName);
+					newNode.children = child.children;
+					
+					nodesToAdd.add(newNode);
+					nodesToTemove.add(child);
+				}
+			}
+		}
+		
+		node.children.removeAll(nodesToTemove);
+		node.children.addAll(nodesToAdd);
+		
+		//TODO create extvp tables if possible, according to tree
+		//1. check if there is a join between two VP NODES
+		//1.1 check statistics if extvp node is in statistics, and should be recreated or not
+		//1.2. create extvp tables for join
+		//1.3 if created extvp, must translate query tree again
+		
+		
+		//OLD EXTVP CREATION CALLL
+		// ExtVpCreator extVPcreator = new ExtVpCreator();
+		// extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
+		// logger.info("ExtVP: all tables created!");
+								
+		// logger.info("Database size: " + extVPDatabaseStatistic.getSize());
 	}
 
 	/*
@@ -178,13 +234,6 @@ public class Translator {
 		PriorityQueue<Node> nodesQueue = new PriorityQueue<Node>(triples.size(), new NodeComparator());		
 		
 		if (useExtVP) {
-			ExtVpCreator extVPcreator = new ExtVpCreator();
-			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
-			logger.info("ExtVP: all tables created!");
-						
-			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
-			
-			
 			List<Triple> remainingTriples = new ArrayList<Triple>();
 			remainingTriples.addAll(triples);
 			

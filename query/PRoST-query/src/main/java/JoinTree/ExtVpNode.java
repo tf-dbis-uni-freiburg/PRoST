@@ -2,6 +2,7 @@ package JoinTree;
 
 import java.util.Collections;
 
+import org.apache.log4j.Logger;
 //import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
@@ -12,6 +13,8 @@ public class ExtVpNode extends Node{
 	
 	private String tableName;
 	private String tableNameWithDatabaseIdentifier; //databaseName.tableName
+	
+	private static final Logger logger = Logger.getLogger("PRoST");
 	
 	public ExtVpNode(TriplePattern triplePattern, String tableName, String databaseName) {
 		super();
@@ -26,7 +29,7 @@ public class ExtVpNode extends Node{
 	@Override
 	public void computeNodeData(SQLContext sqlContext) {
 		TriplePattern mainPattern = triplePattern;
-
+		
 		StringBuilder query = new StringBuilder("Select distinct ");
 		if (mainPattern.subjectType == ElementType.VARIABLE && mainPattern.objectType == ElementType.VARIABLE) {
 			query.append("s as " + Utils.removeQuestionMark(mainPattern.subject) + ", o as " + Utils.removeQuestionMark(mainPattern.object) + " ");

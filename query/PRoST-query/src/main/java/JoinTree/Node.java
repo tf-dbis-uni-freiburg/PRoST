@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -23,7 +24,12 @@ public abstract class Node {
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
 	public boolean isExtVPNode = false;
+	public boolean isVPNode = false;
 	public String filter;
+	
+	private boolean isRootNode = false;
+	
+	private static final Logger logger = Logger.getLogger("PRoST");
 	
 	/**
 	 * computeNodeData sets the Dataset<Row> to the data referring to this node
@@ -54,12 +60,27 @@ public abstract class Node {
 		if (sparkNodeData == null)
 			this.computeNodeData(sqlContext);
 		Dataset<Row> currentResult = this.sparkNodeData;
+		
+		
+		//logger.info("Computing node data");
+		
+		//if (children.size()==0) {
+		//	this.isRootNode = true;
+		//	logger.info("set to root");
+		//}
+		
 		for (Node child : children) {
+			//logger.info("computing child data");
+			
 			Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
+			//if (child.isRootNode) {
+			//	logger.info("child is root");
+			//}
 			List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 			currentResult = currentResult.join(childResult,
 					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 		}
+		
 		return currentResult;
 	}
 

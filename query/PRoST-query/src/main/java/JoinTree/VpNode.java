@@ -21,7 +21,8 @@ public class VpNode extends Node {
         super();
         this.tableName = tableName;
         this.triplePattern = triplePattern;
-        this.tripleGroup = Collections.emptyList();     
+        this.tripleGroup = Collections.emptyList();
+        this.isVPNode = true;
     }
     
     public void computeNodeData(SQLContext sqlContext){
