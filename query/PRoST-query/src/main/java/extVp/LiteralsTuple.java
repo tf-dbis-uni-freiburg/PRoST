@@ -1,5 +1,9 @@
 package extVp;
 
+/**
+ * Class containing containing combinations of literals. Used when an ExtVP does not contain all possible entries, but each VP table is filtered by a literal before creating the ExtVP table
+ *
+ */
 public class LiteralsTuple {
 	String outerLiteral;
 	String innerLiteral;

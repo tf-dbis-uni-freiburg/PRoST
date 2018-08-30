@@ -109,18 +109,16 @@ public class Translator {
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
 		
+		//create new extVP nodes if possible. Compares a child node with its parent to create the ExtVP node.
 		if(useExtVP) {
 			changeVpNodesToExtVPNodes(tree.getRoot(), null);
+			logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
 		}
 		
-		logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
-
 		return tree;
 	}
 	
 	private void changeVpNodesToExtVPNodes(Node node, TriplePattern parentPattern) {
-		
-		
 		List<Node> children = node.children;
 		
 		//if (node.isVPNode) {
@@ -133,6 +131,7 @@ public class Translator {
 		for (Node child : children) {
 			changeVpNodesToExtVPNodes(child, node.triplePattern);
 			
+			//TODO if current node is an EXTVP node, it should still create EXTVP nodes
 			if (child.isVPNode && node.isVPNode) {
 				ExtVpCreator extVPcreator = new ExtVpCreator();
 				String createdTable = extVPcreator.createExtVPTable(child.triplePattern, node.triplePattern, this.spark, this.extVPDatabaseStatistic, this.extVPDatabaseName, prefixes);
@@ -146,22 +145,15 @@ public class Translator {
 				}
 			}
 		}
+		//TODO create extVP node for the parent(current node) if possible
 		
 		node.children.removeAll(nodesToTemove);
 		node.children.addAll(nodesToAdd);
 		
-		//TODO create extvp tables if possible, according to tree
-		//1. check if there is a join between two VP NODES
-		//1.1 check statistics if extvp node is in statistics, and should be recreated or not
-		//1.2. create extvp tables for join
-		//1.3 if created extvp, must translate query tree again
-		
-		
-		//OLD EXTVP CREATION CALLL
+		//OLD EXTVP CREATION CALLL => created all possible combinations of extvp tables
 		// ExtVpCreator extVPcreator = new ExtVpCreator();
 		// extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
-		// logger.info("ExtVP: all tables created!");
-								
+		// logger.info("ExtVP: all tables created!");						
 		// logger.info("Database size: " + extVPDatabaseStatistic.getSize());
 	}
 

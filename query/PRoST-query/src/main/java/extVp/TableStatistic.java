@@ -163,8 +163,6 @@ public class TableStatistic implements Serializable{
 			}
 			
 			//TODO If there's no existing table in the cache, create the table, if there is an unindexed table with good selectivity.
-			
-			//TODO Move this function to DatabaseStatistics. Checks lowest scored table in the database, and only recreate a new table if it would have a better score
 		}
 		
 		if (selectedTableName != "") {

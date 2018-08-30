@@ -88,6 +88,8 @@ public class Main {
 		Option extVPMaximumSizeOpt = new Option("extvpsize", "extVPSize", false, "Maximum size of ExtVP database");
 		options.addOption(extVPMaximumSizeOpt);
 		
+		//TODO add option for minimum extvp selectivity
+		
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
