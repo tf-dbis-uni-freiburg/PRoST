@@ -28,7 +28,6 @@ import loader.ProtobufStats.TableStats;
  */
 public class VerticalPartitioningLoader extends Loader {
 	private boolean computeStatistics;
-	private String name_tripletable = "tripletable_fixed";
 
 	public VerticalPartitioningLoader(String hdfs_input_directory, String database_name, SparkSession spark,
 			boolean computeStatistics) {
@@ -48,24 +47,31 @@ public class VerticalPartitioningLoader extends Loader {
 
 		for (int i = 0; i < this.properties_names.length; i++) {
 			String property = this.properties_names[i];
-			/*String createVPTableFixed = String.format(
-					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
-					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);*/
-			//Commented code is partitioning by subject
 			String createVPTableFixed = String.format(
-					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
 					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);
+			// Commented code is partitioning by subject
+			/*
+			 * String createVPTableFixed = String.format(
+			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET"
+			 * , "vp_" + this.getValidHiveName(property), column_name_subject,
+			 * column_name_object);
+			 */
 			spark.sql(createVPTableFixed);
 
-			/*String populateVPTable = String.format(
+			String populateVPTable = String.format(
 					"INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
 					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
-					column_name_predicate, property);*/
-			//Commented code is partitioning by subject
-			String populateVPTable = String.format(
-					"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
-					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
 					column_name_predicate, property);
+			// Commented code is partitioning by subject
+			/*
+			 * String populateVPTable = String.format(
+			 * "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
+			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" +
+			 * this.getValidHiveName(property), column_name_subject,
+			 * column_name_object, name_tripletable, column_name_predicate,
+			 * property);
+			 */
 			spark.sql(populateVPTable);
 
 			// calculate stats
@@ -145,21 +151,20 @@ public class VerticalPartitioningLoader extends Loader {
 		for (int i = 0; i < props.size(); i++) {
 			properties[i] = props.get(i).getString(0);
 		}
-		
-		List propertiesList = Arrays.asList(properties);	
+
+		List propertiesList = Arrays.asList(properties);
 		logger.info("Number of distinct predicates found: " + propertiesList.size());
-		String[] cleanedProperties  = handleCaseInsPred(properties); 
+		String[] cleanedProperties = handleCaseInsPred(properties);
 		List cleanedPropertiesList = Arrays.asList(cleanedProperties);
 		logger.info("Final list of predicates: " + cleanedPropertiesList);
 		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
 		return cleanedProperties;
 	}
-	
 
 	private String[] handleCaseInsPred(String[] properties) {
 		Set<String> seenPredicates = new HashSet<String>();
 		Set<String> originalRemovedPredicates = new HashSet<String>();
-		
+
 		Set<String> propertiesSet = new HashSet<String>(Arrays.asList(properties));
 
 		Iterator it = propertiesSet.iterator();

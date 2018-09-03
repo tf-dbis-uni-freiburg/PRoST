@@ -31,7 +31,7 @@ public class TripleTableLoader extends Loader {
 	public void load() throws Exception {
 		logger.info("PHASE 1: loading all triples to a generic table...");
 		String queryDropTripleTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
-		String queryDropTripleTableFixed = String.format("DROP TABLE IF EXISTS %s", name_tripletable + "_fixed");
+		String queryDropTripleTableFixed = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
 		String createTripleTableFixed = null;
 		String repairTripleTableFixed = null;
 		
@@ -43,22 +43,22 @@ public class TripleTableLoader extends Loader {
 						+ "'org.apache.hadoop.hive.serde2.RegexSerDe'  WITH SERDEPROPERTIES "
 						+ "( \"input.regex\" = \"(\\\\S+)\\\\s+(\\\\S+)\\\\s+(.+)\\\\s*\\\\.\\\\s*$\")"
 						+ "LOCATION '%5$s'",
-				name_tripletable + "_raw", column_name_subject, column_name_predicate, column_name_object,
+				name_tripletable + "_ext", column_name_subject, column_name_predicate, column_name_object,
 				hdfs_input_directory);
 		spark.sql(createTripleTableRaw);
 		
 		if (!ttPartitionedBySub && !ttPartitionedByPred) {
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
-					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);			
+					name_tripletable, column_name_subject, column_name_predicate, column_name_object);			
 		}  else if (ttPartitionedBySub){
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING, %4$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
-					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);	
+					name_tripletable, column_name_subject, column_name_predicate, column_name_object);	
 		} else if (ttPartitionedByPred){
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %4$s STRING) PARTITIONED BY (%3$s STRING) STORED AS PARQUET",
-					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object);	
+					name_tripletable, column_name_subject, column_name_predicate, column_name_object);	
 		}
 		spark.sql(createTripleTableFixed);			
 
@@ -69,8 +69,8 @@ public class TripleTableLoader extends Loader {
 			+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
 			+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
 			+ "LENGTH(%3$s) < %6$s" ,
-			name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
-			name_tripletable + "_raw", max_length_col_name);
+			name_tripletable, column_name_subject, column_name_predicate, column_name_object,
+			name_tripletable + "_ext", max_length_col_name);
 		}  else if (ttPartitionedBySub) {
 			repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " 
 					+ "SELECT %3$s, trim(%4$s), %2$s "
@@ -78,8 +78,8 @@ public class TripleTableLoader extends Loader {
 					+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
 					+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
 					+ "LENGTH(%3$s) < %6$s" ,
-					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
-					name_tripletable + "_raw", max_length_col_name);
+					name_tripletable, column_name_subject, column_name_predicate, column_name_object,
+					name_tripletable + "_ext", max_length_col_name);
 		} else if (ttPartitionedByPred) {
 			repairTripleTableFixed = String.format("INSERT OVERWRITE TABLE %1$s PARTITION (%3$s) " 
 					+ "SELECT %2$s, trim(%4$s), %3$s "
@@ -87,16 +87,16 @@ public class TripleTableLoader extends Loader {
 					+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$') AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND "
 					+ "NOT(%4$s RLIKE '^\\s*<.*<.*>')  AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"') AND "
 					+ "LENGTH(%3$s) < %6$s" ,
-					name_tripletable + "_fixed", column_name_subject, column_name_predicate, column_name_object,
-					name_tripletable + "_raw", max_length_col_name);
+					name_tripletable, column_name_subject, column_name_predicate, column_name_object,
+					name_tripletable + "_ext", max_length_col_name);
 		}
 		spark.sql(repairTripleTableFixed);
 
 		logger.info("Created tripletable with: " + createTripleTableRaw);
 		logger.info("Cleaned tripletable created with: " + repairTripleTableFixed);
 
-		String queryRawTriples = String.format("SELECT * FROM %s", name_tripletable + "_raw");
-		String queryAllTriples = String.format("SELECT * FROM %s", name_tripletable + "_fixed");
+		String queryRawTriples = String.format("SELECT * FROM %s", name_tripletable + "_ext");
+		String queryAllTriples = String.format("SELECT * FROM %s", name_tripletable);
 
 		Dataset<Row> allTriples = spark.sql(queryAllTriples);
 		Dataset<Row> rawTriples = spark.sql(queryRawTriples);
@@ -116,12 +116,12 @@ public class TripleTableLoader extends Loader {
 		//This code is to create a TT partitioned by subject with a fixed number of partiitions. 
 		//Run the code with: 
 		//Delete after results are there.
-		//allTriples.repartition(100, allTriples.col(column_name_subject));
+		/*
 		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
-		Dataset<Row> allTriples1000 = allTriples.repartition(1000, allTriples.col(column_name_subject));
-		allTriples1000.write().saveAsTable("tripletable_partBySub_1000");
-		logger.info("Number of partitions after repartitioning: " + allTriples1000.rdd().getNumPartitions());		
-		
+		Dataset<Row> allTriplesPart = allTriples.repartition(50, allTriples.col(column_name_predicate));
+		allTriplesPart.write().saveAsTable("tripletable_partBySub_50");
+		logger.info("Number of partitions after repartitioning: " + allTriplesPart.rdd().getNumPartitions());	
+	
 		logger.info("Number of partitions of TT before repartitioning: " + allTriples.rdd().getNumPartitions());
 		Dataset<Row> allTriples500 = allTriples.repartition(500, allTriples.col(column_name_subject));
 		allTriples500.write().saveAsTable("tripletable_partBySub_500");
@@ -141,6 +141,6 @@ public class TripleTableLoader extends Loader {
 		Dataset<Row> allTriples10 = allTriples.repartition(10, allTriples.col(column_name_subject));
 		allTriples10.write().saveAsTable("tripletable_partBySub_10");
 		logger.info("Number of partitions after repartitioning: " + allTriples10.rdd().getNumPartitions());			
-		
+		*/
 	}
 }

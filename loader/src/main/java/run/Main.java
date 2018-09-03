@@ -42,7 +42,6 @@ public class Main {
 	private static boolean ttPartitionedBySub = false;
 	private static boolean wptPartitionedBySub = false;
 
-
 	public static void main(String[] args) throws Exception {
 		InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
 		Properties props = new Properties();
@@ -62,23 +61,26 @@ public class Main {
 		Option outputOpt = new Option("o", "output", true, "Output database name.");
 		outputOpt.setRequired(true);
 		options.addOption(outputOpt);
-		
+
 		Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
 
 		Option helpOpt = new Option("h", "help", false, "Print this help.");
 		options.addOption(helpOpt);
-		
-		Option ttpPartPredOpt = new Option("ttp", "ttPartitionedByPredicate", false, "To partition the Triple Table by predicate.");
+
+		Option ttpPartPredOpt = new Option("ttp", "ttPartitionedByPredicate", false,
+				"To physically partition the Triple Table by predicate.");
 		ttpPartPredOpt.setRequired(false);
 		options.addOption(ttpPartPredOpt);
-		
-		Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false, "To partition the Triple Table by subject.");
+
+		Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false,
+				"To physically partition the Triple Table by subject.");
 		ttpPartSubOpt.setRequired(false);
 		options.addOption(ttpPartSubOpt);
-		
-		Option wptPartSubOpt = new Option("wpts", "wptPartitionedBySub", false, "To partition the Wide Property Table by subject.");
+
+		Option wptPartSubOpt = new Option("wpts", "wptPartitionedBySub", false,
+				"To physically partition the Wide Property Table by subject.");
 		wptPartSubOpt.setRequired(false);
 		options.addOption(wptPartSubOpt);
 
@@ -108,34 +110,40 @@ public class Main {
 			outputDB = cmd.getOptionValue("output");
 			logger.info("Output database set to: " + outputDB);
 		}
-		//default if a logical partition is not specified only the TT is generated.
+		// default if a logical partition is not specified only the TT is
+		// generated.
 		if (!cmd.hasOption("logicalPartitionStrategies")) {
 			generateTT = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
-			logger.info("Logical strategy used: TT (mandatory)");
 			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 			if (lpStrategies.contains("TT")) {
 				generateTT = true;
 				logger.info("Logical strategy used: TT");
 			}
 			if (lpStrategies.contains("WPT")) {
-				generateTT = true;
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for WPT) with default physical partitioning");
+				}
+				logger.info("Logical strategy used: WPT");
 				generateWPT = true;
-				logger.info("Logical strategy used: TT (mandatory) and WPT");				
 			}
 			if (lpStrategies.contains("VP")) {
-				generateTT = true;
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
+				}
 				generateVP = true;
-				logger.info("Logical strategy used:TT (mandatory)  and  VP");
+				logger.info("Logical strategy used: VP");
 			}
 		}
-		
-		if (cmd.hasOption("ttPartitionedByPredicate") &&  cmd.hasOption("ttPartitionedBySub")) {
+
+		if (cmd.hasOption("ttPartitionedByPredicate") && cmd.hasOption("ttPartitionedBySub")) {
 			logger.error("Triple table cannot be partitioned by both subject and predicate.");
 			return;
 		}
-		
+
 		if (cmd.hasOption("ttPartitionedByPredicate")) {
 			ttPartitionedByPred = true;
 			logger.info("Triple Table will be partitioned by predicate.");
@@ -156,7 +164,8 @@ public class Main {
 		// Set the loader from the inputFile to the outputDB
 		SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
 
-		// Removing previous instances of the database in case a database with the same
+		// Removing previous instances of the database in case a database with
+		// the same
 		// name already exists.
 		// In this case a new dataset with the same name will be created.
 		spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
@@ -166,7 +175,8 @@ public class Main {
 
 		if (generateTT) {
 			startTime = System.currentTimeMillis();
-			TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark, ttPartitionedBySub, ttPartitionedByPred);
+			TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark, ttPartitionedBySub,
+					ttPartitionedByPred);
 			tt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
@@ -174,16 +184,17 @@ public class Main {
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub);
+			WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
 		}
-		
+
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
 			VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
-				useStatistics);
+					useStatistics);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));

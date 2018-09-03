@@ -38,8 +38,6 @@ public class WidePropertyTableLoader extends Loader {
 
 	private String tablename_properties = "properties";
 
-	private String name_tripletable = "tripletable_fixed";
-
 	/**
 	 * Separator used internally to distinguish two values in the same string
 	 */
@@ -49,7 +47,8 @@ public class WidePropertyTableLoader extends Loader {
 	protected static final String output_tablename = "wide_property_table";
 	protected boolean wptPartitionedBySub = false;
 
-	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark, boolean wptPartitionedBySub) {
+	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark,
+			boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
 	}
@@ -101,10 +100,10 @@ public class WidePropertyTableLoader extends Loader {
 
 	/**
 	 * This method handles the problem when two predicate are the same in a
-	 * case-insensitive context but different in a case-sensitve one. For instance:
-	 * <http://example.org/somename> and <http://example.org/someName>. Since Hive
-	 * is case insensitive the problem will be solved removing one of the entries
-	 * from the list of predicates.
+	 * case-insensitive context but different in a case-sensitve one. For
+	 * instance: <http://example.org/somename> and
+	 * <http://example.org/someName>. Since Hive is case insensitive the problem
+	 * will be solved removing one of the entries from the list of predicates.
 	 */
 	public Map<String, Boolean> handleCaseInsPredAndCard(Map<String, Boolean> propertiesMultivaluesMap) {
 		Set<String> seenPredicates = new HashSet<String>();
@@ -170,9 +169,9 @@ public class WidePropertyTableLoader extends Loader {
 
 	/**
 	 * Create the final property table, allProperties contains the list of all
-	 * possible properties isMultivaluedProperty contains (in the same order used by
-	 * allProperties) the boolean value that indicates if that property is
-	 * multi-valued or not.
+	 * possible properties isMultivaluedProperty contains (in the same order
+	 * used by allProperties) the boolean value that indicates if that property
+	 * is multi-valued or not.
 	 */
 	public void buildWidePropertyTable(String[] allProperties, Boolean[] isMultivaluedProperty) {
 		logger.info("Building the complete property table.");
@@ -199,8 +198,7 @@ public class WidePropertyTableLoader extends Loader {
 			// if property is a full URI, remove the < at the beginning end > at
 			// the end
 			String rawProperty = allProperties[i].startsWith("<") && allProperties[i].endsWith(">")
-					? allProperties[i].substring(1, allProperties[i].length() - 1)
-					: allProperties[i];
+					? allProperties[i].substring(1, allProperties[i].length() - 1) : allProperties[i];
 			// if is not a complex type, extract the value
 			String newProperty = isMultivaluedProperty[i]
 					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
@@ -214,44 +212,63 @@ public class WidePropertyTableLoader extends Loader {
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
 		// List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
-		// logger.info("First 10 rows sampled from the PROPERTY TABLE (or less if there
+		// logger.info("First 10 rows sampled from the PROPERTY TABLE (or less
+		// if there
 		// are less): " + sampledRowsList);
 
 		// write the final one, partitioned by subject
-		//propertyTable = propertyTable.repartition(1000, column_name_subject);
+		// propertyTable = propertyTable.repartition(1000, column_name_subject);
 		if (wptPartitionedBySub) {
-			propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_subject).format(table_format).saveAsTable(output_tablename);
+			propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_subject).format(table_format)
+					.saveAsTable(output_tablename);
 		} else if (!wptPartitionedBySub) {
 			propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		}
 		logger.info("Created property table with name: " + output_tablename);
-		
-		//This code is to create a TT partitioned by subject with a fixed number of partiitions. 
-		//Run the code with: 
-		//Delete after results are there.
-		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
-		Dataset<Row> propertyTable1000 = propertyTable.repartition(1000, propertyTable.col(column_name_subject));
-		propertyTable1000.write().saveAsTable("wpt_partBySub_1000");
-		logger.info("Number of partitions after repartitioning: " + propertyTable1000.rdd().getNumPartitions());
-		
-		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
-		Dataset<Row> propertyTable500 = propertyTable.repartition(500, propertyTable.col(column_name_subject));
-		propertyTable500.write().saveAsTable("wpt_partBySub_500");
-		logger.info("Number of partitions after repartitioning: " + propertyTable500.rdd().getNumPartitions());
-		
-		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
-		Dataset<Row> propertyTable100 = propertyTable.repartition(100, propertyTable.col(column_name_subject));
-		propertyTable100.write().saveAsTable("wpt_partBySub_100");
-		logger.info("Number of partitions after repartitioning: " + propertyTable100.rdd().getNumPartitions());
-		
-		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
-		Dataset<Row> propertyTable25 = propertyTable.repartition(25, propertyTable.col(column_name_subject));
-		propertyTable25.write().saveAsTable("wpt_partBySub_25");
-		logger.info("Number of partitions after repartitioning: " + propertyTable25.rdd().getNumPartitions());
-		
-		logger.info("Number of partitions of WPT  before repartitioning: " + propertyTable.rdd().getNumPartitions());
-		Dataset<Row> propertyTable10 = propertyTable.repartition(10, propertyTable.col(column_name_subject));
-		propertyTable10.write().saveAsTable("wpt_partBySub_10");
-		logger.info("Number of partitions after repartitioning: " + propertyTable10.rdd().getNumPartitions());
+
+		/*
+		 * //This code is to create a TT partitioned by subject with a fixed
+		 * number of partiitions. //Run the code with: //Delete after results
+		 * are there.
+		 * logger.info("Number of partitions of WPT  before repartitioning: " +
+		 * propertyTable.rdd().getNumPartitions()); Dataset<Row>
+		 * propertyTable1000 = propertyTable.repartition(1000,
+		 * propertyTable.col(column_name_subject));
+		 * propertyTable1000.write().saveAsTable("wpt_partBySub_1000");
+		 * logger.info("Number of partitions after repartitioning: " +
+		 * propertyTable1000.rdd().getNumPartitions());
+		 * 
+		 * logger.info("Number of partitions of WPT  before repartitioning: " +
+		 * propertyTable.rdd().getNumPartitions()); Dataset<Row>
+		 * propertyTable500 = propertyTable.repartition(500,
+		 * propertyTable.col(column_name_subject));
+		 * propertyTable500.write().saveAsTable("wpt_partBySub_500");
+		 * logger.info("Number of partitions after repartitioning: " +
+		 * propertyTable500.rdd().getNumPartitions());
+		 * 
+		 * logger.info("Number of partitions of WPT  before repartitioning: " +
+		 * propertyTable.rdd().getNumPartitions()); Dataset<Row>
+		 * propertyTable100 = propertyTable.repartition(100,
+		 * propertyTable.col(column_name_subject));
+		 * propertyTable100.write().saveAsTable("wpt_partBySub_100");
+		 * logger.info("Number of partitions after repartitioning: " +
+		 * propertyTable100.rdd().getNumPartitions());
+		 * 
+		 * logger.info("Number of partitions of WPT  before repartitioning: " +
+		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable25
+		 * = propertyTable.repartition(25,
+		 * propertyTable.col(column_name_subject));
+		 * propertyTable25.write().saveAsTable("wpt_partBySub_25");
+		 * logger.info("Number of partitions after repartitioning: " +
+		 * propertyTable25.rdd().getNumPartitions());
+		 * 
+		 * logger.info("Number of partitions of WPT  before repartitioning: " +
+		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable10
+		 * = propertyTable.repartition(10,
+		 * propertyTable.col(column_name_subject));
+		 * propertyTable10.write().saveAsTable("wpt_partBySub_10");
+		 * logger.info("Number of partitions after repartitioning: " +
+		 * propertyTable10.rdd().getNumPartitions());
+		 */
 	}
 }
