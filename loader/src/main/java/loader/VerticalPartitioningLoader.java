@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -152,10 +151,10 @@ public class VerticalPartitioningLoader extends Loader {
 			properties[i] = props.get(i).getString(0);
 		}
 
-		List propertiesList = Arrays.asList(properties);
+		List<String> propertiesList = Arrays.asList(properties);
 		logger.info("Number of distinct predicates found: " + propertiesList.size());
 		String[] cleanedProperties = handleCaseInsPred(properties);
-		List cleanedPropertiesList = Arrays.asList(cleanedProperties);
+		List<String> cleanedPropertiesList = Arrays.asList(cleanedProperties);
 		logger.info("Final list of predicates: " + cleanedPropertiesList);
 		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
 		return cleanedProperties;
@@ -167,7 +166,7 @@ public class VerticalPartitioningLoader extends Loader {
 
 		Set<String> propertiesSet = new HashSet<String>(Arrays.asList(properties));
 
-		Iterator it = propertiesSet.iterator();
+		Iterator<String> it = propertiesSet.iterator();
 		while (it.hasNext()) {
 			String predicate = (String) it.next();
 			if (seenPredicates.contains(predicate.toLowerCase()))

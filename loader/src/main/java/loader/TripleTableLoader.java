@@ -110,7 +110,7 @@ public class TripleTableLoader extends Loader {
 		if (rawTriples.count() != allTriples.count()) {
 			logger.info("Number of corrupted triples found: " + (rawTriples.count() - allTriples.count()));
 		}
-		List cleanedList = allTriples.limit(10).collectAsList();
+		List<Row> cleanedList = allTriples.limit(10).collectAsList();
 		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
 		
 		//This code is to create a TT partitioned by subject with a fixed number of partiitions. 

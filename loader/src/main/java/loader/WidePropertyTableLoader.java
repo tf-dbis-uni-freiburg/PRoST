@@ -16,6 +16,8 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 
+import scala.Tuple2;
+
 /**
  * Class that constructs complex property table. It operates over set of RDF
  * triples, collects and transforms information about them into a table. If we
@@ -127,7 +129,7 @@ public class WidePropertyTableLoader extends Loader {
 		Set<String> seenPredicates = new HashSet<String>();
 		Set<String> originalRemovedPredicates = new HashSet<String>();
 
-		Iterator it = propertiesMultivaluesMap.keySet().iterator();
+		Iterator<String> it = propertiesMultivaluesMap.keySet().iterator();
 		while (it.hasNext()) {
 			String predicate = (String) it.next();
 			if (seenPredicates.contains(predicate.toLowerCase()))
@@ -175,7 +177,7 @@ public class WidePropertyTableLoader extends Loader {
 		Dataset<Row> cleanedProperties = combinedProperties.withColumn("p",
 				functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), "[[^\\w]+]", "_"));
 
-		List cleanedPropertiesList = cleanedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT()))
+		List<Tuple2<String, Integer>> cleanedPropertiesList = cleanedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT()))
 				.collectAsList();
 		if (cleanedPropertiesList.size() > 0) {
 			logger.info("Clean Properties (stored): " + cleanedPropertiesList);

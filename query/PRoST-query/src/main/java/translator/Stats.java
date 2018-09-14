@@ -29,7 +29,6 @@ public class Stats {
 
 	private static boolean areStatsParsed = false;
 
-	private String fileName;
 	private HashMap<String, joinTree.ProtobufStats.TableStats> tableStats;
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
