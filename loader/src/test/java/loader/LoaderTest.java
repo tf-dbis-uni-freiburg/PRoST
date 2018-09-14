@@ -45,7 +45,7 @@ class LoaderTest {
 
     @Test
     void propertyTableTest() {
-        WidePropertyTableLoader pt_loader = new WidePropertyTableLoader("", "testingDB", spark);
+        WidePropertyTableLoader pt_loader = new WidePropertyTableLoader("", "testingDB", spark, false);
         pt_loader.load();
         Dataset<Row> propertyTable = spark.sql("SELECT * FROM property_table");
 
