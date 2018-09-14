@@ -1,6 +1,10 @@
 package translator;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.PriorityQueue;
 
 import org.apache.log4j.Logger;
 
@@ -21,8 +25,7 @@ import joinTree.TriplePattern;
 import joinTree.VpNode;
 
 /**
- * This class parses the SPARQL query, build the Tree and save its serialization
- * in a file.
+ * This class parses the SPARQL query, build the Tree and save its serialization in a file.
  *
  * @author Matteo Cossu
  */
@@ -45,41 +48,41 @@ public class Translator {
 	// when
 	// you are running the jar, its default value is -1.
 	// TODO Move this logic to the translator
-	public Translator(String input, int treeWidth) {
-		this.inputFile = input;
+	public Translator(final String input, final int treeWidth) {
+		inputFile = input;
 		this.treeWidth = treeWidth;
 	}
 
 	public JoinTree translateQuery() {
 		// parse the query and extract prefixes
-		Query query = QueryFactory.read("file:" + inputFile);
-		this.prefixes = query.getPrefixMapping();
+		final Query query = QueryFactory.read("file:" + inputFile);
+		prefixes = query.getPrefixMapping();
 
 		logger.info("** SPARQL QUERY **\n" + query + "\n****************");
 
 		// extract variables, list of triples and filter
-		Op opQuery = Algebra.compile(query);
-		QueryVisitor queryVisitor = new QueryVisitor(prefixes);
+		final Op opQuery = Algebra.compile(query);
+		final QueryVisitor queryVisitor = new QueryVisitor(prefixes);
 		OpWalker.walk(opQuery, queryVisitor);
 
-		QueryTree mainTree = queryVisitor.getMainQueryTree();
-		List<Var> projectionVariables = queryVisitor.getProjectionVariables();
+		final QueryTree mainTree = queryVisitor.getMainQueryTree();
+		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
 
 		// build main tree
-		Node rootNode = buildTree(mainTree.getTriples(), projectionVariables);
+		final Node rootNode = buildTree(mainTree.getTriples(), projectionVariables);
 		rootNode.filter = mainTree.getFilter();
-		
-		List<Node> optionalTreeRoots = new ArrayList<Node>();
+
+		final List<Node> optionalTreeRoots = new ArrayList<>();
 		// order is important TODO use ordered list
 		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
-			QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
+			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
 			// build optional tree
-			Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples(), null);
+			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples(), null);
 			optionalTreeRoot.filter = currentOptionalTree.getFilter();
 			optionalTreeRoots.add(optionalTreeRoot);
 		}
 
-		JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
+		final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
 
 		// if distinct keyword is present
 		tree.setDistinct(query.isDistinct());
@@ -92,26 +95,27 @@ public class Translator {
 	/*
 	 * buildTree constructs the JoinTree
 	 */
-	public Node buildTree(List<Triple> triples, List<Var> projectionVars) {
+	public Node buildTree(final List<Triple> triples, final List<Var> projectionVars) {
 		// sort the triples before adding them
 		// this.sortTriples();
 
-		PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
+		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
 
-		Node tree = nodesQueue.poll();
+		final Node tree = nodesQueue.poll();
 
 		if (projectionVars != null) {
 			// set the root node with the variables that need to be projected
 			// only for the main tree
-			ArrayList<String> projectionList = new ArrayList<String>();
-			for (int i = 0; i < projectionVars.size(); i++)
+			final ArrayList<String> projectionList = new ArrayList<>();
+			for (int i = 0; i < projectionVars.size(); i++) {
 				projectionList.add(projectionVars.get(i).getVarName());
+			}
 			tree.setProjectionList(projectionList);
 		}
-		
+
 		// visit the hypergraph to build the tree
 		Node currentNode = tree;
-		ArrayDeque<Node> visitableNodes = new ArrayDeque<Node>();
+		final ArrayDeque<Node> visitableNodes = new ArrayDeque<>();
 		while (!nodesQueue.isEmpty()) {
 
 			int limitWidth = 0;
@@ -156,49 +160,49 @@ public class Translator {
 		return tree;
 	}
 
-	private PriorityQueue<Node> getNodesQueue(List<Triple> triples) {
-		PriorityQueue<Node> nodesQueue = new PriorityQueue<Node>(triples.size(), new NodeComparator());
+	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
+		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 		if (usePropertyTable) {
-			HashMap<String, List<Triple>> subjectGroups = new HashMap<String, List<Triple>>();
+			final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
 
 			// group by subjects
-			for (Triple triple : triples) {
-				String subject = triple.getSubject().toString(prefixes);
+			for (final Triple triple : triples) {
+				final String subject = triple.getSubject().toString(prefixes);
 
 				if (subjectGroups.containsKey(subject)) {
 					subjectGroups.get(subject).add(triple);
 				} else {
-					List<Triple> subjTriples = new ArrayList<Triple>();
+					final List<Triple> subjTriples = new ArrayList<>();
 					subjTriples.add(triple);
 					subjectGroups.put(subject, subjTriples);
 				}
 			}
 
 			// create and add the proper nodes
-			for (String subject : subjectGroups.keySet()) {
+			for (final String subject : subjectGroups.keySet()) {
 				if (minimumGroupSize == 0) {
-					for (Triple t : subjectGroups.get(subject)) {
+					for (final Triple t : subjectGroups.get(subject)) {
 						// triple group with a single triple
-						List<Triple> singleGroup = new ArrayList<Triple>();
+						final List<Triple> singleGroup = new ArrayList<>();
 						singleGroup.add(t);
-						Node newNode = new PtNode(singleGroup, prefixes);
+						final Node newNode = new PtNode(singleGroup, prefixes);
 						nodesQueue.add(newNode);
 					}
 				} else if (subjectGroups.get(subject).size() >= minimumGroupSize) {
 					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes));
 				} else {
-					for (Triple t : subjectGroups.get(subject)) {
-						String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+					for (final Triple t : subjectGroups.get(subject)) {
+						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 				}
 			}
 
 		} else {
-			for (Triple t : triples) {
-				String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-				Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+			for (final Triple t : triples) {
+				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 				nodesQueue.add(newNode);
 			}
 		}
@@ -206,37 +210,42 @@ public class Translator {
 	}
 
 	/*
-	 * findRelateNode, given a source node, finds another node with at least one
-	 * variable in common, if there isn't return null
+	 * findRelateNode, given a source node, finds another node with at least one variable in common, if there isn't
+	 * return null
 	 */
-	private Node findRelateNode(Node sourceNode, PriorityQueue<Node> availableNodes) {
+	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 
 		if (sourceNode.isPropertyTable) {
 			// sourceNode is a group
-			for (TriplePattern tripleSource : sourceNode.tripleGroup) {
-				for (Node node : availableNodes) {
+			for (final TriplePattern tripleSource : sourceNode.tripleGroup) {
+				for (final Node node : availableNodes) {
 					if (node.isPropertyTable) {
-						for (TriplePattern tripleDest : node.tripleGroup)
-							if (existsVariableInCommon(tripleSource, tripleDest))
+						for (final TriplePattern tripleDest : node.tripleGroup) {
+							if (existsVariableInCommon(tripleSource, tripleDest)) {
 								return node;
+							}
+						}
 					} else {
-						if (existsVariableInCommon(tripleSource, node.triplePattern))
+						if (existsVariableInCommon(tripleSource, node.triplePattern)) {
 							return node;
+						}
 					}
 				}
 			}
 
 		} else {
 			// source node is not a group
-			for (Node node : availableNodes) {
+			for (final Node node : availableNodes) {
 				if (node.isPropertyTable) {
-					for (TriplePattern tripleDest : node.tripleGroup) {
-						if (existsVariableInCommon(tripleDest, sourceNode.triplePattern))
+					for (final TriplePattern tripleDest : node.tripleGroup) {
+						if (existsVariableInCommon(tripleDest, sourceNode.triplePattern)) {
 							return node;
+						}
 					}
 				} else {
-					if (existsVariableInCommon(sourceNode.triplePattern, node.triplePattern))
+					if (existsVariableInCommon(sourceNode.triplePattern, node.triplePattern)) {
 						return node;
+					}
 				}
 			}
 		}
@@ -246,40 +255,44 @@ public class Translator {
 	/*
 	 * check if two Triple Patterns share at least one variable
 	 */
-	private boolean existsVariableInCommon(TriplePattern triple_a, TriplePattern triple_b) {
+	private boolean existsVariableInCommon(final TriplePattern triple_a, final TriplePattern triple_b) {
 		if (triple_a.objectType == ElementType.VARIABLE
-				&& (triple_a.object.equals(triple_b.subject) || triple_a.object.equals(triple_b.object)))
+				&& (triple_a.object.equals(triple_b.subject) || triple_a.object.equals(triple_b.object))) {
 			return true;
+		}
 
 		if (triple_a.subjectType == ElementType.VARIABLE
-				&& (triple_a.subject.equals(triple_b.subject) || triple_a.subject.equals(triple_b.object)))
+				&& (triple_a.subject.equals(triple_b.subject) || triple_a.subject.equals(triple_b.object))) {
 			return true;
+		}
 
 		return false;
 	}
 
 	/*
-	 * heuristicWidth decides a width based on the proportion between the number of
-	 * elements in a table and the unique subjects.
+	 * heuristicWidth decides a width based on the proportion between the number of elements in a table and the unique
+	 * subjects.
 	 */
-	private int heuristicWidth(Node node) {
-		if (node.isPropertyTable)
+	private int heuristicWidth(final Node node) {
+		if (node.isPropertyTable) {
 			return 5;
-		String predicate = node.triplePattern.predicate;
-		int tableSize = Stats.getInstance().getTableSize(predicate);
-		int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
-		float proportion = tableSize / numberUniqueSubjects;
-		if (proportion > 1)
+		}
+		final String predicate = node.triplePattern.predicate;
+		final int tableSize = Stats.getInstance().getTableSize(predicate);
+		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
+		final float proportion = tableSize / numberUniqueSubjects;
+		if (proportion > 1) {
 			return 3;
+		}
 		return 2;
 	}
 
-	public void setPropertyTable(boolean b) {
-		this.usePropertyTable = b;
+	public void setPropertyTable(final boolean b) {
+		usePropertyTable = b;
 	}
 
-	public void setMinimumGroupSize(int size) {
-		this.minimumGroupSize = size;
+	public void setMinimumGroupSize(final int size) {
+		minimumGroupSize = size;
 	}
 
 }

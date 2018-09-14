@@ -12,7 +12,7 @@ import executor.Utils;
 
 /*
  * A single node of the JoinTree
- * 
+ *
  */
 public abstract class Node {
 	public TriplePattern triplePattern;
@@ -23,39 +23,40 @@ public abstract class Node {
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
 	public String filter;
-	
+
+	public Node() {
+		children = new ArrayList<>();
+
+		// set the projections (if present)
+		projection = Collections.emptyList();
+	}
+
 	/**
-	 * computeNodeData sets the Dataset<Row> to the data referring to this node
+	 * computeNodeData sets the Dataset<Row> to the data referring to this node.
 	 */
 	public abstract void computeNodeData(SQLContext sqlContext);
 
-	public Node() {
-
-		this.children = new ArrayList<Node>();
-
-		// set the projections (if present)
-		this.projection = Collections.emptyList();
-	}
-
-	public void setProjectionList(List<String> projections) {
-		this.projection = projections;
+	public void setProjectionList(final List<String> projections) {
+		projection = projections;
 	}
 
 	// call computeNodeData recursively on the whole subtree
-	public void computeSubTreeData(SQLContext sqlContext) {
-		this.computeNodeData(sqlContext);
-		for (Node child : this.children)
+	public void computeSubTreeData(final SQLContext sqlContext) {
+		computeNodeData(sqlContext);
+		for (final Node child : children) {
 			child.computeSubTreeData(sqlContext);
+		}
 	}
 
 	// join tables between itself and all the children
-	public Dataset<Row> computeJoinWithChildren(SQLContext sqlContext) {
-		if (sparkNodeData == null)
-			this.computeNodeData(sqlContext);
-		Dataset<Row> currentResult = this.sparkNodeData;
-		for (Node child : children) {
-			Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
-			List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
+	public Dataset<Row> computeJoinWithChildren(final SQLContext sqlContext) {
+		if (sparkNodeData == null) {
+			computeNodeData(sqlContext);
+		}
+		Dataset<Row> currentResult = sparkNodeData;
+		for (final Node child : children) {
+			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
+			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 			currentResult = currentResult.join(childResult,
 					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 		}
@@ -64,29 +65,30 @@ public abstract class Node {
 
 	@Override
 	public String toString() {
-		StringBuilder str = new StringBuilder("{");
+		final StringBuilder str = new StringBuilder("{");
 		if (this instanceof PtNode) {
-			for (TriplePattern tp_group : this.tripleGroup)
+			for (final TriplePattern tp_group : tripleGroup) {
 				str.append(tp_group.toString() + ", ");
+			}
 		} else {
 			str.append(triplePattern.toString());
 		}
 		str.append(" }");
 		str.append(" [");
-		for (Node child : children) {
+		for (final Node child : children) {
 			str.append("\n" + child.toString());
 		}
 		str.append("\n]");
 		return str.toString();
 	}
 
-	public void addChildren(Node newNode) {
-		this.children.add(newNode);
+	public void addChildren(final Node newNode) {
+		children.add(newNode);
 
 	}
 
 	public int getChildrenCount() {
-		return this.children.size();
+		return children.size();
 	}
 
 }

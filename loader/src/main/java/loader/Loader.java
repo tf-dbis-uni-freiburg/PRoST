@@ -4,15 +4,12 @@ import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
 /**
- * This abstract class define the parameters and methods for loading an RDF
- * graph into HDFS using Spark SQL.
+ * This abstract class define the parameters and methods for loading an RDF graph into HDFS using Spark SQL.
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
  */
 public abstract class Loader {
-
-	public abstract void load() throws Exception;
 
 	protected SparkSession spark;
 	protected String database_name;
@@ -32,30 +29,31 @@ public abstract class Loader {
 	protected String[] properties_names;
 	public String stats_file_suffix = ".stats";
 
-	public Loader(String hdfs_input_directory, String database_name, SparkSession spark) {
+	public Loader(final String hdfs_input_directory, final String database_name, final SparkSession spark) {
 		this.database_name = database_name;
 		this.spark = spark;
 		this.hdfs_input_directory = hdfs_input_directory;
 		// Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
-		//spark.sql("SET hive.exec.dynamic.partition = true");
-		//spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
-		//spark.sql("SET hive.exec.max.dynamic.partitions = 4000");
-		//spark.sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
+		// spark.sql("SET hive.exec.dynamic.partition = true");
+		// spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
+		// spark.sql("SET hive.exec.max.dynamic.partitions = 4000");
+		// spark.sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
 
 		// from now on, set the right database
-		this.useOutputDatabase();
+		useOutputDatabase();
 	}
 
+	public abstract void load() throws Exception;
+
 	/**
-	 * Replace all not allowed characters of a DB column name by an underscore("_")
-	 * and return a valid DB column name. The datastore accepts only characters in
-	 * the range [a-zA-Z0-9_]
+	 * Replace all not allowed characters of a DB column name by an underscore("_") and return a valid DB column name.
+	 * The datastore accepts only characters in the range [a-zA-Z0-9_]
 	 *
 	 * @param columnName
 	 *            column name that will be validated and fixed
 	 * @return name of a DB column
 	 */
-	protected String getValidHiveName(String columnName) {
+	protected String getValidHiveName(final String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
 
@@ -66,9 +64,10 @@ public abstract class Loader {
 	 *            the names of the tables that will be removed
 	 * @return
 	 */
-	protected void dropTables(String... tableNames) {
-		for (String tb : tableNames)
+	protected void dropTables(final String... tableNames) {
+		for (final String tb : tableNames) {
 			spark.sql("DROP TABLE " + tb);
+		}
 		logger.info("Removed tables: " + tableNames);
 	}
 
