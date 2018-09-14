@@ -1,4 +1,4 @@
-package JoinTree;
+package joinTree;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
-import Executor.Utils;
+import executor.Utils;
 
 /**
  * JoinTree definition

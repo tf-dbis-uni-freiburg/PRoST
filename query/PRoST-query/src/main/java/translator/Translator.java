@@ -1,15 +1,8 @@
-package Translator;
+package translator;
 
 import java.util.*;
 
 import org.apache.log4j.Logger;
-
-import JoinTree.ElementType;
-import JoinTree.JoinTree;
-import JoinTree.Node;
-import JoinTree.PtNode;
-import JoinTree.TriplePattern;
-import JoinTree.VpNode;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
@@ -19,6 +12,13 @@ import com.hp.hpl.jena.sparql.algebra.Algebra;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
+
+import joinTree.ElementType;
+import joinTree.JoinTree;
+import joinTree.Node;
+import joinTree.PtNode;
+import joinTree.TriplePattern;
+import joinTree.VpNode;
 
 /**
  * This class parses the SPARQL query, build the Tree and save its serialization

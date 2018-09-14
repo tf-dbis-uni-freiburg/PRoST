@@ -1,6 +1,6 @@
-package JoinTree;
+package joinTree;
 
-import Translator.Stats;
+import translator.Stats;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 

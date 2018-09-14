@@ -1,4 +1,4 @@
-package Executor;
+package executor;
 
 import java.io.BufferedWriter;
 
@@ -17,7 +17,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
 
-import JoinTree.JoinTree;
+import joinTree.JoinTree;
 
 /**
  * This class reads the JoinTree,

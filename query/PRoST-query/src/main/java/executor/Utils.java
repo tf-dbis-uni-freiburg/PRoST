@@ -1,4 +1,4 @@
-package Executor;
+package executor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import JoinTree.ElementType;
-import JoinTree.TriplePattern;
+import joinTree.ElementType;
+import joinTree.TriplePattern;
 
 
 

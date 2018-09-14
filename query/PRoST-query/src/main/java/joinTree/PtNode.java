@@ -1,4 +1,4 @@
-package JoinTree;
+package joinTree;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,8 +9,8 @@ import org.apache.spark.sql.SQLContext;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import Executor.Utils;
-import Translator.Stats;
+import executor.Utils;
+import translator.Stats;
 
 /*
  * A node of the JoinTree that refers to the Property Table.

@@ -1,8 +1,8 @@
-package Translator;
+package translator;
 
 import java.util.Comparator;
 
-import JoinTree.*;
+import joinTree.*;
 
 public class NodeComparator implements Comparator<Node> {
 

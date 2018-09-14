@@ -1,10 +1,10 @@
-package JoinTree;
+package joinTree;
 
 import java.util.Collections;
 
 import org.apache.spark.sql.SQLContext;
 
-import Executor.Utils;
+import executor.Utils;
 
 
 /*

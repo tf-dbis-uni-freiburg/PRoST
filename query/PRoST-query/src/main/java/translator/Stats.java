@@ -1,4 +1,4 @@
-package Translator;
+package translator;
 
 import java.io.FileInputStream;
 
@@ -7,8 +7,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
-import JoinTree.ProtobufStats;
-import Executor.Utils;
+
+import executor.Utils;
+import joinTree.ProtobufStats;
 
 /**
  * This class is used to parse statistics from a Protobuf file and it exposes
@@ -29,7 +30,7 @@ public class Stats {
 	private static boolean areStatsParsed = false;
 
 	private String fileName;
-	private HashMap<String, JoinTree.ProtobufStats.TableStats> tableStats;
+	private HashMap<String, joinTree.ProtobufStats.TableStats> tableStats;
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
 	
@@ -52,7 +53,7 @@ public class Stats {
 			instance = new Stats();
 			instance.tableSize = new HashMap<String, Integer>();
 			instance.tableDistinctSubjects = new HashMap<String, Integer>();
-			instance.tableStats = new HashMap<String, JoinTree.ProtobufStats.TableStats>();
+			instance.tableStats = new HashMap<String, joinTree.ProtobufStats.TableStats>();
 			return instance;
 		}
 		if (areStatsParsed) {

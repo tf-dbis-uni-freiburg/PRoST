@@ -1,4 +1,4 @@
-package Translator;
+package translator;
 
 import com.hp.hpl.jena.sparql.expr.*;
 

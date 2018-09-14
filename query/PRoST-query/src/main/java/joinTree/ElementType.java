@@ -1,4 +1,4 @@
-package JoinTree;
+package joinTree;
 
 public enum ElementType {
 	VARIABLE, CONSTANT
