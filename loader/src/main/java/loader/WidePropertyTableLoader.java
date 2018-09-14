@@ -44,13 +44,31 @@ public class WidePropertyTableLoader extends Loader {
 	public String columns_separator = "\\$%";
 
 	protected String output_db_name;
-	protected static final String output_tablename = "wide_property_table";
+	protected String output_tablename = "wide_property_table";
+	public String column_name_subject = super.column_name_subject;
+	public String column_name_object = super.column_name_object;
 	protected boolean wptPartitionedBySub = false;
+	private boolean isInversePropertyTable = false;
 
 	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark,
 			boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
+		
+	}
+	
+	public WidePropertyTableLoader(String hdfs_input_directory, String database_name, SparkSession spark,
+			boolean wptPartitionedBySub, boolean isInversePropertyTable) {
+		super(hdfs_input_directory, database_name, spark);
+		this.wptPartitionedBySub = wptPartitionedBySub;
+		
+		this.isInversePropertyTable = isInversePropertyTable;
+		if (isInversePropertyTable) {
+			output_tablename = "inverse_" + output_tablename;
+			String temp = column_name_subject;
+			column_name_subject = column_name_object;
+			column_name_object = temp;
+		}
 	}
 
 	public void load() {
@@ -209,7 +227,15 @@ public class WidePropertyTableLoader extends Loader {
 		List<String> allPropertiesList = Arrays.asList(selectProperties);
 		logger.info("Columns of  Property Table: " + allPropertiesList);
 
+		
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
+		
+		// renames the column so that its name is consistent with the non inverse Wide Property Table
+		// this guarantees that any method that access a Property Table can be used with a Inverse Property Table without any changes
+		if (isInversePropertyTable) {
+			propertyTable = propertyTable.withColumnRenamed(column_name_subject, column_name_object);
+		}
+		
 
 		// List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
 		// logger.info("First 10 rows sampled from the PROPERTY TABLE (or less
@@ -219,8 +245,13 @@ public class WidePropertyTableLoader extends Loader {
 		// write the final one, partitioned by subject
 		// propertyTable = propertyTable.repartition(1000, column_name_subject);
 		if (wptPartitionedBySub) {
-			propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_subject).format(table_format)
-					.saveAsTable(output_tablename);
+			if (isInversePropertyTable) {
+				propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_object).format(table_format)
+				.saveAsTable(output_tablename);
+			} else {
+				propertyTable.write().mode(SaveMode.Overwrite).partitionBy(column_name_subject).format(table_format)
+						.saveAsTable(output_tablename);
+			}
 		} else if (!wptPartitionedBySub) {
 			propertyTable.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(output_tablename);
 		}

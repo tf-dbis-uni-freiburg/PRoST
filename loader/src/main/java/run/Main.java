@@ -38,6 +38,7 @@ public class Main {
 	private static boolean generateTT = true;
 	private static boolean generateWPT = false;
 	private static boolean generateVP = false;
+	private static boolean generateIWPT = false;
 	private static boolean ttPartitionedByPred = false;
 	private static boolean ttPartitionedBySub = false;
 	private static boolean wptPartitionedBySub = false;
@@ -137,6 +138,14 @@ public class Main {
 				generateVP = true;
 				logger.info("Logical strategy used: VP");
 			}
+			if (lpStrategies.contains("IWPT")) {
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for IWPT) with default physical partitioning");
+				}
+				logger.info("Logical strategy used: IWPT");
+				generateIWPT = true;
+			}
 		}
 
 		if (cmd.hasOption("ttPartitionedByPredicate") && cmd.hasOption("ttPartitionedBySub")) {
@@ -189,6 +198,15 @@ public class Main {
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
+		}
+		
+		if (generateIWPT) {
+			startTime = System.currentTimeMillis();
+			WidePropertyTableLoader ipt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub, true);
+			ipt_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
 		}
 
 		if (generateVP) {
