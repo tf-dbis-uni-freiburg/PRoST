@@ -1,4 +1,4 @@
-package translator;
+package Translator;
 
 import java.util.ArrayList;
 import java.util.List;

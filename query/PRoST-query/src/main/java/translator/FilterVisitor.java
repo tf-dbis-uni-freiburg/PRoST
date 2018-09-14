@@ -1,4 +1,4 @@
-package translator;
+package Translator;
 
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.expr.*;

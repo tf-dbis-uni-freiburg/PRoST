@@ -17,10 +17,10 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import translator.Stats;
 import Executor.Executor;
 import JoinTree.JoinTree;
-import translator.Translator;
+import Translator.Stats;
+import Translator.Translator;
 
 
 /**

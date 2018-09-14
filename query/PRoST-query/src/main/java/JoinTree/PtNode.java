@@ -10,7 +10,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import Executor.Utils;
-import translator.Stats;
+import Translator.Stats;
 
 /*
  * A node of the JoinTree that refers to the Property Table.
