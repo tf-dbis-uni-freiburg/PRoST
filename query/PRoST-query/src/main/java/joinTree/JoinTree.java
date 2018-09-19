@@ -10,7 +10,7 @@ import org.apache.spark.sql.SQLContext;
 import executor.Utils;
 
 /**
- * JoinTree definition
+ * JoinTree definition.
  *
  * @author Matteo Cossu
  *
@@ -24,14 +24,14 @@ public class JoinTree {
 	// identifier for the query, useful for debugging
 	public String query_name;
 
-	public Node getRoot() {
-		return root;
-	}
-
 	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String query_name) {
 		this.query_name = query_name;
 		this.root = root;
 		this.optionalTreeRoots = optionalTreeRoots;
+	}
+
+	public Node getRoot() {
+		return root;
 	}
 
 	public void computeSingularNodeData(final SQLContext sqlContext) {

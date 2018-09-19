@@ -158,7 +158,6 @@ public class Main {
 
 		// single file
 		if (file.isFile()) {
-
 			// translation phase
 			final JoinTree translatedQuery = translateSingleQuery(inputFile, treeWidth);
 			// System.out.println("****************************************************");

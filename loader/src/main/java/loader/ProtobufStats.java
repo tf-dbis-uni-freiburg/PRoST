@@ -82,7 +82,8 @@ public final class ProtobufStats {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      @SuppressWarnings("unused")
+	int mutable_bitField0_ = 0;
       try {
         boolean done = false;
         while (!done) {
@@ -287,7 +288,8 @@ public final class ProtobufStats {
       return result;
     }
 
-    @java.lang.Override
+    @SuppressWarnings("unchecked")
+	@java.lang.Override
     public int hashCode() {
       if (memoizedHashCode != 0) {
         return memoizedHashCode;
@@ -897,7 +899,8 @@ public final class ProtobufStats {
               ProtobufStats.Graph.class, ProtobufStats.Graph.Builder.class);
     }
 
-    private int bitField0_;
+    @SuppressWarnings("unused")
+	private int bitField0_;
     public static final int NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object name_;
     /**
@@ -1040,7 +1043,8 @@ public final class ProtobufStats {
       return result;
     }
 
-    @java.lang.Override
+    @SuppressWarnings("unchecked")
+	@java.lang.Override
     public int hashCode() {
       if (memoizedHashCode != 0) {
         return memoizedHashCode;
@@ -1207,7 +1211,8 @@ public final class ProtobufStats {
 
       public ProtobufStats.Graph buildPartial() {
         ProtobufStats.Graph result = new ProtobufStats.Graph(this);
-        int from_bitField0_ = bitField0_;
+        @SuppressWarnings("unused")
+		int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         result.name_ = name_;
         result.arePrefixesActive_ = arePrefixesActive_;

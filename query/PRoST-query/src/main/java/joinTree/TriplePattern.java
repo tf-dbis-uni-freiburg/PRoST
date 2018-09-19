@@ -27,7 +27,6 @@ public class TriplePattern {
 			subjectType = ElementType.CONSTANT;
 			subject = Stats.getInstance().arePrefixesActive() ? triple.getSubject().toString(prefixes)
 					: "<" + triple.getSubject().getURI() + ">";
-
 		}
 
 		// extract and set the predicate

@@ -27,22 +27,21 @@ public abstract class Node {
 	public boolean isVPNode = false;
 	public String filter;
 
-	private final boolean isRootNode = false;
-
+	private boolean isRootNode = false;
+	
 	private static final Logger logger = Logger.getLogger("PRoST");
 
-	/**
-	 * computeNodeData sets the Dataset<Row> to the data referring to this node
-	 */
-	public abstract void computeNodeData(SQLContext sqlContext);
-
 	public Node() {
-
 		children = new ArrayList<>();
 
 		// set the projections (if present)
 		projection = Collections.emptyList();
 	}
+
+	/**
+	 * computeNodeData sets the Dataset<Row> to the data referring to this node.
+	 */
+	public abstract void computeNodeData(SQLContext sqlContext);
 
 	public void setProjectionList(final List<String> projections) {
 		projection = projections;
@@ -62,26 +61,12 @@ public abstract class Node {
 			computeNodeData(sqlContext);
 		}
 		Dataset<Row> currentResult = sparkNodeData;
-
-		// logger.info("Computing node data");
-
-		// if (children.size()==0) {
-		// this.isRootNode = true;
-		// logger.info("set to root");
-		// }
-
 		for (final Node child : children) {
-			// logger.info("computing child data");
-
 			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
-			// if (child.isRootNode) {
-			// logger.info("child is root");
-			// }
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 			currentResult = currentResult.join(childResult,
 					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 		}
-
 		return currentResult;
 	}
 

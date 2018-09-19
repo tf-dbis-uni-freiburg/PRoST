@@ -20,16 +20,16 @@ import loader.ProtobufStats.TableStats;
 
 /**
  * Build the VP, i.e. a table for each predicate.
- * 
+ *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
  *
  */
 public class VerticalPartitioningLoader extends Loader {
-	private boolean computeStatistics;
+	private final boolean computeStatistics;
 
-	public VerticalPartitioningLoader(String hdfs_input_directory, String database_name, SparkSession spark,
-			boolean computeStatistics) {
+	public VerticalPartitioningLoader(final String hdfs_input_directory, final String database_name,
+			final SparkSession spark, final boolean computeStatistics) {
 		super(hdfs_input_directory, database_name, spark);
 		this.computeStatistics = computeStatistics;
 	}
@@ -38,74 +38,69 @@ public class VerticalPartitioningLoader extends Loader {
 	public void load() {
 		logger.info("PHASE 3: creating the VP tables...");
 
-		if (this.properties_names == null) {
-			this.properties_names = extractProperties();
+		if (properties_names == null) {
+			properties_names = extractProperties();
 		}
 
-		Vector<TableStats> tables_stats = new Vector<TableStats>();
+		final Vector<TableStats> tables_stats = new Vector<>();
 
-		for (int i = 0; i < this.properties_names.length; i++) {
-			String property = this.properties_names[i];
-			String createVPTableFixed = String.format(
-					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
-					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);
+		for (int i = 0; i < properties_names.length; i++) {
+			final String property = properties_names[i];
+			final String createVPTableFixed =
+					String.format("CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
+							"vp_" + getValidHiveName(property), column_name_subject, column_name_object);
 			// Commented code is partitioning by subject
 			/*
 			 * String createVPTableFixed = String.format(
-			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET"
-			 * , "vp_" + this.getValidHiveName(property), column_name_subject,
-			 * column_name_object);
+			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET" , "vp_" +
+			 * this.getValidHiveName(property), column_name_subject, column_name_object);
 			 */
 			spark.sql(createVPTableFixed);
 
-			String populateVPTable = String.format(
+			final String populateVPTable = String.format(
 					"INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
-					"vp_" + this.getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
+					"vp_" + getValidHiveName(property), column_name_subject, column_name_object, name_tripletable,
 					column_name_predicate, property);
 			// Commented code is partitioning by subject
 			/*
-			 * String populateVPTable = String.format(
-			 * "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
-			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" +
-			 * this.getValidHiveName(property), column_name_subject,
-			 * column_name_object, name_tripletable, column_name_predicate,
-			 * property);
+			 * String populateVPTable = String.format( "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
+			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
+			 * column_name_subject, column_name_object, name_tripletable, column_name_predicate, property);
 			 */
 			spark.sql(populateVPTable);
 
 			// calculate stats
-			Dataset<Row> table_VP = spark.sql("SELECT * FROM " + "vp_" + this.getValidHiveName(property));
+			final Dataset<Row> table_VP = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 
 			if (computeStatistics) {
-				tables_stats.add(calculate_stats_table(table_VP, this.getValidHiveName(property)));
+				tables_stats.add(calculate_stats_table(table_VP, getValidHiveName(property)));
 			}
 
 			logger.info("Created VP table for the property: " + property);
-			List<Row> sampledRowsList = table_VP.limit(3).collectAsList();
+			final List<Row> sampledRowsList = table_VP.limit(3).collectAsList();
 			logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
 		}
 
 		// save the stats in a file with the same name as the output database
-		if (computeStatistics)
-			save_stats(this.database_name, tables_stats);
+		if (computeStatistics) {
+			save_stats(database_name, tables_stats);
+		}
 
-		logger.info(
-				"Vertical Partitioning completed. Loaded " + String.valueOf(this.properties_names.length) + " tables.");
+		logger.info("Vertical Partitioning completed. Loaded " + String.valueOf(properties_names.length) + " tables.");
 
 	}
 
 	/*
-	 * calculate the statistics for a single table: size, number of distinct
-	 * subjects and isComplex. It returns a protobuf object defined in
-	 * ProtobufStats.proto
+	 * calculate the statistics for a single table: size, number of distinct subjects and isComplex. It returns a
+	 * protobuf object defined in ProtobufStats.proto
 	 */
-	private TableStats calculate_stats_table(Dataset<Row> table, String tableName) {
-		TableStats.Builder table_stats_builder = TableStats.newBuilder();
+	private TableStats calculate_stats_table(final Dataset<Row> table, final String tableName) {
+		final TableStats.Builder table_stats_builder = TableStats.newBuilder();
 
 		// calculate the stats
-		int table_size = (int) table.count();
-		int distinct_subjects = (int) table.select(this.column_name_subject).distinct().count();
-		boolean is_complex = table_size != distinct_subjects;
+		final int table_size = (int) table.count();
+		final int distinct_subjects = (int) table.select(column_name_subject).distinct().count();
+		final boolean is_complex = table_size != distinct_subjects;
 
 		// put them in the protobuf object
 		table_stats_builder.setSize(table_size).setDistinctSubjects(distinct_subjects).setIsComplex(is_complex)
@@ -121,67 +116,70 @@ public class VerticalPartitioningLoader extends Loader {
 	/*
 	 * save the statistics in a serialized file
 	 */
-	private void save_stats(String name, List<TableStats> table_stats) {
-		Graph.Builder graph_stats_builder = Graph.newBuilder();
+	private void save_stats(final String name, final List<TableStats> table_stats) {
+		final Graph.Builder graph_stats_builder = Graph.newBuilder();
 
 		graph_stats_builder.addAllTables(table_stats);
 		graph_stats_builder.setArePrefixesActive(arePrefixesUsed());
-		Graph serialized_stats = graph_stats_builder.build();
+		final Graph serialized_stats = graph_stats_builder.build();
 
 		FileOutputStream f_stream; // s
 		File file;
 		try {
-			file = new File(name + this.stats_file_suffix);
+			file = new File(name + stats_file_suffix);
 			f_stream = new FileOutputStream(file);
 			serialized_stats.writeTo(f_stream);
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private String[] extractProperties() {
-		List<Row> props = spark
+		final List<Row> props = spark
 				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", column_name_predicate, name_tripletable))
 				.collectAsList();
-		String[] properties = new String[props.size()];
+		final String[] properties = new String[props.size()];
 
 		for (int i = 0; i < props.size(); i++) {
 			properties[i] = props.get(i).getString(0);
 		}
 
-		List propertiesList = Arrays.asList(properties);
+		final List<String> propertiesList = Arrays.asList(properties);
 		logger.info("Number of distinct predicates found: " + propertiesList.size());
-		String[] cleanedProperties = handleCaseInsPred(properties);
-		List cleanedPropertiesList = Arrays.asList(cleanedProperties);
+		final String[] cleanedProperties = handleCaseInsPred(properties);
+		final List<String> cleanedPropertiesList = Arrays.asList(cleanedProperties);
 		logger.info("Final list of predicates: " + cleanedPropertiesList);
 		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
 		return cleanedProperties;
 	}
 
-	private String[] handleCaseInsPred(String[] properties) {
-		Set<String> seenPredicates = new HashSet<String>();
-		Set<String> originalRemovedPredicates = new HashSet<String>();
+	private String[] handleCaseInsPred(final String[] properties) {
+		final Set<String> seenPredicates = new HashSet<>();
+		final Set<String> originalRemovedPredicates = new HashSet<>();
 
-		Set<String> propertiesSet = new HashSet<String>(Arrays.asList(properties));
+		final Set<String> propertiesSet = new HashSet<>(Arrays.asList(properties));
 
-		Iterator it = propertiesSet.iterator();
+		final Iterator<String> it = propertiesSet.iterator();
 		while (it.hasNext()) {
-			String predicate = (String) it.next();
-			if (seenPredicates.contains(predicate.toLowerCase()))
+			final String predicate = it.next();
+			if (seenPredicates.contains(predicate.toLowerCase())) {
 				originalRemovedPredicates.add(predicate);
-			else
+			} else {
 				seenPredicates.add(predicate.toLowerCase());
+			}
 		}
 
-		for (String predicateToBeRemoved : originalRemovedPredicates)
+		for (final String predicateToBeRemoved : originalRemovedPredicates) {
 			propertiesSet.remove(predicateToBeRemoved);
+		}
 
-		if (originalRemovedPredicates.size() > 0)
+		if (originalRemovedPredicates.size() > 0) {
 			logger.info("The following predicates had to be removed from the list of predicates "
 					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
-		String[] cleanedProperties = propertiesSet.toArray(new String[propertiesSet.size()]);
+		}
+		final String[] cleanedProperties = propertiesSet.toArray(new String[propertiesSet.size()]);
 		return cleanedProperties;
 	}
 
@@ -189,7 +187,7 @@ public class VerticalPartitioningLoader extends Loader {
 	 * Checks if there is at least one property that uses prefixes.
 	 */
 	private boolean arePrefixesUsed() {
-		for (String property : properties_names) {
+		for (final String property : properties_names) {
 			if (property.contains(":")) {
 				return true;
 			}
