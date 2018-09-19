@@ -2,16 +2,18 @@ package extVp;
 
 import java.util.List;
 import java.util.ListIterator;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
+import joinTree.ElementType;
+import joinTree.TriplePattern;
 import translator.Stats;
-import JoinTree.ElementType;
-import JoinTree.TriplePattern;
 
 /**
  * Class for the creation and maintenance of ExtVP database and tables
@@ -19,202 +21,247 @@ import JoinTree.TriplePattern;
  */
 public class ExtVpCreator {
 	private static final Logger logger = Logger.getLogger("PRoST");
-	
+
 	public enum extVPType {
-	    SS, SO, OS, OO
+		SS, SO, OS, OO
 	}
-	
+
 	/**
 	 * Creates a ExtVP table.
-	 * 
-	 * <p>Creates a ExtVP table for the given predicates, only if they do not exists in the database. 
-	 * Creates a new ExtVP database if it does not exists already.
-	 * Updates the given ExtVP database statistics object. 
-	 * Only creates the ExtVP table for the predicate1.</p
-	 * 
-	 * 
+	 *
+	 * <p>
+	 * Creates a ExtVP table for the given predicates, only if they do not exists in the database. Creates a new ExtVP
+	 * database if it does not exists already. Updates the given ExtVP database statistics object. Only creates the
+	 * ExtVP table for the predicate1.</p
+	 *
+	 *
 	 * @param predicate1
 	 * @param predicate2
-	 * @param extVPType  Type of the ExtVP table to be created.
+	 * @param extVPType
+	 *            Type of the ExtVP table to be created.
 	 * @param spark
 	 * @param databaseStatistics
 	 * @param extVPDatabaseName
-	 * @return The created table name. Blank if none created. 
+	 * @return The created table name. Blank if none created.
 	 */
-	public static String createExtVPTable(String predicate1, String predicate2, extVPType extVPType, SparkSession spark, 
-			DatabaseStatistics databaseStatistics, String extVPDatabaseName) {
-		String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
-		String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
-		String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
+	public static String createExtVPTable(final String predicate1, final String predicate2, final extVPType extVPType,
+			final SparkSession spark, final DatabaseStatistics databaseStatistics, final String extVPDatabaseName) {
+		final String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
+		final String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
+		final String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
 		String createdTableName = "";
-		
-		String tableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVpTableName;
-		
+
+		final String tableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVpTableName;
+
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + extVPDatabaseName);
-				
+
 		if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
-			String createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", 
-					tableNameWithDatabaseIdentifier);
-			
+			final String createTableQuery =
+					String.format("create table if not exists %1$s(s string, o string) stored as parquet",
+							tableNameWithDatabaseIdentifier);
+
 			spark.sql(createTableQuery);
-							
-			String queryOnCommand = "";	
+
+			String queryOnCommand = "";
 			switch (extVPType) {
-				case SO:
-					queryOnCommand = String.format("%1$s.s=%2$s.o", vp1TableName, vp2TableName);
-					break;
-				case OS:
-					queryOnCommand = String.format("%1$s.o=%2$s.s", vp1TableName, vp2TableName);
-					break;
-				case OO: 
-					queryOnCommand = String.format("%1$s.o=%2$s.o", vp1TableName, vp2TableName);
-					break;
-				case SS:
-				default:
-					queryOnCommand = String.format("%1$s.s=%2$s.s", vp1TableName, vp2TableName);
-					break;
-			}				
-			String insertDataQuery = String.format("insert overwrite table %1$s select %2$s.s as "
-					+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s", 
+			case SO:
+				queryOnCommand = String.format("%1$s.s=%2$s.o", vp1TableName, vp2TableName);
+				break;
+			case OS:
+				queryOnCommand = String.format("%1$s.o=%2$s.s", vp1TableName, vp2TableName);
+				break;
+			case OO:
+				queryOnCommand = String.format("%1$s.o=%2$s.o", vp1TableName, vp2TableName);
+				break;
+			case SS:
+			default:
+				queryOnCommand = String.format("%1$s.s=%2$s.s", vp1TableName, vp2TableName);
+				break;
+			}
+			final String insertDataQuery = String.format(
+					"insert overwrite table %1$s select %2$s.s as "
+							+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
 					tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
 			spark.sql(insertDataQuery);
-			
+
 			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
-			
-			TableStatistic tableStatistic =  databaseStatistics.getTables().get(extVpTableName);
-			if (tableStatistic!=null) {
+
+			final TableStatistic tableStatistic = databaseStatistics.getTables().get(extVpTableName);
+			if (tableStatistic != null) {
 				tableStatistic.setTableExists(true);
 				logger.info("UPDATED statistics for table " + extVpTableName);
 			} else {
-				//Protobuff stats for VP tables size are not correctly saved, therefore we check the size directly from the hive table
-				Dataset<Row> vpDF = spark.sql("SELECT * FROM " + vp1TableName);			
-				Long vpTableSize = vpDF.count();
-				
-				Dataset<Row> extVPDF = spark.sql("SELECT * FROM " + tableNameWithDatabaseIdentifier);	
-				Long extVPSize = extVPDF.count();
-				
-				//logger.info("size: " + extVPSize + " - selectivity: " + (float)extVPSize/(float)vpTableSize + " vp table size: " + vpTableSize);
-				
-				databaseStatistics.getTables().put(extVpTableName, new TableStatistic(extVpTableName, (float)extVPSize/(float)vpTableSize, extVPSize));	
+				// Protobuff stats for VP tables size are not correctly saved, therefore we check the size directly from
+				// the hive table
+				final Dataset<Row> vpDF = spark.sql("SELECT * FROM " + vp1TableName);
+				final Long vpTableSize = vpDF.count();
+
+				final Dataset<Row> extVPDF = spark.sql("SELECT * FROM " + tableNameWithDatabaseIdentifier);
+				final Long extVPSize = extVPDF.count();
+
+				// logger.info("size: " + extVPSize + " - selectivity: " + (float)extVPSize/(float)vpTableSize + " vp
+				// table size: " + vpTableSize);
+
+				databaseStatistics.getTables().put(extVpTableName,
+						new TableStatistic(extVpTableName, (float) extVPSize / (float) vpTableSize, extVPSize));
 				databaseStatistics.setSize(databaseStatistics.getSize() + extVPSize);
-				
+
 				logger.info("CREATED statistics for table " + extVpTableName);
 			}
 		}
 		createdTableName = extVpTableName;
 		return createdTableName;
 	}
-	
+
 	/**
 	 * Creates an ExtVP table for the give TriplePatterns, if possible. Only creates the ExtVP table for the pattern1.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param pattern1
 	 * @param pattern2
 	 * @param spark
 	 * @param databaseStatistics
 	 * @param extVPDatabaseName
-	 * @param prefixes PrefixMapping used by the TriplePatterns
-	 * @return The created table name. Blank if none created. 
+	 * @param prefixes
+	 *            PrefixMapping used by the TriplePatterns
+	 * @return The created table name. Blank if none created.
 	 */
-	//TODO check if patterns have variables. Selecting extvp tables from statistics should also check for variables, if the database only contains a partial join (check hash)
-	public String createExtVPTable(TriplePattern pattern1, TriplePattern pattern2, SparkSession spark, DatabaseStatistics databaseStatistics, String extVPDatabaseName, PrefixMapping prefixes){
+	// TODO check if patterns have variables. Selecting extvp tables from statistics should also check for variables, if
+	// the database only contains a partial join (check hash)
+	public String createExtVPTable(final TriplePattern pattern1, final TriplePattern pattern2, final SparkSession spark,
+			final DatabaseStatistics databaseStatistics, final String extVPDatabaseName, final PrefixMapping prefixes) {
 		String extVpTableName = "";
-		
-		// TODO check statistics if the ExtVP table was created before, and only creates it again if selectivity is high enough.
-		
-		if (pattern1.subjectType==ElementType.VARIABLE && pattern2.subjectType==ElementType.VARIABLE && pattern1.subject.equals(pattern2.subject)) {
-			extVPType vpType = extVPType.SS;
-			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
-		} else if (pattern1.objectType==ElementType.VARIABLE && pattern2.objectType==ElementType.VARIABLE && pattern1.object.equals(pattern2.object)){
-			extVPType vpType = extVPType.OO;
-			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
-		} else if (pattern1.objectType==ElementType.VARIABLE && pattern2.subjectType==ElementType.VARIABLE && pattern1.object.equals(pattern2.subject)){
-			extVPType vpType = extVPType.OS;
-			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
-			//vpType = extVPType.SO;
-			//extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
-			//createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics, extVPDatabaseName);
-		} else if (pattern1.subjectType==ElementType.VARIABLE && pattern2.objectType==ElementType.VARIABLE && pattern1.subject.equals(pattern2.object)){
-			extVPType vpType = extVPType.SO;
-			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes), pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics, extVPDatabaseName);
-			//vpType = extVPType.OS;
-			//extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
-			//createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics, extVPDatabaseName);
+
+		// TODO check statistics if the ExtVP table was created before, and only creates it again if selectivity is high
+		// enough.
+
+		if (pattern1.subjectType == ElementType.VARIABLE && pattern2.subjectType == ElementType.VARIABLE
+				&& pattern1.subject.equals(pattern2.subject)) {
+			final extVPType vpType = extVPType.SS;
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
+					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
+					extVPDatabaseName);
+		} else if (pattern1.objectType == ElementType.VARIABLE && pattern2.objectType == ElementType.VARIABLE
+				&& pattern1.object.equals(pattern2.object)) {
+			final extVPType vpType = extVPType.OO;
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
+					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
+					extVPDatabaseName);
+		} else if (pattern1.objectType == ElementType.VARIABLE && pattern2.subjectType == ElementType.VARIABLE
+				&& pattern1.object.equals(pattern2.subject)) {
+			final extVPType vpType = extVPType.OS;
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
+					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
+					extVPDatabaseName);
+			// vpType = extVPType.SO;
+			// extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
+			// createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics,
+			// extVPDatabaseName);
+		} else if (pattern1.subjectType == ElementType.VARIABLE && pattern2.objectType == ElementType.VARIABLE
+				&& pattern1.subject.equals(pattern2.object)) {
+			final extVPType vpType = extVPType.SO;
+			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
+					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
+					extVPDatabaseName);
+			// vpType = extVPType.OS;
+			// extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
+			// createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark, databaseStatistics,
+			// extVPDatabaseName);
 		}
 		return extVpTableName;
 	}
-	
+
 	/**
 	 * Creates possible ExtVP tables for the give triples list
-	 * 
-	 * <p>Given the list of triples of a query, create all possible extVP tables if they have not been created before</p>
-	 * 
+	 *
+	 * <p>
+	 * Given the list of triples of a query, create all possible extVP tables if they have not been created before
+	 * </p>
+	 *
 	 * @param triples
 	 * @param prefixes
 	 * @param spark
 	 * @param databaseStatistic
 	 * @param extVPDatabaseName
 	 */
-	public void createExtVPFromTriples(List<Triple> triples, PrefixMapping prefixes, SparkSession spark, DatabaseStatistics databaseStatistic, String extVPDatabaseName){
-		for(ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator.hasNext() ; ) {
-		    Triple outerTriple = outerTriplesListIterator.next();
-		    String outerSubject = outerTriple.getSubject().toString(prefixes);
-		    String outerPredicate = outerTriple.getPredicate().toString(prefixes);
-		    String outerObject = outerTriple.getObject().toString(prefixes);
-		    
-		    for(ListIterator<Triple> innerTriplesListIterator = triples.listIterator(outerTriplesListIterator.nextIndex()); innerTriplesListIterator.hasNext(); ) {
-		    	Triple innerTriple = innerTriplesListIterator.next();
-		    	String innerSubject = innerTriple.getSubject().toString(prefixes);
-			    String innerPredicate = innerTriple.getPredicate().toString(prefixes);
-			    String innerObject = innerTriple.getObject().toString(prefixes);
-			    
-			    //TODO Check if table exists in the statistics. If it exists, do not create it again, if selectivity not high enough
-			    
-			    if (outerTriple.getSubject().isVariable() && innerTriple.getSubject().isVariable() && outerSubject.equals(innerSubject)) {
-			    	//SS
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, databaseStatistic, extVPDatabaseName); 
-			    }
-			    if (outerTriple.getObject().isVariable() && innerTriple.getObject().isVariable() &&  outerObject.equals(innerObject)) {
-			    	//OO
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, databaseStatistic, extVPDatabaseName); 
-			    }
-			    if (outerTriple.getObject().isVariable() && innerTriple.getSubject().isVariable() && outerObject.equals(innerSubject)) {
-			    	//OS
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName); 
-			    }
-			    if (outerTriple.getSubject().isVariable() && innerTriple.getObject().isVariable() && outerSubject.equals(innerObject)) {
-			    	//SO
-			    	createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, databaseStatistic, extVPDatabaseName);
-				    createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, databaseStatistic, extVPDatabaseName); 
-			    } 
-		    }
-		   
+	public void createExtVPFromTriples(final List<Triple> triples, final PrefixMapping prefixes,
+			final SparkSession spark, final DatabaseStatistics databaseStatistic, final String extVPDatabaseName) {
+		for (final ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator
+				.hasNext();) {
+			final Triple outerTriple = outerTriplesListIterator.next();
+			final String outerSubject = outerTriple.getSubject().toString(prefixes);
+			final String outerPredicate = outerTriple.getPredicate().toString(prefixes);
+			final String outerObject = outerTriple.getObject().toString(prefixes);
+
+			for (final ListIterator<Triple> innerTriplesListIterator =
+					triples.listIterator(outerTriplesListIterator.nextIndex()); innerTriplesListIterator.hasNext();) {
+				final Triple innerTriple = innerTriplesListIterator.next();
+				final String innerSubject = innerTriple.getSubject().toString(prefixes);
+				final String innerPredicate = innerTriple.getPredicate().toString(prefixes);
+				final String innerObject = innerTriple.getObject().toString(prefixes);
+
+				// TODO Check if table exists in the statistics. If it exists, do not create it again, if selectivity
+				// not high enough
+
+				if (outerTriple.getSubject().isVariable() && innerTriple.getSubject().isVariable()
+						&& outerSubject.equals(innerSubject)) {
+					// SS
+					createExtVPTable(outerPredicate, innerPredicate, extVPType.SS, spark, databaseStatistic,
+							extVPDatabaseName);
+					createExtVPTable(innerPredicate, outerPredicate, extVPType.SS, spark, databaseStatistic,
+							extVPDatabaseName);
+				}
+				if (outerTriple.getObject().isVariable() && innerTriple.getObject().isVariable()
+						&& outerObject.equals(innerObject)) {
+					// OO
+					createExtVPTable(outerPredicate, innerPredicate, extVPType.OO, spark, databaseStatistic,
+							extVPDatabaseName);
+					createExtVPTable(innerPredicate, outerPredicate, extVPType.OO, spark, databaseStatistic,
+							extVPDatabaseName);
+				}
+				if (outerTriple.getObject().isVariable() && innerTriple.getSubject().isVariable()
+						&& outerObject.equals(innerSubject)) {
+					// OS
+					createExtVPTable(outerPredicate, innerPredicate, extVPType.OS, spark, databaseStatistic,
+							extVPDatabaseName);
+					createExtVPTable(innerPredicate, outerPredicate, extVPType.SO, spark, databaseStatistic,
+							extVPDatabaseName);
+				}
+				if (outerTriple.getSubject().isVariable() && innerTriple.getObject().isVariable()
+						&& outerSubject.equals(innerObject)) {
+					// SO
+					createExtVPTable(outerPredicate, innerPredicate, extVPType.SO, spark, databaseStatistic,
+							extVPDatabaseName);
+					createExtVPTable(innerPredicate, outerPredicate, extVPType.OS, spark, databaseStatistic,
+							extVPDatabaseName);
+				}
+			}
+
 		}
 	}
-	
-	public static String getValidHiveName(String columnName) {
+
+	public static String getValidHiveName(final String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
-	
+
 	/**
 	 * Creates a ExtVP table name for the given predicates and join type
-	 * 
-	 * <p>Format of generated table name is extVP_<i>type</i>_<i>predicate1</i>__<i>predicate2</i>
-	 * 
+	 *
+	 * <p>
+	 * Format of generated table name is extVP_<i>type</i>_<i>predicate1</i>__<i>predicate2</i>
+	 *
 	 * @param predicate1
 	 * @param predicate2
-	 * @param type Join type
+	 * @param type
+	 *            Join type
 	 * @return name of ExtVP table
 	 */
-	public static String getExtVPTableName(String predicate1, String predicate2, extVPType type) {	
-		String extVpTableName = "extVP_" + type.toString() + "_" + getValidHiveName(predicate1) + "__" + getValidHiveName(predicate2);
-		
+	public static String getExtVPTableName(final String predicate1, final String predicate2, final extVPType type) {
+		final String extVpTableName =
+				"extVP_" + type.toString() + "_" + getValidHiveName(predicate1) + "__" + getValidHiveName(predicate2);
+
 		return extVpTableName;
 	}
-	
-	//TODO function to insert intermediate data in a table (receives Dataset<Row>
+
+	// TODO function to insert intermediate data in a table (receives Dataset<Row>
 }

@@ -1,14 +1,15 @@
 package extVp;
 
 /**
- * Class containing containing combinations of literals. Used when an ExtVP does not contain all possible entries, but each VP table is filtered by a literal before creating the ExtVP table
+ * Class containing containing combinations of literals. Used when an ExtVP does not contain all possible entries, but
+ * each VP table is filtered by a literal before creating the ExtVP table
  *
  */
 public class LiteralsTuple {
 	String outerLiteral;
 	String innerLiteral;
-	
-	public LiteralsTuple(String outerLiteral, String innerLiteral) {
+
+	public LiteralsTuple(final String outerLiteral, final String innerLiteral) {
 		super();
 		this.outerLiteral = outerLiteral;
 		this.innerLiteral = innerLiteral;
@@ -24,24 +25,31 @@ public class LiteralsTuple {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(final Object obj) {
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
-		LiteralsTuple other = (LiteralsTuple) obj;
+		}
+		final LiteralsTuple other = (LiteralsTuple) obj;
 		if (innerLiteral == null) {
-			if (other.innerLiteral != null)
+			if (other.innerLiteral != null) {
 				return false;
-		} else if (!innerLiteral.equals(other.innerLiteral))
+			}
+		} else if (!innerLiteral.equals(other.innerLiteral)) {
 			return false;
+		}
 		if (outerLiteral == null) {
-			if (other.outerLiteral != null)
+			if (other.outerLiteral != null) {
 				return false;
-		} else if (!outerLiteral.equals(other.outerLiteral))
+			}
+		} else if (!outerLiteral.equals(other.outerLiteral)) {
 			return false;
+		}
 		return true;
 	}
 }
