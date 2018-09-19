@@ -23,22 +23,20 @@ import joinTree.JoinTree;
  * @author Matteo Cossu
  */
 public class Executor {
-
+	private static final Logger logger = Logger.getLogger("PRoST");
 	private String outputFile;
 	private final String databaseName;
 	private JoinTree queryTree;
-	private final List<String[]> query_time_results;
+	private final List<String[]> queryTimeTesults;
 
-	SparkSession spark;
-	SQLContext sqlContext;
-
-	private static final Logger logger = Logger.getLogger("PRoST");
+	private SparkSession spark;
+	private SQLContext sqlContext;
 
 	public Executor(final JoinTree queryTree, final String databaseName) {
 
 		this.databaseName = databaseName;
 		this.queryTree = queryTree;
-		query_time_results = new ArrayList<>();
+		queryTimeTesults = new ArrayList<>();
 
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
@@ -77,28 +75,29 @@ public class Executor {
 		// compute the joins
 		final Dataset<Row> results = queryTree.computeJoins(sqlContext);
 		startTime = System.currentTimeMillis();
-		long number_results = -1;
+		long numberResults = -1;
 		// if specified, save the results in HDFS, just count otherwise
 		if (outputFile != null) {
 			results.write().parquet(outputFile);
 		} else {
-			number_results = results.count();
-			logger.info("Number of Results: " + String.valueOf(number_results));
+			numberResults = results.count();
+			logger.info("Number of Results: " + String.valueOf(numberResults));
 		}
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Execution time JOINS: " + String.valueOf(executionTime));
 
 		// save the results in the list
-		query_time_results.add(
-				new String[] { queryTree.query_name, String.valueOf(executionTime), String.valueOf(number_results) });
+		queryTimeTesults.add(
+				new String[] { queryTree.queryName, String.valueOf(executionTime), String.valueOf(numberResults) });
 
 		final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
 		logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
 	}
 
 	/*
-	 * When called, it loads tables into memory before execution. This method is suggested only for batch execution of
-	 * queries and in general it doesn't produce benefit (only overhead) for queries with large intermediate results.
+	 * When called, it loads tables into memory before execution. This method is suggested
+	 * only for batch execution of queries and in general it doesn't produce benefit (only
+	 * overhead) for queries with large intermediate results.
 	 */
 	public void cacheTables() {
 		sqlContext.sql("USE " + databaseName);
@@ -122,7 +121,7 @@ public class Executor {
 
 				CSVPrinter csvPrinter = new CSVPrinter(writer,
 						CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"));) {
-			for (final String[] res : query_time_results) {
+			for (final String[] res : queryTimeTesults) {
 				csvPrinter.printRecord(res[0], res[1], res[2]);
 			}
 			csvPrinter.flush();
@@ -133,6 +132,6 @@ public class Executor {
 	}
 
 	public void clearQueryTimes() {
-		query_time_results.clear();
+		queryTimeTesults.clear();
 	}
 }

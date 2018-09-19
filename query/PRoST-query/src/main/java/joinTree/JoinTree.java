@@ -17,15 +17,13 @@ import executor.Utils;
  */
 public class JoinTree {
 
+	public String queryName; // identifier for the query, useful for debugging
 	private final Node root;
 	private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
 
-	// identifier for the query, useful for debugging
-	public String query_name;
-
-	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String query_name) {
-		this.query_name = query_name;
+	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String queryName) {
+		this.queryName = queryName;
 		this.root = root;
 		this.optionalTreeRoots = optionalTreeRoots;
 	}

@@ -12,13 +12,10 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 /**
- * Class containing usage statistics of an ExtVP table
+ * Class containing usage statistics of an ExtVP table.
  *
  */
 public class TableStatistic implements Serializable {
-	/**
-	 *
-	 */
 	private static final long serialVersionUID = -4633496814794267474L;
 	private static final Logger logger = Logger.getLogger("PRoST");
 
@@ -74,11 +71,11 @@ public class TableStatistic implements Serializable {
 	}
 
 	/**
-	 * Find an ExtVP table to be used for a triple
+	 * Find an ExtVP table to be used for a triple.
 	 *
 	 * <p>
-	 * Given a triple, and a list of all triples in the query, returns the best existing ExtVP table that exists in the
-	 * database that can be used for that triple
+	 * Given a triple, and a list of all triples in the query, returns the best existing ExtVP
+	 * table that exists in the database that can be used for that triple
 	 * </p>
 	 *
 	 * @param currentTriple
@@ -114,7 +111,7 @@ public class TableStatistic implements Serializable {
 						&& currentSubject.equals(outerSubject)) {
 					// SS
 					final String tableName =
-							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SS);
+							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.ExtVPType.SS);
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
@@ -133,7 +130,7 @@ public class TableStatistic implements Serializable {
 						&& currentObject.equals(outerObject)) {
 					// OO
 					final String tableName =
-							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OO);
+							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.ExtVPType.OO);
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
@@ -151,7 +148,7 @@ public class TableStatistic implements Serializable {
 						&& currentSubject.equals(outerObject)) {
 					// SO
 					final String tableName =
-							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.SO);
+							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.ExtVPType.SO);
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
@@ -169,7 +166,7 @@ public class TableStatistic implements Serializable {
 						&& currentObject.equals(outerSubject)) {
 					// OS
 					final String tableName =
-							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.extVPType.OS);
+							ExtVpCreator.getExtVPTableName(currentPredicate, outerPredicate, ExtVpCreator.ExtVPType.OS);
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
@@ -185,7 +182,8 @@ public class TableStatistic implements Serializable {
 				}
 			}
 
-			// TODO If there's no existing table in the cache, create the table, if there is an unindexed table with
+			// TODO If there's no existing table in the cache, create the table, if there is an
+			// unindexed table with
 			// good selectivity.
 		}
 

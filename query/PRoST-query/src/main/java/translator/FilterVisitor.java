@@ -104,8 +104,7 @@ public class FilterVisitor extends ExprVisitorBase {
 
 	/**
 	 * Return SQL Filter expression.
-	 * 
-	 * @return
+	 *
 	 */
 	public String getSQLFilter() {
 		return builder.toString();

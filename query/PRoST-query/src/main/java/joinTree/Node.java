@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -27,9 +26,7 @@ public abstract class Node {
 	public boolean isVPNode = false;
 	public String filter;
 
-	private boolean isRootNode = false;
-	
-	private static final Logger logger = Logger.getLogger("PRoST");
+	// private static final Logger logger = Logger.getLogger("PRoST");
 
 	public Node() {
 		children = new ArrayList<>();
@@ -39,7 +36,7 @@ public abstract class Node {
 	}
 
 	/**
-	 * computeNodeData sets the Dataset<Row> to the data referring to this node.
+	 * computeNodeData sets the Dataset&ltRow> to the data referring to this node.
 	 */
 	public abstract void computeNodeData(SQLContext sqlContext);
 

@@ -2,19 +2,19 @@ package joinTree;
 
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
 //import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
 
+/**
+ * Join tree node that uses or create a semi-join table.
+ */
 public class ExtVpNode extends Node {
 	// private static final Logger logger = Logger.getLogger("PRoST");
 
 	private final String tableName;
 	private final String tableNameWithDatabaseIdentifier; // databaseName.tableName
-
-	private static final Logger logger = Logger.getLogger("PRoST");
 
 	public ExtVpNode(final TriplePattern triplePattern, final String tableName, final String databaseName) {
 		super();

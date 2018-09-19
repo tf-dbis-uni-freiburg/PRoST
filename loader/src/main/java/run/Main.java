@@ -20,10 +20,11 @@ import loader.VerticalPartitioningLoader;
 import loader.WidePropertyTableLoader;
 
 /**
- * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options: -h, --help prints the usage help message. -i, --input <file> HDFS input path of the RDF graph. -o, --output
- * <DBname> output database name. -s, compute statistics
+ * The Main class parses the CLI arguments and calls the executor. Options: -h, --help
+ * prints the usage help message. -i, --input &ltfile> HDFS input path of the RDF graph.
+ * -o, --output &ltDBname> output database name. -s, compute statistics
+ * </p>
  *
  * @author Matteo Cossu
  */

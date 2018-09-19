@@ -31,34 +31,36 @@ import joinTree.TriplePattern;
 import joinTree.VpNode;
 
 /**
- * This class parses the SPARQL query, build the Tree and save its serialization in a file.
+ * This class parses the SPARQL query, build the Tree and save its serialization in a
+ * file.
  *
  * @author Matteo Cossu
  */
 public class Translator {
-	SparkSession spark;
-	SQLContext sqlContext;
-
+	static final int DEFAULT_MIN_GROUP_SIZE = 2;
+	private static final Logger logger = Logger.getLogger("PRoST");
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
-	final static int DEFAULT_MIN_GROUP_SIZE = 2;
 
-	String inputFile;
-	int treeWidth;
-	int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
-	PrefixMapping prefixes;
+	private final SparkSession spark;
+	private final SQLContext sqlContext;
+
+	private final String inputFile;
+	private int treeWidth;
+	private int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
+	private PrefixMapping prefixes;
 
 	// if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable;
 	private boolean useExtVP = false;
 
-	private static final Logger logger = Logger.getLogger("PRoST");
 	private final String databaseName;
 	private final String extVPDatabaseName;
 	private final DatabaseStatistics extVPDatabaseStatistic;
 	// private Map<String, TableStatistic> extVpStatistics;
 
-	// TODO check this, if you do not specify the treeWidth in the input parameters when you are running the jar, its
+	// TODO check this, if you do not specify the treeWidth in the input parameters when you
+	// are running the jar, its
 	// default value is -1.
 	// TODO Move this logic to the translator
 	public Translator(final String input, final int treeWidth, final String databaseName,
@@ -111,7 +113,8 @@ public class Translator {
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
 
-		// create new extVP nodes if possible. Compares a child node with its parent to create the ExtVP node.
+		// create new extVP nodes if possible. Compares a child node with its parent to create the
+		// ExtVP node.
 		if (useExtVP) {
 			changeVpNodesToExtVPNodes(tree.getRoot(), null);
 			logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
@@ -155,7 +158,8 @@ public class Translator {
 
 		// OLD EXTVP CREATION CALLL => created all possible combinations of extvp tables
 		// ExtVpCreator extVPcreator = new ExtVpCreator();
-		// extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
+		// extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic,
+		// extVPDatabaseName);
 		// logger.info("ExtVP: all tables created!");
 		// logger.info("Database size: " + extVPDatabaseStatistic.getSize());
 	}
@@ -327,8 +331,8 @@ public class Translator {
 	}
 
 	/*
-	 * findRelateNode, given a source node, finds another node with at least one variable in common, if there isn't
-	 * return null
+	 * findRelateNode, given a source node, finds another node with at least one variable in
+	 * common, if there isn't return null
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 		if (sourceNode.isPropertyTable) {
@@ -386,8 +390,8 @@ public class Translator {
 	}
 
 	/*
-	 * heuristicWidth decides a width based on the proportion between the number of elements in a table and the unique
-	 * subjects.
+	 * heuristicWidth decides a width based on the proportion between the number of elements
+	 * in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
 		if (node.isPropertyTable) {

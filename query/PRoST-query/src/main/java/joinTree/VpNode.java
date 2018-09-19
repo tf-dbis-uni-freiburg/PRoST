@@ -6,11 +6,10 @@ import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
 
-/*
+/**
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
 public class VpNode extends Node {
-
 	private final String tableName;
 
 	/*
