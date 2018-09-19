@@ -35,14 +35,19 @@ public class Main {
 	private static String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private static boolean useStatistics = false;
+	private static boolean generateTT = true;
+	private static boolean generateWPT = false;
+	private static boolean generateVP = false;
+	private static boolean generateIWPT = false;
+	private static boolean ttPartitionedByPred = false;
+	private static boolean ttPartitionedBySub = false;
+	private static boolean wptPartitionedBySub = false;
 
 	public static void main(String[] args) throws Exception {
 		InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
 		Properties props = new Properties();
 		props.load(inStream);
 		PropertyConfigurator.configure(props);
-		boolean generateWPT = false;
-		boolean generateVP = false;
 
 		/*
 		 * Manage the CLI options
@@ -57,13 +62,28 @@ public class Main {
 		Option outputOpt = new Option("o", "output", true, "Output database name.");
 		outputOpt.setRequired(true);
 		options.addOption(outputOpt);
-		
-		Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy. ");
+
+		Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
 
 		Option helpOpt = new Option("h", "help", false, "Print this help.");
 		options.addOption(helpOpt);
+
+		Option ttpPartPredOpt = new Option("ttp", "ttPartitionedByPredicate", false,
+				"To physically partition the Triple Table by predicate.");
+		ttpPartPredOpt.setRequired(false);
+		options.addOption(ttpPartPredOpt);
+
+		Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false,
+				"To physically partition the Triple Table by subject.");
+		ttpPartSubOpt.setRequired(false);
+		options.addOption(ttpPartSubOpt);
+
+		Option wptPartSubOpt = new Option("wpts", "wptPartitionedBySub", false,
+				"To physically partition the Wide Property Table by subject.");
+		wptPartSubOpt.setRequired(false);
+		options.addOption(wptPartSubOpt);
 
 		Option statsOpt = new Option("s", "stats", false, "Flag to produce the statistics");
 		options.addOption(statsOpt);
@@ -91,22 +111,59 @@ public class Main {
 			outputDB = cmd.getOptionValue("output");
 			logger.info("Output database set to: " + outputDB);
 		}
-		//default if a logical partition is not specified is to consider all three strategies.
+		// default if a logical partition is not specified only the TT is
+		// generated.
 		if (!cmd.hasOption("logicalPartitionStrategies")) {
-			generateWPT = true;
-			generateVP = true;
+			generateTT = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
-			logger.info("Logical strategy used: TT (mandatory)");
 			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+			if (lpStrategies.contains("TT")) {
+				generateTT = true;
+				logger.info("Logical strategy used: TT");
+			}
 			if (lpStrategies.contains("WPT")) {
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for WPT) with default physical partitioning");
+				}
+				logger.info("Logical strategy used: WPT");
 				generateWPT = true;
-				logger.info("Logical strategy used: WPT");				
 			}
 			if (lpStrategies.contains("VP")) {
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
+				}
 				generateVP = true;
 				logger.info("Logical strategy used: VP");
 			}
+			if (lpStrategies.contains("IWPT")) {
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for IWPT) with default physical partitioning");
+				}
+				logger.info("Logical strategy used: IWPT");
+				generateIWPT = true;
+			}
+		}
+
+		if (cmd.hasOption("ttPartitionedByPredicate") && cmd.hasOption("ttPartitionedBySub")) {
+			logger.error("Triple table cannot be partitioned by both subject and predicate.");
+			return;
+		}
+
+		if (cmd.hasOption("ttPartitionedByPredicate")) {
+			ttPartitionedByPred = true;
+			logger.info("Triple Table will be partitioned by predicate.");
+		}
+		if (cmd.hasOption("ttPartitionedBySub")) {
+			ttPartitionedBySub = true;
+			logger.info("Triple Table will be partitioned by subject.");
+		}
+		if (cmd.hasOption("wptPartitionedBySub")) {
+			wptPartitionedBySub = true;
+			logger.info("Wide Property Table will be partitioned by subject.");
 		}
 		if (cmd.hasOption("stats")) {
 			useStatistics = true;
@@ -116,7 +173,8 @@ public class Main {
 		// Set the loader from the inputFile to the outputDB
 		SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
 
-		// Removing previous instances of the database in case a database with the same
+		// Removing previous instances of the database in case a database with
+		// the same
 		// name already exists.
 		// In this case a new dataset with the same name will be created.
 		spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
@@ -124,24 +182,37 @@ public class Main {
 		long startTime;
 		long executionTime;
 
-		startTime = System.currentTimeMillis();
-		TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark);
-		tt_loader.load();
-		executionTime = System.currentTimeMillis() - startTime;
-		logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
+		if (generateTT) {
+			startTime = System.currentTimeMillis();
+			TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark, ttPartitionedBySub,
+					ttPartitionedByPred);
+			tt_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
+		}
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(input_location, outputDB, spark);
+			WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
 		}
 		
+		if (generateIWPT) {
+			startTime = System.currentTimeMillis();
+			WidePropertyTableLoader ipt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub, true);
+			ipt_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
+		}
+
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
 			VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
-				useStatistics);
+					useStatistics);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
