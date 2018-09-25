@@ -164,7 +164,8 @@ public class DatabaseStatistics implements Serializable {
 	 * Frees up space in ExtVP database.
 	 * <p>
 	 * If the ExtVP database is over the <i>maxSize value</i>, remove tables with lowest
-	 * selectivity until the database size is at most <i>expectedSize</i>
+	 * selectivity until the database size is at most <i>expectedSize</i> A <i>maxSize</i>
+	 * value of -1 means the cache is never cleared.
 	 * </p>
 	 *
 	 * @param expectedSize
@@ -175,8 +176,10 @@ public class DatabaseStatistics implements Serializable {
 	 *            Spark session
 	 */
 	public void clearCache(final long expectedSize, final long maxSize, final SparkSession spark) {
-		if (maxSize < size) {
-			clearCache(expectedSize, spark);
+		if (maxSize != -1) {
+			if (maxSize < size) {
+				clearCache(expectedSize, spark);
+			}
 		}
 	}
 }

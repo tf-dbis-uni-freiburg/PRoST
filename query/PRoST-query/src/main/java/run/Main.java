@@ -44,7 +44,7 @@ public class Main {
 	private static String benchmark_file;
 	private static String loj4jFileName = "log4j.properties";
 	private static boolean useExtVP = false;
-	private static long extVPMaximumSize = 25000; // 25000=~5gb
+	private static long extVPMaximumSize = -1; // 25000=~5gb -1=never clear cache
 
 	private static DatabaseStatistics extVPDatabaseStatistics;
 	private static String extVPDatabaseName;
