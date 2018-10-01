@@ -16,7 +16,6 @@ import executor.Utils;
  *
  */
 public class JoinTree {
-
 	private final Node root;
 	private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;

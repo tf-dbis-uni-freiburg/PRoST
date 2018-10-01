@@ -22,6 +22,7 @@ public abstract class Node {
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	public boolean isPropertyTable = false;
+	public boolean isInversePropertyTable = false;
 	public String filter;
 
 	public Node() {
@@ -67,10 +68,17 @@ public abstract class Node {
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
 		if (this instanceof PtNode) {
+			str.append("pt node: ");
+			for (final TriplePattern tp_group : tripleGroup) {
+				str.append(tp_group.toString() + ", ");
+			}
+		} else if (this instanceof IptNode) {
+			str.append("ipt node: ");
 			for (final TriplePattern tp_group : tripleGroup) {
 				str.append(tp_group.toString() + ", ");
 			}
 		} else {
+			str.append("vp node: ");
 			str.append(triplePattern.toString());
 		}
 		str.append(" }");

@@ -10,10 +10,9 @@ public class NodeComparator implements Comparator<Node> {
 
 	// used to sort nodes when building a join tree
 	public float heuristicNodePriority(final Node node) {
-
 		float priority = 0;
 
-		if (node.isPropertyTable) { // Property Table NODE
+		if (node.isPropertyTable || node.isInversePropertyTable) {
 			for (final TriplePattern t : node.tripleGroup) {
 				final boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
 				final boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;
