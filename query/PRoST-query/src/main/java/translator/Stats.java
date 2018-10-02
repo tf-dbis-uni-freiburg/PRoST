@@ -89,7 +89,7 @@ public class Stats {
 			tableStats.put(tableNames[i], table);
 			tableSize.put(tableNames[i], table.getSize());
 			tableDistinctSubjects.put(tableNames[i], table.getDistinctSubjects());
-			iptPropertyComplexity.put(tableNames[i], table.isInverseComplex());
+			iptPropertyComplexity.put(tableNames[i], table.getIsInverseComplex());
 			i++;
 		}
 		logger.info("Statistics correctly parsed");
