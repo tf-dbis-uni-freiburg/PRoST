@@ -22,8 +22,8 @@ import loader.WidePropertyTableLoader;
 /**
  * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options: -h, --help prints the usage help message. -i, --input <file> HDFS input path of the RDF graph. -o, --output
- * <DBname> output database name. -s, compute statistics
+ * Options: -h, --help prints the usage help message. -i, --input <file> HDFS input path
+ * of the RDF graph. -o, --output <DBname> output database name. -s, compute statistics
  *
  * @author Matteo Cossu
  */
@@ -192,7 +192,7 @@ public class Main {
 			logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
 		}
 
-		if (generateWPT) {
+		if (generateWPT & !generateIWPT) {
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader pt_loader =
 					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub);
@@ -201,10 +201,10 @@ public class Main {
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
 		}
 
-		if (generateIWPT) {
+		if (generateIWPT & !generateWPT) {
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader ipt_loader =
-					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub, true);
+					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub, true, false);
 			ipt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
@@ -217,6 +217,22 @@ public class Main {
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+		}
+
+		if (generateWPT && generateIWPT) {
+			/*
+			 * final String join =
+			 * ("select * from wide_property_table full outer join inverse_wide_property_table on " +
+			 * "wide_property_table.s = inverse_wide_property_table.o"); final Dataset<Row> pt =
+			 * spark.sql(join);
+			 * pt.write().mode(SaveMode.Overwrite).format("parquet").saveAsTable("pt");
+			 */
+			startTime = System.currentTimeMillis();
+			final WidePropertyTableLoader joinedWpt_loader =
+					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub, false, true);
+			joinedWpt_loader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Joined Property Table: " + String.valueOf(executionTime));
 		}
 	}
 }
