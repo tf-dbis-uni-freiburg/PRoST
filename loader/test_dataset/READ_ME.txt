@@ -48,7 +48,7 @@ ERROR PRoST - Either your HDFS path does not contain any files or no triples wer
 
 ****test_case7  -> ?
 
-****test_case8  -> ?
-<http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1/givenname> <http://dbpedia.org/resource/Template:Sisterlinks> .
-<http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1/givenname> <http://dbpedia.org/resource/Res3> .
-<http://dbpedia.org/resource/Anarchism5> <http://dbpedia.org/property/pro1/givenname> <http://dbpedia.org/resource/Res1> .
+****test_case8  -> PASSED
+[[<http://dbpedia.org/resource/Anarchism1>,<http://dbpedia.org/property/pro1/givenname>,<http://dbpedia.org/resource/Template:Sisterlinks>],
+[<http://dbpedia.org/resource/Anarchism1>,<http://dbpedia.org/property/pro1/givenname>,<http://dbpedia.org/resource/Res3>],
+[<http://dbpedia.org/resource/Anarchism5>,<http://dbpedia.org/property/pro1/givenname>,<http://dbpedia.org/resource/Res1>]]

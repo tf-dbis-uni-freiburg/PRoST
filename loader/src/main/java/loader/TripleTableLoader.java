@@ -176,7 +176,7 @@ public class TripleTableLoader extends Loader {
 			}
 			Dataset<Row> objectsWithMultipleLiterals = spark
 					.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE " + column_name_object
-							+ " RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"");
+							+ " RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"'");
 			if (objectsWithMultipleLiterals.count() > 0) {
 				logger.info("---of which " + objectsWithMultipleLiterals.count() + " have multiple objects");
 			}
