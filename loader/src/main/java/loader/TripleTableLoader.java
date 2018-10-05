@@ -71,6 +71,52 @@ public class TripleTableLoader extends Loader {
 			logger.info("Total number of triples loaded: " + allTriples.count());
 		if (rawTriples.count() != allTriples.count()) {
 			logger.info("Number of corrupted triples found: " + (rawTriples.count() - allTriples.count()));
+			//We will log here a sample of triples which could not be uploaded
+			Dataset<Row> triplesWithNullSubjects =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_subject + " is null");
+			Dataset<Row> triplesWithNullPredicates =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_predicate + " is null");
+			Dataset<Row> triplesWithNullObjects =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object + " is null");
+			if (triplesWithNullSubjects.count() > 0) {
+				logger.info("---of which " + triplesWithNullSubjects.count() + " had a null value in the subject column" );
+			}
+			if (triplesWithNullPredicates.count() > 0) {
+				logger.info("---of which " + triplesWithNullPredicates.count() + " had a null value in the predicate column" );
+			}
+			if (triplesWithNullObjects.count() > 0) {
+				logger.info("---of which " + triplesWithNullObjects.count() + " had a null value in the object column" );
+			}
+			Dataset<Row> triplesWithMalformedSubjects =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_subject + " RLIKE '^\\s*\\.\\s*$'");
+			Dataset<Row> triplesWithMalformedPredicates =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_predicate + " RLIKE '^\\s*\\.\\s*$'");
+			Dataset<Row> triplesWithMalformedObjects =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object + " RLIKE '^\\s*\\.\\s*$'");
+			if (triplesWithMalformedSubjects.count() > 0) {
+				logger.info("---of which " + triplesWithMalformedSubjects.count() + " have malformed subjects" );
+			}
+			if (triplesWithMalformedPredicates.count() > 0) {
+				logger.info("---of which " + triplesWithMalformedPredicates.count() + " have malformed predicates" );
+			}
+			if (triplesWithMalformedObjects.count() > 0) {
+				logger.info("---of which " + triplesWithMalformedObjects.count() + " have malformed objects" );
+			}
+			Dataset<Row> triplesWithMultipleObjects =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object + " RLIKE '^\\s*<.*<.*>'");
+			if (triplesWithMultipleObjects.count() > 0) {
+				logger.info("---of which " + triplesWithMultipleObjects.count() + " have multiple objects" );
+			}
+			Dataset<Row> objectsWithMultipleLiterals =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object + " RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"");
+			if (objectsWithMultipleLiterals.count() > 0) {
+				logger.info("---of which " + objectsWithMultipleLiterals.count() + " have multiple objects" );
+			}
+			Dataset<Row> longPredicates =
+					spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE LENGTH(" + column_name_predicate + ") < 128");			
+			if (longPredicates.count() > 0) {
+				logger.info("---of which " + longPredicates.count() + " have predicates with more than 128 characters" );
+			}
 		}
 		List cleanedList = allTriples.limit(10).collectAsList();
 		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
