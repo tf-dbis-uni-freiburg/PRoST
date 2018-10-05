@@ -2,50 +2,48 @@ package translator;
 
 import java.util.Comparator;
 
-import JoinTree.*;
+import joinTree.ElementType;
+import joinTree.Node;
+import joinTree.TriplePattern;
 
 public class NodeComparator implements Comparator<Node> {
 
 	// used to sort nodes when building a join tree
-	public float heuristicNodePriority(Node node){
-		
+	public float heuristicNodePriority(final Node node) {
 		float priority = 0;
 
-        if (node.isPropertyTable) { // Property Table NODE
-
-			for(TriplePattern t : node.tripleGroup){
-				boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
-				boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;
-				if (!isObjectVariable || !isSubjectVariable){
+		if (node.isPropertyTable || node.isInversePropertyTable) {
+			for (final TriplePattern t : node.tripleGroup) {
+				final boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
+				final boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;
+				if (!isObjectVariable || !isSubjectVariable) {
 					priority = 0;
 					break;
 				}
-				String predicate = t.predicate;
-                int size = Stats.getInstance().getTableSize(predicate);
-				priority += (float) size; 
+				final String predicate = t.predicate;
+				final int size = Stats.getInstance().getTableSize(predicate);
+				priority += size;
 			}
-        } else { // Vertical Partitioning NODE
-			String predicate = node.triplePattern.predicate;
-			boolean isObjectVariable = node.triplePattern.objectType == ElementType.VARIABLE;
-			boolean isSubjectVariable = node.triplePattern.subjectType == ElementType.VARIABLE;
-			if (!isObjectVariable || !isSubjectVariable){
+		} else { // Vertical Partitioning NODE
+			final String predicate = node.triplePattern.predicate;
+			final boolean isObjectVariable = node.triplePattern.objectType == ElementType.VARIABLE;
+			final boolean isSubjectVariable = node.triplePattern.subjectType == ElementType.VARIABLE;
+			if (!isObjectVariable || !isSubjectVariable) {
 				priority = 0;
 			} else {
-                int size = Stats.getInstance().getTableSize(predicate);
-                priority = (float) size;
+				final int size = Stats.getInstance().getTableSize(predicate);
+				priority = size;
 			}
 		}
 		return priority;
 	}
-	
-	
-	
+
 	@Override
-	public int compare(Node node1, Node node2) {
-		
-		float priorityNode1 = heuristicNodePriority(node1);
-		float priorityNode2 = heuristicNodePriority(node2);
-	
+	public int compare(final Node node1, final Node node2) {
+
+		final float priorityNode1 = heuristicNodePriority(node1);
+		final float priorityNode2 = heuristicNodePriority(node2);
+
 		return (int) Math.ceil(priorityNode2 - priorityNode1);
 	}
 
