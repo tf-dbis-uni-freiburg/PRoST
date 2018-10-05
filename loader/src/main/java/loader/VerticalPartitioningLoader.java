@@ -46,14 +46,15 @@ public class VerticalPartitioningLoader extends Loader {
 
 		for (int i = 0; i < properties_names.length; i++) {
 			final String property = properties_names[i];
-			final String createVPTableFixed =
-					String.format("CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
-							"vp_" + getValidHiveName(property), column_name_subject, column_name_object);
+			final String createVPTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
+					"vp_" + getValidHiveName(property), column_name_subject, column_name_object);
 			// Commented code is partitioning by subject
 			/*
 			 * String createVPTableFixed = String.format(
-			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET" , "vp_" +
-			 * this.getValidHiveName(property), column_name_subject, column_name_object);
+			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET"
+			 * , "vp_" + this.getValidHiveName(property), column_name_subject,
+			 * column_name_object);
 			 */
 			spark.sql(createVPTableFixed);
 
@@ -63,9 +64,12 @@ public class VerticalPartitioningLoader extends Loader {
 					column_name_predicate, property);
 			// Commented code is partitioning by subject
 			/*
-			 * String populateVPTable = String.format( "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
-			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
-			 * column_name_subject, column_name_object, name_tripletable, column_name_predicate, property);
+			 * String populateVPTable = String.format(
+			 * "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
+			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" +
+			 * this.getValidHiveName(property), column_name_subject,
+			 * column_name_object, name_tripletable, column_name_predicate,
+			 * property);
 			 */
 			spark.sql(populateVPTable);
 
@@ -91,8 +95,9 @@ public class VerticalPartitioningLoader extends Loader {
 	}
 
 	/*
-	 * calculate the statistics for a single table: size, number of distinct subjects and isComplex. It returns a
-	 * protobuf object defined in ProtobufStats.proto
+	 * calculate the statistics for a single table: size, number of distinct
+	 * subjects and isComplex. It returns a protobuf object defined in
+	 * ProtobufStats.proto
 	 */
 	private TableStats calculate_stats_table(final Dataset<Row> table, final String tableName) {
 		final TableStats.Builder table_stats_builder = TableStats.newBuilder();

@@ -45,15 +45,18 @@ You can load a graph with PRoST in the following way:
 
     spark2-submit --class run.Main PRoST-Loader.jar -i <HDFS_path_RDF_graph> -o <output_DB_name> -lp <logical_partition_strategies> -s
 	Example:
-	spark2-submit --class run.Main /home/user/PRoST-Loader-0.0.1-SNAPSHOT.jar -i /data/original/DbPedia -o dbpedia -lp WPT,VP -s
+	spark2-submit --class run.Main /home/user/PRoST-Loader-0.0.1-SNAPSHOT.jar -i /data/original/DbPedia -o dbpedia -lp TT,WPT,VP -s
 	
 
 The input RDF graph is loaded from the HDFS path specified with the -i option.
 
 The option -o contains the name of the database in which PRoST will store the graph using its own representation.
 
-The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies. 
-Possible values are "WPT" for Wide Property Table and "VP" for Vertical Partitioning. Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. Moreover, -lp is optional. In case this parameter is missing the default behavior is to use all possible strategies. The strategy Triple Table (TT) is mandatory.
+The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies, for instance "TT,WPT,VP".
+Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IWPT" for inverse property table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
+Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. 
+The strategy "TT" might be automatically triggered if "WPT", "IWPT", or "VP" are selected because they have a dependency on that table.
+If "WPT", and "IWPT" are specified together, the loader will generate a table which is the join of both property tables.
 
 If the option -s is present, the loader produces a .stats file in the local node, required for querying.
 Note that this file will be generated in the same path from which the application is run. 
