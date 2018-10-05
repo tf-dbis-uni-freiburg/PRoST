@@ -53,7 +53,7 @@ The input RDF graph is loaded from the HDFS path specified with the -i option.
 The option -o contains the name of the database in which PRoST will store the graph using its own representation.
 
 The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies, for instance "TT,WPT,VP".
-Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IWPT" for inverse property table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
+Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IWPT" for Inverse Wide Property Table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
 Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. 
 The strategy "TT" might be automatically triggered if "WPT", "IWPT", or "VP" are selected because they have a dependency on that table.
 If "WPT", and "IWPT" are specified together, the loader will generate a table which is the join of both property tables.
