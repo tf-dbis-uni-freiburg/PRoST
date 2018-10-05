@@ -127,7 +127,7 @@ public class TripleTableLoader extends Loader {
 		// problems parsing the files.
 		if (rawTriples.count() != allTriples.count()) {
 			Dataset<Row> triplesWithDuplicates = spark
-					.sql("SELECT * FROM " + name_tripletable + "_raw" + " GROUP BY " + column_name_subject + ", "
+					.sql("SELECT * FROM " + name_tripletable + "_ext" + " GROUP BY " + column_name_subject + ", "
 							+ column_name_predicate + ", " + column_name_object + " HAVING COUNT(*) > 1");
 			logger.info("Number of duplicates found: " + (triplesWithDuplicates.count()));
 
@@ -138,11 +138,11 @@ public class TripleTableLoader extends Loader {
 			// The idea would be to sample some of the triples which are not
 			// working and write them to the log file.
 			Dataset<Row> triplesWithNullSubjects = spark
-					.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_subject + " is null");
+					.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE " + column_name_subject + " is null");
 			Dataset<Row> triplesWithNullPredicates = spark
-					.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_predicate + " is null");
+					.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE " + column_name_predicate + " is null");
 			Dataset<Row> triplesWithNullObjects = spark
-					.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object + " is null");
+					.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE " + column_name_object + " is null");
 			if (triplesWithNullSubjects.count() > 0) {
 				logger.info(
 						"---of which " + triplesWithNullSubjects.count() + " had a null value in the subject column");
@@ -154,11 +154,11 @@ public class TripleTableLoader extends Loader {
 			if (triplesWithNullObjects.count() > 0) {
 				logger.info("---of which " + triplesWithNullObjects.count() + " had a null value in the object column");
 			}
-			Dataset<Row> triplesWithMalformedSubjects = spark.sql("SELECT * FROM " + name_tripletable + "_raw"
+			Dataset<Row> triplesWithMalformedSubjects = spark.sql("SELECT * FROM " + name_tripletable + "_ext"
 					+ " WHERE " + column_name_subject + " RLIKE '^\\s*\\.\\s*$'");
-			Dataset<Row> triplesWithMalformedPredicates = spark.sql("SELECT * FROM " + name_tripletable + "_raw"
+			Dataset<Row> triplesWithMalformedPredicates = spark.sql("SELECT * FROM " + name_tripletable + "_ext"
 					+ " WHERE " + column_name_predicate + " RLIKE '^\\s*\\.\\s*$'");
-			Dataset<Row> triplesWithMalformedObjects = spark.sql("SELECT * FROM " + name_tripletable + "_raw"
+			Dataset<Row> triplesWithMalformedObjects = spark.sql("SELECT * FROM " + name_tripletable + "_ext"
 					+ " WHERE " + column_name_object + " RLIKE '^\\s*\\.\\s*$'");
 			if (triplesWithMalformedSubjects.count() > 0) {
 				logger.info("---of which " + triplesWithMalformedSubjects.count() + " have malformed subjects");
@@ -169,18 +169,18 @@ public class TripleTableLoader extends Loader {
 			if (triplesWithMalformedObjects.count() > 0) {
 				logger.info("---of which " + triplesWithMalformedObjects.count() + " have malformed objects");
 			}
-			Dataset<Row> triplesWithMultipleObjects = spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE "
+			Dataset<Row> triplesWithMultipleObjects = spark.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE "
 					+ column_name_object + " RLIKE '^\\s*<.*<.*>'");
 			if (triplesWithMultipleObjects.count() > 0) {
 				logger.info("---of which " + triplesWithMultipleObjects.count() + " have multiple objects");
 			}
 			Dataset<Row> objectsWithMultipleLiterals = spark
-					.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE " + column_name_object
+					.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE " + column_name_object
 							+ " RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\"");
 			if (objectsWithMultipleLiterals.count() > 0) {
 				logger.info("---of which " + objectsWithMultipleLiterals.count() + " have multiple objects");
 			}
-			Dataset<Row> longPredicates = spark.sql("SELECT * FROM " + name_tripletable + "_raw" + " WHERE LENGTH("
+			Dataset<Row> longPredicates = spark.sql("SELECT * FROM " + name_tripletable + "_ext" + " WHERE LENGTH("
 					+ column_name_predicate + ") < 128");
 			if (longPredicates.count() > 0) {
 				logger.info("---of which " + longPredicates.count() + " have predicates with more than 128 characters");
