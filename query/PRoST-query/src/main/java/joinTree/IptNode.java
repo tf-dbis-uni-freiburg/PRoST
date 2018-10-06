@@ -52,7 +52,7 @@ public class IptNode extends Node {
 
 	/**
 	 * Uses the database statistics to determine if the object of triples in the node is
-	 * complex
+	 * complex.
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
