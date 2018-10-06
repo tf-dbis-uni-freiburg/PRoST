@@ -19,80 +19,82 @@ import org.apache.spark.sql.functions;
 import scala.Tuple2;
 
 /**
- * Class that constructs complex property table. It operates over set of RDF
- * triples, collects and transforms information about them into a table. If we
- * have a list of predicates/properties p1, ... , pN, then the scheme of the
- * table is (s: STRING, p1: LIST<STRING> OR STRING, ..., pN: LIST<STRING> OR
- * STRING). Column s contains subjects. For each subject , there is only one row
- * in the table. Each predicate can be of complex or simple type. If a predicate
- * is of simple type means that there is no subject which has more than one
- * triple containing this property/predicate. Then the predicate column is of
- * type STRING. Otherwise, if a predicate is of complex type which means that
- * there exists at least one subject which has more than one triple containing
- * this property/predicate. Then the predicate column is of type LIST<STRING>.
+ * Class that constructs complex property table. It operates over set of RDF triples,
+ * collects and transforms information about them into a table. If we have a list of
+ * predicates/properties p1, ... , pN, then the scheme of the table is (s: STRING, p1:
+ * LIST<STRING> OR STRING, ..., pN: LIST<STRING> OR STRING). Column s contains subjects.
+ * For each subject , there is only one row in the table. Each predicate can be of complex
+ * or simple type. If a predicate is of simple type means that there is no subject which
+ * has more than one triple containing this property/predicate. Then the predicate column
+ * is of type STRING. Otherwise, if a predicate is of complex type which means that there
+ * exists at least one subject which has more than one triple containing this
+ * property/predicate. Then the predicate column is of type LIST<STRING>.
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
  * @author Guilherme Schievelbein
  */
+
 public class WidePropertyTableLoader extends Loader {
-
-	protected String hdfs_input_directory;
-
-	private final String tablename_properties = "properties";
+	/**
+	 * Type of the property table to be created. WPT = Wide Property Table IWPT = Inverse
+	 * Wide; Property Table; JWPT = Joined Wide Property Table
+	 */
+	public static enum PropertyTableType {
+	WPT, IWPT, JWPT
+	}
 
 	/**
 	 * Separator used internally to distinguish two values in the same string.
 	 */
 	public String columns_separator = "\\$%";
-
-	protected String output_db_name;
-	protected String output_tablename = "wide_property_table";
 	public String column_name_subject = super.column_name_subject;
 	public String column_name_object = super.column_name_object;
-	protected boolean wptPartitionedBySub = false;
-	private boolean isInversePropertyTable = false;
-	private boolean isJoinedTable = false;
 
+	protected String hdfs_input_directory;
+	protected String output_db_name;
+	protected String output_tablename = "wide_property_table";
+	protected boolean wptPartitionedBySub = false;
+
+	private final String tablename_properties = "properties";
+	private PropertyTableType propertyTableType = PropertyTableType.WPT;
+
+	/**
+	 * Constructor for a normal Wide Property Table loader. PropertyTableType defaults to WPT.
+	 */
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
 			final SparkSession spark, final boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
-
+		propertyTableType = PropertyTableType.WPT;
 	}
 
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
-			final SparkSession spark, final boolean wptPartitionedBySub, final boolean isInversePropertyTable,
-			final boolean isJoinedTable) {
+			final SparkSession spark, final boolean wptPartitionedBySub, final PropertyTableType propertyTableType) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
+		this.propertyTableType = propertyTableType;
 
-		this.isJoinedTable = isJoinedTable;
-		if (!isJoinedTable) {
-			this.isInversePropertyTable = isInversePropertyTable;
-			if (isInversePropertyTable) {
-				output_tablename = "inverse_" + output_tablename;
-				final String temp = column_name_subject;
-				column_name_subject = column_name_object;
-				column_name_object = temp;
-			}
-		} else {
-			output_tablename = "joined_property_table";
+		if (propertyTableType == PropertyTableType.IWPT) {
+			output_tablename = "inverse_" + output_tablename;
+			final String temp = column_name_subject;
+			column_name_subject = column_name_object;
+			column_name_object = temp;
+		} else if (propertyTableType == PropertyTableType.JWPT) {
+			output_tablename = "joined_".concat(output_tablename);
 		}
 	}
 
 	@Override
 	public void load() {
-		if (isJoinedTable) {
-			isInversePropertyTable = false;
-			final Dataset<Row> wpt = loadDataset();
+		if (propertyTableType == PropertyTableType.JWPT) {
+			final Dataset<Row> wpt = loadDataset("o_", false);
 			final String temp = column_name_subject;
 			column_name_subject = column_name_object;
 			column_name_object = temp;
-			isInversePropertyTable = true;
-			final Dataset<Row> iwpt = loadDataset();
-
-			final Dataset<Row> joinedPT = wpt.join(iwpt, wpt.col("s").equalTo(iwpt.col("o")), "outer");
+			final Dataset<Row> iwpt = loadDataset("s_", true);
+			final Dataset<Row> joinedPT = wpt.join(iwpt, scala.collection.JavaConverters
+					.asScalaIteratorConverter(Arrays.asList("s").iterator()).asScala().toSeq(), "outer");
 			saveTable(joinedPT);
 
 		} else {
@@ -101,11 +103,12 @@ public class WidePropertyTableLoader extends Loader {
 	}
 
 	/**
-	 * This method handles the problem when two predicate are the same in a
-	 * case-insensitive context but different in a case-sensitve one. For
-	 * instance: <http://example.org/somename> and
-	 * <http://example.org/someName>. Since Hive is case insensitive the problem
-	 * will be solved removing one of the entries from the list of predicates.
+	 * This method handles the problem when two predicate are the same in a case-insensitive
+	 * context but different in a case-sensitve one. For instance:
+	 * <http://example.org/somename> and <http://example.org/someName>. Since Hive is case
+	 * insensitive the problem will be solved removing one of the entries from the list of
+	 * predicates.
+	 *
 	 */
 	public Map<String, Boolean> handleCaseInsPredAndCard(final Map<String, Boolean> propertiesMultivaluesMap) {
 		final Set<String> seenPredicates = new HashSet<>();
@@ -155,16 +158,16 @@ public class WidePropertyTableLoader extends Loader {
 		logger.info("Number of Single-valued Properties found: " + singledValueProperties.count());
 
 		// combine them
-		final Dataset<Row> combinedProperties = singledValueProperties
-				.selectExpr(column_name_predicate, "0 AS is_complex")
-				.union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
+		final Dataset<Row> combinedProperties =
+				singledValueProperties.selectExpr(column_name_predicate, "0 AS is_complex")
+						.union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
 
 		// remove '<' and '>', convert the characters
 		final Dataset<Row> cleanedProperties = combinedProperties.withColumn("p",
 				functions.regexp_replace(functions.translate(combinedProperties.col("p"), "<>", ""), "[[^\\w]+]", "_"));
 
-		final List<Tuple2<String, Integer>> cleanedPropertiesList = cleanedProperties
-				.as(Encoders.tuple(Encoders.STRING(), Encoders.INT())).collectAsList();
+		final List<Tuple2<String, Integer>> cleanedPropertiesList =
+				cleanedProperties.as(Encoders.tuple(Encoders.STRING(), Encoders.INT())).collectAsList();
 		if (cleanedPropertiesList.size() > 0) {
 			logger.info("Clean Properties (stored): " + cleanedPropertiesList);
 		}
@@ -174,17 +177,28 @@ public class WidePropertyTableLoader extends Loader {
 	}
 
 	/**
-	 * Create the final property table, allProperties contains the list of all
-	 * possible properties isMultivaluedProperty contains (in the same order
-	 * used by allProperties) the boolean value that indicates if that property
-	 * is multi-valued or not.
+	 * Create the final property table.
+	 *
+	 * @param allProperties
+	 *            contains the list of all possible properties
+	 * @param isMultivaluedProperty
+	 *            contains (in the same order used by <code>allProperties</code> the boolean
+	 *            value that indicates if that property is multi-valued or not
+	 * @param prefix
+	 *            The prefix to be added to the columns. <code>null</code> if no prefix is
+	 *            added.
+	 * @param swapSubjectObjectColumnNames
+	 *            <code>true</code> to change the first column name in the final table for the
+	 *            <code>column_name_object</code> value. I.e.: changes "o" to "s" in an IWPT.
+	 * @return
 	 */
-	private Dataset<Row> buildWidePropertyTable(final String[] allProperties, final Boolean[] isMultivaluedProperty) {
+	private Dataset<Row> buildWidePropertyTable(final String[] allProperties, final Boolean[] isMultivaluedProperty,
+			final String prefix, final Boolean swapSubjectObjectColumnNames) {
 		logger.info("Building the complete property table.");
 
 		// create a new aggregation environment
-		final PropertiesAggregateFunction aggregator = new PropertiesAggregateFunction(allProperties,
-				columns_separator);
+		final PropertiesAggregateFunction aggregator =
+				new PropertiesAggregateFunction(allProperties, columns_separator);
 
 		final String predicateObjectColumn = "po";
 		final String groupColumn = "group";
@@ -205,7 +219,8 @@ public class WidePropertyTableLoader extends Loader {
 			// if property is a full URI, remove the < at the beginning end > at
 			// the end
 			final String rawProperty = allProperties[i].startsWith("<") && allProperties[i].endsWith(">")
-					? allProperties[i].substring(1, allProperties[i].length() - 1) : allProperties[i];
+					? allProperties[i].substring(1, allProperties[i].length() - 1)
+					: allProperties[i];
 			// if is not a complex type, extract the value
 			final String newProperty = isMultivaluedProperty[i]
 					? " " + groupColumn + "[" + String.valueOf(i) + "] AS " + getValidHiveName(rawProperty)
@@ -219,28 +234,45 @@ public class WidePropertyTableLoader extends Loader {
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
 		// renames the column so that its name is consistent with the non
-		// inverse Wide Property
-		// Table.This guarantees that any method that access a Property Table
-		// can be used with a
-		// Inverse Property Table without any changes
-		if (isInversePropertyTable) {
-			// propertyTable =
-			// propertyTable.withColumnRenamed(column_name_subject,
-			// column_name_object);
-
-			for (final String property : allProperties) {
-				propertyTable = propertyTable.withColumnRenamed(property, "s_".concat(property));
-			}
-		} else {
-			for (final String property : allProperties) {
-				propertyTable = propertyTable.withColumnRenamed(property, "o_".concat(property));
-			}
+		// inverse Wide Property Table.This guarantees that any method that access a Property
+		// Table can be used with a Inverse Property Table without any changes
+		if (swapSubjectObjectColumnNames) {
+			propertyTable = propertyTable.withColumnRenamed(column_name_subject, column_name_object);
 		}
 
+		if (prefix != null) {
+			for (final String property : allProperties) {
+				propertyTable = propertyTable.withColumnRenamed(property, prefix.concat(property));
+			}
+		}
 		return propertyTable;
 	}
 
+	/**
+	 * Generates a dataset with the Property Table.
+	 *
+	 * @return Property table dataset
+	 */
 	private Dataset<Row> loadDataset() {
+		if (propertyTableType == PropertyTableType.IWPT) {
+			return loadDataset(null, true);
+		} else {
+			return loadDataset(null, false);
+		}
+
+	}
+
+	/**
+	 * Generates a dataset with the Property Table.
+	 *
+	 * @param prefix
+	 *            The prefix to be added to columns. <code>null</code> if none is added.
+	 * @param swapSubjectObjectColumnNames
+	 *            <code>true</code> to change the first column name in the final table for the
+	 *            <code>column_name_object</code> value. I.e.: changes "o" to "s" in an IWPT.
+	 * @return
+	 */
+	private Dataset<Row> loadDataset(final String prefix, final Boolean swapSubjectObjectColumnNames) {
 		logger.info("PHASE 2: creating the property table...");
 
 		buildPropertiesAndCardinalities();
@@ -282,14 +314,20 @@ public class WidePropertyTableLoader extends Loader {
 		isMultivaluedProperty = isMultivaluedPropertyList.toArray(new Boolean[allPropertiesList.size()]);
 
 		// create wide property table
-		return buildWidePropertyTable(allProperties, isMultivaluedProperty);
+		return buildWidePropertyTable(allProperties, isMultivaluedProperty, prefix, swapSubjectObjectColumnNames);
 	}
 
+	/**
+	 * Saves the dataset in Hive.
+	 *
+	 * @param propertyTableDataset
+	 *            Property table dataset to be saved
+	 */
 	private void saveTable(final Dataset<Row> propertyTableDataset) {
 		// write the final one, partitioned by subject
 		// propertyTable = propertyTable.repartition(1000, column_name_subject);
 		if (wptPartitionedBySub) {
-			if (isInversePropertyTable) {
+			if (propertyTableType == PropertyTableType.IWPT) {
 				propertyTableDataset.write().mode(SaveMode.Overwrite).partitionBy(column_name_object)
 						.format(table_format).saveAsTable(output_tablename);
 			} else {
