@@ -1,11 +1,16 @@
 package joinTree;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.spark.sql.SQLContext;
 
+import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.shared.PrefixMapping;
+
 import executor.Utils;
+import translator.JoinedTriplesGroup;
 import translator.Stats;
 
 /**
@@ -19,16 +24,34 @@ public class JptNode extends Node {
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
-	public JptNode(final List<TriplePattern> wptTripleGroup, final List<TriplePattern> iwptTripleGroup) {
-		super();
-		this.wptTripleGroup = wptTripleGroup;
-		this.iwptTripleGroup = iwptTripleGroup;
+	public JptNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
+		// TODO Check if it's necessary to a list of all types contained triple patterns. Probably
+		// used when calculating projections
+		tripleGroup = new ArrayList<>();
+
+		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
+		wptTripleGroup = wptTriplePatterns;
+		children = new ArrayList<>();
+		projection = Collections.emptyList();
+		// this.stats = stats;
+		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
+			wptTriplePatterns.add(new TriplePattern(t, prefixes));
+			tripleGroup.add(new TriplePattern(t, prefixes));
+		}
+
+		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
+		iwptTripleGroup = iwptTriplePatterns;
+		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
+			iwptTriplePatterns.add(new TriplePattern(t, prefixes));
+			tripleGroup.add(new TriplePattern(t, prefixes));
+		}
+
 		setIsComplex();
 	}
 
 	/**
 	 * Uses the database statistics to determine if the column in the JWPT for each triple
-	 * pattern is complex
+	 * pattern is complex.
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
