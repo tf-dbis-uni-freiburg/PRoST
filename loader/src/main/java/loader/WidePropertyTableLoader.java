@@ -57,6 +57,7 @@ public class WidePropertyTableLoader extends Loader {
 	protected boolean wptPartitionedBySub = false;
 
 	private final String tablename_properties = "properties";
+	private final String inversePropertiesTableName = "inverse_properties";
 	private PropertyTableType propertyTableType = PropertyTableType.WPT;
 
 	/**
@@ -88,11 +89,11 @@ public class WidePropertyTableLoader extends Loader {
 	@Override
 	public void load() {
 		if (propertyTableType == PropertyTableType.JWPT) {
-			final Dataset<Row> wpt = loadDataset("o_", false);
+			final Dataset<Row> wpt = loadDataset("o_", false, tablename_properties);
 			final String temp = column_name_subject;
 			column_name_subject = column_name_object;
 			column_name_object = temp;
-			final Dataset<Row> iwpt = loadDataset("s_", true);
+			final Dataset<Row> iwpt = loadDataset("s_", true, inversePropertiesTableName);
 			final Dataset<Row> joinedPT = wpt.join(iwpt, scala.collection.JavaConverters
 					.asScalaIteratorConverter(Arrays.asList("s").iterator()).asScala().toSeq(), "outer");
 			saveTable(joinedPT);
@@ -135,7 +136,13 @@ public class WidePropertyTableLoader extends Loader {
 		return propertiesMultivaluesMap;
 	}
 
-	public void buildPropertiesAndCardinalities() {
+	/**
+	 * Creates a table with all properties and their cardinalities.
+	 *
+	 * @param tableName
+	 *            the name of the table to be created
+	 */
+	public void buildPropertiesAndCardinalities(final String tableName) {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
 		// 1 for multivalued predicate, 0 for single predicate
@@ -173,7 +180,7 @@ public class WidePropertyTableLoader extends Loader {
 		}
 
 		// write the result
-		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
+		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable(tableName);
 	}
 
 	/**
@@ -255,9 +262,9 @@ public class WidePropertyTableLoader extends Loader {
 	 */
 	private Dataset<Row> loadDataset() {
 		if (propertyTableType == PropertyTableType.IWPT) {
-			return loadDataset(null, true);
+			return loadDataset(null, true, inversePropertiesTableName);
 		} else {
-			return loadDataset(null, false);
+			return loadDataset(null, false, tablename_properties);
 		}
 
 	}
@@ -270,15 +277,18 @@ public class WidePropertyTableLoader extends Loader {
 	 * @param swapSubjectObjectColumnNames
 	 *            <code>true</code> to change the first column name in the final table for the
 	 *            <code>column_name_object</code> value. I.e.: changes "o" to "s" in an IWPT.
+	 * @param propertiesTableName
+	 *            Name of the table to be created with all properties and their cardinalities
 	 * @return
 	 */
-	private Dataset<Row> loadDataset(final String prefix, final Boolean swapSubjectObjectColumnNames) {
+	private Dataset<Row> loadDataset(final String prefix, final Boolean swapSubjectObjectColumnNames,
+			final String propertiesTableName) {
 		logger.info("PHASE 2: creating the property table...");
 
-		buildPropertiesAndCardinalities();
+		buildPropertiesAndCardinalities(propertiesTableName);
 
 		// collect information for all properties
-		final List<Row> props = spark.sql(String.format("SELECT * FROM %s", tablename_properties)).collectAsList();
+		final List<Row> props = spark.sql(String.format("SELECT * FROM %s", propertiesTableName)).collectAsList();
 		String[] allProperties = new String[props.size()];
 		Boolean[] isMultivaluedProperty = new Boolean[props.size()];
 

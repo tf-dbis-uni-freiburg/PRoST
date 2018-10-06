@@ -128,6 +128,7 @@ public class Main {
 			generateVP = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
+			// TODO instead of using contains, the input should be split, and be tested with equals
 			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 			if (lpStrategies.contains("TT")) {
 				generateTT = true;
@@ -150,7 +151,7 @@ public class Main {
 				generateVP = true;
 				logger.info("Logical strategy used: VP");
 			}
-			if (lpStrategies.contains("IWPT")) {
+			if (lpStrategies.contains("IPT")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
@@ -159,7 +160,7 @@ public class Main {
 				logger.info("Logical strategy used: IWPT");
 				generateIWPT = true;
 			}
-			if (lpStrategies.contains("JWPT")) {
+			if (lpStrategies.contains("JPT")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
