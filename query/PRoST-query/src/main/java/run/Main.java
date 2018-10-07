@@ -74,10 +74,10 @@ public class Main {
 		// final Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical
 		// Partitioning");
 		// options.addOption(propertyTableOpt);
-		final Option propertyTableOpt = new Option("p", "property_table", false, "Use Propery Table");
+		final Option propertyTableOpt = new Option("pt", "property_table", false, "Use Propery Table");
 		options.addOption(propertyTableOpt);
 		final Option reversePropertyTableOpt =
-				new Option("ip", "inverse_property_table", false, "Use Inverse Property Table");
+				new Option("ipt", "inverse_property_table", false, "Use Inverse Property Table");
 		options.addOption(reversePropertyTableOpt);
 		final Option joinedPropertyTable =
 				new Option("jpt", "joined_property_table", false, "Use the Joined Property Table");
@@ -124,9 +124,9 @@ public class Main {
 			usePropertyTable = true;
 			logger.info("Using Property Table.");
 		}
-		if (cmd.hasOption("reverse_property_table")) {
+		if (cmd.hasOption("inverse_property_table")) {
 			useInversePropertyTable = true;
-			logger.info("Using Reverse Property Table.");
+			logger.info("Using Inverse Property Table.");
 		}
 		if (cmd.hasOption("joined_property_table")) {
 			useInversePropertyTable = false;
@@ -196,6 +196,11 @@ public class Main {
 		}
 		if (useInversePropertyTable) {
 			translator.setInversePropertyTable(true);
+		}
+		if (useJoinedPropertyTable) {
+			translator.setUseJoinedPropertyTable(true);
+			translator.setInversePropertyTable(false);
+			translator.setPropertyTable(false);
 		}
 		// if (!useVP) {
 		// translator.setPropertyTable(true);

@@ -226,7 +226,7 @@ public class Translator {
 			// PT disabled
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 
-			logger.info("RPT and VP only");
+			logger.info("IPT and VP only");
 			// create and add the proper nodes
 			for (final String object : objectGroups.keySet()) {
 				createRPtVPNode(objectGroups.get(object), nodesQueue);
@@ -459,11 +459,11 @@ public class Translator {
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 
-		if (sourceNode.isPropertyTable) {
+		if (sourceNode.isPropertyTable || sourceNode.isInversePropertyTable || sourceNode instanceof JptNode) {
 			// sourceNode is a group
 			for (final TriplePattern tripleSource : sourceNode.tripleGroup) {
 				for (final Node node : availableNodes) {
-					if (node.isPropertyTable) {
+					if (node.isPropertyTable || node.isInversePropertyTable || sourceNode instanceof JptNode) {
 						for (final TriplePattern tripleDest : node.tripleGroup) {
 							if (existsVariableInCommon(tripleSource, tripleDest)) {
 								return node;
@@ -476,7 +476,6 @@ public class Translator {
 					}
 				}
 			}
-
 		} else {
 			// source node is not a group
 			for (final Node node : availableNodes) {
@@ -518,7 +517,7 @@ public class Translator {
 	 * in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
-		if (node.isPropertyTable) {
+		if (node.isPropertyTable || node.isInversePropertyTable || node instanceof JptNode) {
 			return 5;
 		}
 		final String predicate = node.triplePattern.predicate;
