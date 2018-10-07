@@ -192,15 +192,15 @@ public class Main {
 	private static JoinTree translateSingleQuery(final String query, final int width) {
 		final Translator translator = new Translator(query, width);
 		if (usePropertyTable) {
-			translator.setPropertyTable(true);
+			translator.setUsePropertyTable(true);
 		}
 		if (useInversePropertyTable) {
-			translator.setInversePropertyTable(true);
+			translator.setUseInversePropertyTable(true);
 		}
 		if (useJoinedPropertyTable) {
 			translator.setUseJoinedPropertyTable(true);
-			translator.setInversePropertyTable(false);
-			translator.setPropertyTable(false);
+			translator.setUseInversePropertyTable(false);
+			translator.setUsePropertyTable(false);
 		}
 		// if (!useVP) {
 		// translator.setPropertyTable(true);

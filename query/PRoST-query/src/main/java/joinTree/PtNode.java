@@ -17,12 +17,8 @@ import translator.Stats;
  */
 public class PtNode extends Node {
 
-	/*
-	 * The node contains a list of triple patterns with the same subject.
-	 */
 	public PtNode(final List<TriplePattern> tripleGroup) {
 		super();
-		isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
 	}
@@ -33,7 +29,6 @@ public class PtNode extends Node {
 	 */
 	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
-		isPropertyTable = true;
 		tripleGroup = triplePatterns;
 		children = new ArrayList<>();
 		projection = Collections.emptyList();

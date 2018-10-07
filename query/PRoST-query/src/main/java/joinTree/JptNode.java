@@ -25,33 +25,33 @@ public class JptNode extends Node {
 	private final List<TriplePattern> iwptTripleGroup;
 
 	public JptNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
-		// TODO Check if it's necessary to a list of all types contained triple patterns. Probably
-		// used when calculating projections
-		tripleGroup = new ArrayList<>();
+		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
+		tripleGroup = triplePatterns;
 
 		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
 		wptTripleGroup = wptTriplePatterns;
 		children = new ArrayList<>();
 		projection = Collections.emptyList();
-		// this.stats = stats;
 		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
-			wptTriplePatterns.add(new TriplePattern(t, prefixes));
-			tripleGroup.add(new TriplePattern(t, prefixes));
+			final TriplePattern tp = new TriplePattern(t, prefixes);
+			wptTriplePatterns.add(tp);
+			triplePatterns.add(tp);
 		}
 
 		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
 		iwptTripleGroup = iwptTriplePatterns;
 		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
-			iwptTriplePatterns.add(new TriplePattern(t, prefixes));
-			tripleGroup.add(new TriplePattern(t, prefixes));
+			final TriplePattern tp = new TriplePattern(t, prefixes);
+			iwptTriplePatterns.add(tp);
+			triplePatterns.add(tp);
 		}
-
 		setIsComplex();
 	}
 
 	/**
-	 * Uses the database statistics to determine if the column in the JWPT for each triple
-	 * pattern is complex.
+	 * Uses the database statistics to determine if the column in the JWPT for each
+	 * <code>TriplePattern</code> in <code>wptTripleGroup</code> and
+	 * <code>iwptTripleGroup</code>is complex.
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
