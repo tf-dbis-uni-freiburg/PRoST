@@ -17,24 +17,18 @@ import translator.Stats;
  */
 public class PtNode extends Node {
 
-	/*
-	 * The node contains a list of triple patterns with the same subject.
-	 */
 	public PtNode(final List<TriplePattern> tripleGroup) {
-
 		super();
-		isPropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
-
 	}
 
 	/*
-	 * Alternative constructor, used to instantiate a Node directly with a list of jena triple patterns.
+	 * Alternative constructor, used to instantiate a Node directly with a list of jena triple
+	 * patterns.
 	 */
 	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
-		isPropertyTable = true;
 		tripleGroup = triplePatterns;
 		children = new ArrayList<>();
 		projection = Collections.emptyList();
@@ -92,7 +86,7 @@ public class PtNode extends Node {
 		query.deleteCharAt(query.length() - 1);
 
 		// TODO: parameterize the name of the table
-		query.append(" FROM property_table ");
+		query.append(" FROM wide_property_table ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);

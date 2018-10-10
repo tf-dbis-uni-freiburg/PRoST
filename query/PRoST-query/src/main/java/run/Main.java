@@ -39,6 +39,7 @@ public class Main {
 	// private static boolean useVP = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
+	private static boolean useJoinedPropertyTable = false;
 	private static int setGroupSize = -1;
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
@@ -73,11 +74,14 @@ public class Main {
 		// final Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical
 		// Partitioning");
 		// options.addOption(propertyTableOpt);
-		final Option propertyTableOpt = new Option("p", "property_table", false, "Use Propery Table");
+		final Option propertyTableOpt = new Option("pt", "property_table", false, "Use Propery Table");
 		options.addOption(propertyTableOpt);
 		final Option reversePropertyTableOpt =
-				new Option("ip", "inverse_property_table", false, "Use Inverse Property Table");
+				new Option("ipt", "inverse_property_table", false, "Use Inverse Property Table");
 		options.addOption(reversePropertyTableOpt);
+		final Option joinedPropertyTable =
+				new Option("jpt", "joined_property_table", false, "Use the Joined Property Table");
+		options.addOption(joinedPropertyTable);
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
 		final Option groupsizeOpt = new Option("g", "groupsize", true, "Minimum Group Size for Property Table nodes");
@@ -120,9 +124,15 @@ public class Main {
 			usePropertyTable = true;
 			logger.info("Using Property Table.");
 		}
-		if (cmd.hasOption("reverse_property_table")) {
+		if (cmd.hasOption("inverse_property_table")) {
 			useInversePropertyTable = true;
-			logger.info("Using Reverse Property Table.");
+			logger.info("Using Inverse Property Table.");
+		}
+		if (cmd.hasOption("joined_property_table")) {
+			useInversePropertyTable = false;
+			usePropertyTable = false;
+			useJoinedPropertyTable = true;
+			logger.info("Using Joined Property Table.");
 		}
 		if (cmd.hasOption("groupsize")) {
 			setGroupSize = Integer.valueOf(cmd.getOptionValue("groupsize"));
@@ -182,10 +192,15 @@ public class Main {
 	private static JoinTree translateSingleQuery(final String query, final int width) {
 		final Translator translator = new Translator(query, width);
 		if (usePropertyTable) {
-			translator.setPropertyTable(true);
+			translator.setUsePropertyTable(true);
 		}
 		if (useInversePropertyTable) {
-			translator.setInversePropertyTable(true);
+			translator.setUseInversePropertyTable(true);
+		}
+		if (useJoinedPropertyTable) {
+			translator.setUseJoinedPropertyTable(true);
+			translator.setUseInversePropertyTable(false);
+			translator.setUsePropertyTable(false);
 		}
 		// if (!useVP) {
 		// translator.setPropertyTable(true);

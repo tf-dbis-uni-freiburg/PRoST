@@ -32,65 +32,70 @@ import scala.Tuple2;
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
+ * @author Guilherme Schievelbein
  */
+
 public class WidePropertyTableLoader extends Loader {
-
-	protected String hdfs_input_directory;
-
-	private final String tablename_properties = "properties";
+	/**
+	 * Type of the property table to be created. WPT = Wide Property Table IWPT = Inverse
+	 * Wide; Property Table; JWPT = Joined Wide Property Table
+	 */
+	public static enum PropertyTableType {
+	WPT, IWPT, JWPT
+	}
 
 	/**
 	 * Separator used internally to distinguish two values in the same string.
 	 */
 	public String columns_separator = "\\$%";
-
-	protected String output_db_name;
-	protected String output_tablename = "wide_property_table";
 	public String column_name_subject = super.column_name_subject;
 	public String column_name_object = super.column_name_object;
-	protected boolean wptPartitionedBySub = false;
-	private boolean isInversePropertyTable = false;
-	private boolean isJoinedTable = false;
 
+	protected String hdfs_input_directory;
+	protected String output_db_name;
+	protected String output_tablename = "wide_property_table";
+	protected boolean wptPartitionedBySub = false;
+
+	private final String tablename_properties = "properties";
+	private final String inversePropertiesTableName = "inverse_properties";
+	private PropertyTableType propertyTableType = PropertyTableType.WPT;
+
+	/**
+	 * Constructor for a normal Wide Property Table loader. PropertyTableType defaults to WPT.
+	 */
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
 			final SparkSession spark, final boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
-
+		propertyTableType = PropertyTableType.WPT;
 	}
 
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
-			final SparkSession spark, final boolean wptPartitionedBySub, final boolean isInversePropertyTable,
-			final boolean isJoinedTable) {
+			final SparkSession spark, final boolean wptPartitionedBySub, final PropertyTableType propertyTableType) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
+		this.propertyTableType = propertyTableType;
 
-		this.isJoinedTable = isJoinedTable;
-		if (!isJoinedTable) {
-			this.isInversePropertyTable = isInversePropertyTable;
-			if (isInversePropertyTable) {
-				output_tablename = "inverse_" + output_tablename;
-				final String temp = column_name_subject;
-				column_name_subject = column_name_object;
-				column_name_object = temp;
-			}
-		} else {
-			output_tablename = "joined_property_table";
+		if (propertyTableType == PropertyTableType.IWPT) {
+			output_tablename = "inverse_" + output_tablename;
+			final String temp = column_name_subject;
+			column_name_subject = column_name_object;
+			column_name_object = temp;
+		} else if (propertyTableType == PropertyTableType.JWPT) {
+			output_tablename = "joined_".concat(output_tablename);
 		}
 	}
 
 	@Override
 	public void load() {
-		if (isJoinedTable) {
-			isInversePropertyTable = false;
-			final Dataset<Row> wpt = loadDataset();
+		if (propertyTableType == PropertyTableType.JWPT) {
+			final Dataset<Row> wpt = loadDataset("o_", false, tablename_properties);
 			final String temp = column_name_subject;
 			column_name_subject = column_name_object;
 			column_name_object = temp;
-			isInversePropertyTable = true;
-			final Dataset<Row> iwpt = loadDataset();
-
-			final Dataset<Row> joinedPT = wpt.join(iwpt, wpt.col("s").equalTo(iwpt.col("o")), "outer");
+			final Dataset<Row> iwpt = loadDataset("s_", true, inversePropertiesTableName);
+			final Dataset<Row> joinedPT = wpt.join(iwpt, scala.collection.JavaConverters
+					.asScalaIteratorConverter(Arrays.asList("s").iterator()).asScala().toSeq(), "outer");
 			saveTable(joinedPT);
 
 		} else {
@@ -104,6 +109,7 @@ public class WidePropertyTableLoader extends Loader {
 	 * <http://example.org/somename> and <http://example.org/someName>. Since Hive is case
 	 * insensitive the problem will be solved removing one of the entries from the list of
 	 * predicates.
+	 *
 	 */
 	public Map<String, Boolean> handleCaseInsPredAndCard(final Map<String, Boolean> propertiesMultivaluesMap) {
 		final Set<String> seenPredicates = new HashSet<>();
@@ -130,7 +136,13 @@ public class WidePropertyTableLoader extends Loader {
 		return propertiesMultivaluesMap;
 	}
 
-	public void buildPropertiesAndCardinalities() {
+	/**
+	 * Creates a table with all properties and their cardinalities.
+	 *
+	 * @param tableName
+	 *            the name of the table to be created
+	 */
+	public void buildPropertiesAndCardinalities(final String tableName) {
 		// return rows of format <predicate, is_complex>
 		// is_complex can be 1 or 0
 		// 1 for multivalued predicate, 0 for single predicate
@@ -168,15 +180,27 @@ public class WidePropertyTableLoader extends Loader {
 		}
 
 		// write the result
-		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable("properties");
+		cleanedProperties.write().mode(SaveMode.Overwrite).saveAsTable(tableName);
 	}
 
 	/**
-	 * Create the final property table, allProperties contains the list of all possible
-	 * properties isMultivaluedProperty contains (in the same order used by allProperties) the
-	 * boolean value that indicates if that property is multi-valued or not.
+	 * Create the final property table.
+	 *
+	 * @param allProperties
+	 *            contains the list of all possible properties
+	 * @param isMultivaluedProperty
+	 *            contains (in the same order used by <code>allProperties</code> the boolean
+	 *            value that indicates if that property is multi-valued or not
+	 * @param prefix
+	 *            The prefix to be added to the columns. <code>null</code> if no prefix is
+	 *            added.
+	 * @param swapSubjectObjectColumnNames
+	 *            <code>true</code> to change the first column name in the final table for the
+	 *            <code>column_name_object</code> value. I.e.: changes "o" to "s" in an IWPT.
+	 * @return
 	 */
-	private Dataset<Row> buildWidePropertyTable(final String[] allProperties, final Boolean[] isMultivaluedProperty) {
+	private Dataset<Row> buildWidePropertyTable(final String[] allProperties, final Boolean[] isMultivaluedProperty,
+			final String prefix, final Boolean swapSubjectObjectColumnNames) {
 		logger.info("Building the complete property table.");
 
 		// create a new aggregation environment
@@ -216,76 +240,55 @@ public class WidePropertyTableLoader extends Loader {
 
 		Dataset<Row> propertyTable = grouped.selectExpr(selectProperties);
 
-		// renames the column so that its name is consistent with the non inverse Wide Property
-		// Table.This guarantees that any method that access a Property Table can be used with a
-		// Inverse Property Table without any changes
-		if (isInversePropertyTable) {
-			// propertyTable = propertyTable.withColumnRenamed(column_name_subject,
-			// column_name_object);
-
-			for (final String property : allProperties) {
-				propertyTable = propertyTable.withColumnRenamed(property, "s_".concat(property));
-			}
-		} else {
-			for (final String property : allProperties) {
-				propertyTable = propertyTable.withColumnRenamed(property, "o_".concat(property));
-			}
+		// renames the column so that its name is consistent with the non
+		// inverse Wide Property Table.This guarantees that any method that access a Property
+		// Table can be used with a Inverse Property Table without any changes
+		if (swapSubjectObjectColumnNames) {
+			propertyTable = propertyTable.withColumnRenamed(column_name_subject, column_name_object);
 		}
 
+		if (prefix != null) {
+			for (final String property : allProperties) {
+				propertyTable = propertyTable.withColumnRenamed(property, prefix.concat(property));
+			}
+		}
 		return propertyTable;
-
-		// List<Row> sampledRowsList = propertyTable.limit(10).collectAsList();
-		// logger.info("First 10 rows sampled from the PROPERTY TABLE (or less
-		// if there
-		// are less): " + sampledRowsList);
-
-		/*
-		 * //This code is to create a TT partitioned by subject with a fixed number of
-		 * partiitions. //Run the code with: //Delete after results are there.
-		 * logger.info("Number of partitions of WPT  before repartitioning: " +
-		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable1000 =
-		 * propertyTable.repartition(1000, propertyTable.col(column_name_subject));
-		 * propertyTable1000.write().saveAsTable("wpt_partBySub_1000");
-		 * logger.info("Number of partitions after repartitioning: " +
-		 * propertyTable1000.rdd().getNumPartitions());
-		 *
-		 * logger.info("Number of partitions of WPT  before repartitioning: " +
-		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable500 =
-		 * propertyTable.repartition(500, propertyTable.col(column_name_subject));
-		 * propertyTable500.write().saveAsTable("wpt_partBySub_500");
-		 * logger.info("Number of partitions after repartitioning: " +
-		 * propertyTable500.rdd().getNumPartitions());
-		 *
-		 * logger.info("Number of partitions of WPT  before repartitioning: " +
-		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable100 =
-		 * propertyTable.repartition(100, propertyTable.col(column_name_subject));
-		 * propertyTable100.write().saveAsTable("wpt_partBySub_100");
-		 * logger.info("Number of partitions after repartitioning: " +
-		 * propertyTable100.rdd().getNumPartitions());
-		 *
-		 * logger.info("Number of partitions of WPT  before repartitioning: " +
-		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable25 =
-		 * propertyTable.repartition(25, propertyTable.col(column_name_subject));
-		 * propertyTable25.write().saveAsTable("wpt_partBySub_25");
-		 * logger.info("Number of partitions after repartitioning: " +
-		 * propertyTable25.rdd().getNumPartitions());
-		 *
-		 * logger.info("Number of partitions of WPT  before repartitioning: " +
-		 * propertyTable.rdd().getNumPartitions()); Dataset<Row> propertyTable10 =
-		 * propertyTable.repartition(10, propertyTable.col(column_name_subject));
-		 * propertyTable10.write().saveAsTable("wpt_partBySub_10");
-		 * logger.info("Number of partitions after repartitioning: " +
-		 * propertyTable10.rdd().getNumPartitions());
-		 */
 	}
 
+	/**
+	 * Generates a dataset with the Property Table.
+	 *
+	 * @return Property table dataset
+	 */
 	private Dataset<Row> loadDataset() {
+		if (propertyTableType == PropertyTableType.IWPT) {
+			return loadDataset(null, true, inversePropertiesTableName);
+		} else {
+			return loadDataset(null, false, tablename_properties);
+		}
+
+	}
+
+	/**
+	 * Generates a dataset with the Property Table.
+	 *
+	 * @param prefix
+	 *            The prefix to be added to columns. <code>null</code> if none is added.
+	 * @param swapSubjectObjectColumnNames
+	 *            <code>true</code> to change the first column name in the final table for the
+	 *            <code>column_name_object</code> value. I.e.: changes "o" to "s" in an IWPT.
+	 * @param propertiesTableName
+	 *            Name of the table to be created with all properties and their cardinalities
+	 * @return
+	 */
+	private Dataset<Row> loadDataset(final String prefix, final Boolean swapSubjectObjectColumnNames,
+			final String propertiesTableName) {
 		logger.info("PHASE 2: creating the property table...");
 
-		buildPropertiesAndCardinalities();
+		buildPropertiesAndCardinalities(propertiesTableName);
 
 		// collect information for all properties
-		final List<Row> props = spark.sql(String.format("SELECT * FROM %s", tablename_properties)).collectAsList();
+		final List<Row> props = spark.sql(String.format("SELECT * FROM %s", propertiesTableName)).collectAsList();
 		String[] allProperties = new String[props.size()];
 		Boolean[] isMultivaluedProperty = new Boolean[props.size()];
 
@@ -321,14 +324,20 @@ public class WidePropertyTableLoader extends Loader {
 		isMultivaluedProperty = isMultivaluedPropertyList.toArray(new Boolean[allPropertiesList.size()]);
 
 		// create wide property table
-		return buildWidePropertyTable(allProperties, isMultivaluedProperty);
+		return buildWidePropertyTable(allProperties, isMultivaluedProperty, prefix, swapSubjectObjectColumnNames);
 	}
 
+	/**
+	 * Saves the dataset in Hive.
+	 *
+	 * @param propertyTableDataset
+	 *            Property table dataset to be saved
+	 */
 	private void saveTable(final Dataset<Row> propertyTableDataset) {
 		// write the final one, partitioned by subject
 		// propertyTable = propertyTable.repartition(1000, column_name_subject);
 		if (wptPartitionedBySub) {
-			if (isInversePropertyTable) {
+			if (propertyTableType == PropertyTableType.IWPT) {
 				propertyTableDataset.write().mode(SaveMode.Overwrite).partitionBy(column_name_object)
 						.format(table_format).saveAsTable(output_tablename);
 			} else {

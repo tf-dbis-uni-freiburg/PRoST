@@ -23,7 +23,6 @@ public class IptNode extends Node {
 	 */
 	public IptNode(final List<TriplePattern> tripleGroup) {
 		super();
-		isInversePropertyTable = true;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
 
@@ -34,12 +33,12 @@ public class IptNode extends Node {
 	 * patterns with the same object.
 	 *
 	 * @param jenaTriples
-	 *            list of Triples refering to the same object
+	 *            list of Triples refering to the same object.
 	 * @param prefixes
+	 *            prefix mapping of the properties.
 	 */
 	public IptNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
-		isInversePropertyTable = true;
 		tripleGroup = triplePatterns;
 		children = new ArrayList<>();
 		projection = Collections.emptyList();
@@ -52,7 +51,7 @@ public class IptNode extends Node {
 
 	/**
 	 * Uses the database statistics to determine if the object of triples in the node is
-	 * complex
+	 * complex.
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
