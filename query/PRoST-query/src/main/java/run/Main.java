@@ -71,9 +71,6 @@ public class Main {
 		options.addOption(helpOpt);
 		final Option widthOpt = new Option("w", "width", true, "The maximum Tree width");
 		options.addOption(widthOpt);
-		// final Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical
-		// Partitioning");
-		// options.addOption(propertyTableOpt);
 		final Option propertyTableOpt = new Option("pt", "property_table", false, "Use Propery Table");
 		options.addOption(propertyTableOpt);
 		final Option reversePropertyTableOpt =
@@ -202,9 +199,6 @@ public class Main {
 			translator.setUseInversePropertyTable(false);
 			translator.setUsePropertyTable(false);
 		}
-		// if (!useVP) {
-		// translator.setPropertyTable(true);
-		// }
 		if (setGroupSize != -1) {
 			translator.setMinimumGroupSize(setGroupSize);
 		}
@@ -232,5 +226,4 @@ public class Main {
 		}
 		return sample;
 	}
-
 }

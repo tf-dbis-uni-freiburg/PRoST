@@ -25,7 +25,6 @@ public class IptNode extends Node {
 		super();
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
-
 	}
 
 	/**
@@ -42,7 +41,6 @@ public class IptNode extends Node {
 		tripleGroup = triplePatterns;
 		children = new ArrayList<>();
 		projection = Collections.emptyList();
-		// this.stats = stats;
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}

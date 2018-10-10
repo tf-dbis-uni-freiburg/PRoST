@@ -61,13 +61,13 @@ public class WidePropertyTableLoader extends Loader {
 	private PropertyTableType propertyTableType = PropertyTableType.WPT;
 
 	/**
-	 * Constructor for a normal Wide Property Table loader. PropertyTableType defaults to WPT.
+	 * Constructor for a Wide Property Table loader with the default
+	 * <code>propertyTableType</code> value.
 	 */
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
 			final SparkSession spark, final boolean wptPartitionedBySub) {
 		super(hdfs_input_directory, database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
-		propertyTableType = PropertyTableType.WPT;
 	}
 
 	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
@@ -184,7 +184,7 @@ public class WidePropertyTableLoader extends Loader {
 	}
 
 	/**
-	 * Create the final property table.
+	 * Create the property table dataset.
 	 *
 	 * @param allProperties
 	 *            contains the list of all possible properties

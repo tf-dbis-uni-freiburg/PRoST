@@ -164,9 +164,9 @@ public class Main {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
-							"Logical strategy activated: TT (mandatory for IWPT) with default physical partitioning");
+							"Logical strategy activated: TT (mandatory for JWPT) with default physical partitioning");
 				}
-				logger.info("Logical strategy used: IWPT");
+				logger.info("Logical strategy used: JWPT");
 				generateJWPT = true;
 			}
 		}
@@ -243,13 +243,6 @@ public class Main {
 		}
 
 		if (generateJWPT) {
-			/*
-			 * final String join =
-			 * ("select * from wide_property_table full outer join inverse_wide_property_table on " +
-			 * "wide_property_table.s = inverse_wide_property_table.o"); final Dataset<Row> pt =
-			 * spark.sql(join); pt.write().mode(SaveMode.Overwrite).format("parquet").saveAsTable
-			 * ("pt");
-			 */
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader joinedWpt_loader = new WidePropertyTableLoader(input_location, outputDB,
 					spark, wptPartitionedBySub, PropertyTableType.JWPT);
