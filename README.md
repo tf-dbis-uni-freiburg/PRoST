@@ -35,7 +35,7 @@ To build PRoST run:
     mvn package
 
 ## PRoST-Loader: loading RDF graphs and creating the logical partitions.
-PRoST-Loader generates partitions according to the following three strategies: Triple Table (TT), Wide Property Table (WPT), and Vertical Partitioning (VP).
+PRoST-Loader generates partitions according to the following five strategies: Triple Table (TT), Wide Property Table (WPT), Inverse Wide Property Table (IWPT), Joined Wide Property Table (JWPT), and Vertical Partitioning (VP).
 
 NEW: Support for N-Triples documents.
 
@@ -53,11 +53,11 @@ The input RDF graph is loaded from the HDFS path specified with the -i option.
 The option -o contains the name of the database in which PRoST will store the graph using its own representation.
 
 The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies, for instance "TT,WPT,VP".
-Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IPT" for Inverse Wide Property Table, "JPT" for a single table with the joined data of both Inverse Wide Property Table and Wide Property Table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
+Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IWPT" for Inverse Wide Property Table, "JWPT" for a single table with the joined data from both a Inverse Wide Property Table and a Wide Property Table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
 Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. 
 The strategy "TT" might be automatically triggered if "WPT", "IPT", "JPT" or "VP" are selected because they have a dependency on that table.
 
-If the option -s is present, the loader produces a .stats file in the local node, required for querying.
+If the option -s is present, the loader produces a .stats file in the local node, required for querying. The strategy "VP" might be automatically triggered, as it is needed to generate the statistics.
 Note that this file will be generated in the same path from which the application is run. 
 
 Please be aware that there might be limitations in the number of columns a wide property table might have in order to be written.
@@ -80,7 +80,14 @@ If you wish to do so, add the following lines to the log4j.properties file:
 ## PRoST-Query: Querying with SPARQL
 To query the data use the following command:
 
-    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file>
+    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file> -wpt
+
+This command will execute the queries using both VP and WPT models.
     
 The database name and the statistics file need to be the ones used to load the graph.
 The -o option contains the name of the HDFS file in which PRoST will save the results of the query.
+The -wpt enables the use of the WPT. 
+One might also use the option -iwpt to enable the use of the IWPT. IWPT may be used together with the WPT model.
+The -jwpt option enables the use of the JWPT model. If it is enabled, WPT and IWPT will be automatically disabled.
+If no grouped strategy (WPT, IWPT, or JWPT) is used, only VP will be used.
+Alternatively, one might use the option -g <minimum_group_size> to set the minimum size of the WPT, IWPT, and JWPT nodes. If this option is not present, the minimum size defaults to 2. A minimum group size of 1 (-g 1) guarantees that VP will not be used.
