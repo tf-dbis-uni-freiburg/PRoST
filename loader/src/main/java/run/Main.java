@@ -145,6 +145,7 @@ public class Main {
 							"Logical strategy activated: TT (mandatory for WPT) with default physical partitioning");
 				}
 				generateWPT = true;
+				logger.info("Logical strategy used: WPT");
 			}
 			if (strategies.contains("VP")) {
 				if (generateTT == false) {

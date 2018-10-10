@@ -168,7 +168,7 @@ public class Translator {
 
 		if (useJoinedPropertyTable) {
 			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
-			logger.info("Joined PT and VP models only");
+			logger.info("JWPT and VP models only");
 
 			while (!joinedGroups.isEmpty()) {
 				// get biggest group
@@ -215,7 +215,7 @@ public class Translator {
 			// RPT disabled
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 
-			logger.info("PT and VP models only");
+			logger.info("WPT and VP models only");
 
 			// create and add the proper nodes
 			for (final String subject : subjectGroups.keySet()) {
@@ -225,7 +225,7 @@ public class Translator {
 			// PT disabled
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 
-			logger.info("IPT and VP only");
+			logger.info("IWPT and VP only");
 			// create and add the proper nodes
 			for (final String object : objectGroups.keySet()) {
 				createRPtVPNode(objectGroups.get(object), nodesQueue);
@@ -234,7 +234,7 @@ public class Translator {
 			// RPT, PT, and VP enabled
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			logger.info("Mixed strategy");
+			logger.info("WPT, IWPT, and VP models only");
 
 			// repeats until there are no unassigned triple patterns left
 			while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
@@ -295,7 +295,7 @@ public class Translator {
 			}
 		} else {
 			// VP only
-			logger.info("VP only");
+			logger.info("VP model only");
 			for (final Triple t : triples) {
 				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
 				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
