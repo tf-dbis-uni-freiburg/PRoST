@@ -79,7 +79,7 @@ public class Main {
 
 		final Option duplicatesOpt = new Option("dp", "dropDuplicates", true,
 				"Option to remove duplicates from all logical partitioning tables.");
-		options.addOption(statsOpt);
+		options.addOption(duplicatesOpt);
 
 		// Settings for physically partitioning some of the tables
 		final Option ttpPartPredOpt = new Option("ttp", "ttPartitionedByPredicate", false,
