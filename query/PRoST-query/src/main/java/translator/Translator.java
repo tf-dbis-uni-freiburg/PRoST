@@ -268,7 +268,7 @@ public class Translator {
 	 * element.
 	 *
 	 * @param joinedGroup
-	 *            <code>JoindedTriplesGroup</code> object with the lists of WPT and IWPT
+	 *            <code>JoinedTriplesGroup</code> object with the lists of WPT and IWPT
 	 *            groups to be added to a single JWPT node, or to individual VP nodes
 	 * @param nodesQueue
 	 *            PriorityQueue where created nodes are added to
@@ -371,7 +371,7 @@ public class Translator {
 	 *
 	 * @param triples
 	 *            triples to be grouped
-	 * @return hashmap of triples grouped by the subject
+	 * @return HashMap of triples grouped by the subject
 	 */
 	private HashMap<String, List<Triple>> getSubjectGroups(final List<Triple> triples) {
 		final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
@@ -394,7 +394,7 @@ public class Translator {
 	 *
 	 * @param triples
 	 *            triples to be grouped
-	 * @return hashmap of triples grouped by the object
+	 * @return HashMap of triples grouped by the object
 	 */
 	private HashMap<String, List<Triple>> getObjectGroups(final List<Triple> triples) {
 		final HashMap<String, List<Triple>> objectGroups = new HashMap<>();
