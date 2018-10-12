@@ -8,7 +8,7 @@ public class JoinedTriplesGroup {
 	private final HashSet<Triple> wptGroup;
 	private final HashSet<Triple> iwptGroup;
 
-	public JoinedTriplesGroup() {
+	JoinedTriplesGroup() {
 		wptGroup = new HashSet<>();
 		iwptGroup = new HashSet<>();
 	}
@@ -19,21 +19,5 @@ public class JoinedTriplesGroup {
 
 	public HashSet<Triple> getIwptGroup() {
 		return iwptGroup;
-	}
-
-	public void addWptTriple(final Triple triple) {
-		wptGroup.add(triple);
-	}
-
-	public void addIwptTriple(final Triple triple) {
-		iwptGroup.add(triple);
-	}
-
-	public void removeWptTriple(final Triple triple) {
-		wptGroup.remove(triple);
-	}
-
-	public void removeIwptTriple(final Triple triple) {
-		iwptGroup.remove(triple);
 	}
 }

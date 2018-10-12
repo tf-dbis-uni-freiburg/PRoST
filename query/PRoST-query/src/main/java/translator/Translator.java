@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -174,67 +175,44 @@ public class Translator {
 				// get biggest group
 				final String biggestGroupKey = getBiggestGroupKey(joinedGroups);
 
-				// remove from smaller groups
+				// remove triples from smaller groups
 				for (final Triple triple : joinedGroups.get(biggestGroupKey).getWptGroup()) {
 					final String object = triple.getObject().toString();
-					joinedGroups.get(object).removeIwptTriple(triple);
+					joinedGroups.get(object).getIwptGroup().remove(triple);
 					if (joinedGroups.get(object).getIwptGroup().size()
 							+ joinedGroups.get(object).getWptGroup().size() == 0) {
 						joinedGroups.remove(object);
 					}
 				}
-
 				for (final Triple triple : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
 					final String subject = triple.getSubject().toString();
-					joinedGroups.get(subject).removeWptTriple(triple);
+					joinedGroups.get(subject).getWptGroup().remove(triple);
 					if (joinedGroups.get(subject).getIwptGroup().size()
 							+ joinedGroups.get(subject).getWptGroup().size() == 0) {
 						joinedGroups.remove(subject);
 					}
 				}
-				// create node
-				if (joinedGroups.get(biggestGroupKey).getIwptGroup().size()
-						+ joinedGroups.get(biggestGroupKey).getWptGroup().size() >= minimumGroupSize) {
-					nodesQueue.add(new JptNode(joinedGroups.get(biggestGroupKey), prefixes));
-				} else {
-					for (final Triple t : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
-						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-						nodesQueue.add(newNode);
-					}
-					for (final Triple t : joinedGroups.get(biggestGroupKey).getWptGroup()) {
-						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-						nodesQueue.add(newNode);
-					}
-				}
+				createJwptVpNodes(joinedGroups.get(biggestGroupKey), nodesQueue);
 
 				joinedGroups.remove(biggestGroupKey);
 			}
 		} else if (usePropertyTable && !useInversePropertyTable) {
-			// RPT disabled
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-
 			logger.info("WPT and VP models only");
-
-			// create and add the proper nodes
-			for (final String subject : subjectGroups.keySet()) {
-				createPtVPNode(subjectGroups.get(subject), nodesQueue);
+			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+			for (final List<Triple> triplesGroup : subjectGroups.values()) {
+				createPtVPNode(triplesGroup, nodesQueue);
 			}
 		} else if (!usePropertyTable && useInversePropertyTable) {
-			// PT disabled
-			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
-
 			logger.info("IWPT and VP only");
-			// create and add the proper nodes
-			for (final String object : objectGroups.keySet()) {
-				createRPtVPNode(objectGroups.get(object), nodesQueue);
+			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
+			for (final List<Triple> triplesGroup : objectGroups.values()) {
+				createRPtVPNode(triplesGroup, nodesQueue);
 			}
 		} else if (usePropertyTable && useInversePropertyTable) {
-			// RPT, PT, and VP enabled
+			logger.info("WPT, IWPT, and VP models only");
+
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			logger.info("WPT, IWPT, and VP models only");
 
 			// repeats until there are no unassigned triple patterns left
 			while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
@@ -267,42 +245,60 @@ public class Translator {
 				// create nodes
 				if (biggestObjectGroupSize > biggestSubjectGroupSize) {
 					// create and add the rpt or vp node
-					if (biggestObjectGroupSize >= minimumGroupSize) {
-						nodesQueue.add(new IptNode(biggestObjectGroupTriples, prefixes));
-					} else {
-						for (final Triple t : biggestObjectGroupTriples) {
-							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-							nodesQueue.add(newNode);
-						}
-					}
-					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups); // remove empty groups
-					objectGroups.remove(biggestObjectGroupIndex); // remove group of created node
+					createRPtVPNode(biggestObjectGroupTriples, nodesQueue);
+					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups);
+					objectGroups.remove(biggestObjectGroupIndex);
 				} else {
 					/// create and add the pt or vp node
-					if (biggestSubjectGroupSize >= minimumGroupSize) {
-						nodesQueue.add(new PtNode(biggestSubjectGroupTriples, prefixes));
-					} else {
-						for (final Triple t : biggestSubjectGroupTriples) {
-							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-							nodesQueue.add(newNode);
-						}
-					}
-					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups); // remove empty groups
-					subjectGroups.remove(biggestSubjectGroupIndex); // remove group of created node
+					createPtVPNode(biggestSubjectGroupTriples, nodesQueue);
+					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups);
+					subjectGroups.remove(biggestSubjectGroupIndex);
 				}
 			}
 		} else {
 			// VP only
 			logger.info("VP model only");
-			for (final Triple t : triples) {
-				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-				nodesQueue.add(newNode);
-			}
+			createVpNodes(triples, nodesQueue);
 		}
 		return nodesQueue;
+	}
+
+	/**
+	 * Given a <code>JoinedTriplesGroup</code>, creates its JWPT node, or VP nodes for each
+	 * element.
+	 *
+	 * @param joinedGroup
+	 *            <code>JoindedTriplesGroup</code> object with the lists of WPT and IWPT
+	 *            groups to be added to a single JWPT node, or to individual VP nodes
+	 * @param nodesQueue
+	 *            PriorityQueue where created nodes are added to
+	 */
+	private void createJwptVpNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
+		if (joinedGroup.getIwptGroup().size() + joinedGroup.getWptGroup().size() >= minimumGroupSize) {
+			nodesQueue.add(new JptNode(joinedGroup, prefixes));
+		} else {
+			// TODO patterns with same subject and object, i.e ?v fof ?v, will have duplicate vp nodes
+			createVpNodes(joinedGroup.getWptGroup().stream().collect(Collectors.toList()), nodesQueue);
+			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v fof ?v.
+			joinedGroup.getIwptGroup().removeAll(joinedGroup.getWptGroup());
+			createVpNodes(joinedGroup.getIwptGroup().stream().collect(Collectors.toList()), nodesQueue);
+		}
+	}
+
+	/**
+	 * Creates VP nodes from a list of triples.
+	 *
+	 * @param triples
+	 *            Triples for which VP nodes will be created
+	 * @param nodesQueue
+	 *            PriorityQueue where created nodes are added to
+	 */
+	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
+		for (final Triple t : triples) {
+			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+			final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+			nodesQueue.add(newNode);
+		}
 	}
 
 	/**
@@ -425,19 +421,19 @@ public class Translator {
 
 			// group by subject value
 			if (joinedGroups.containsKey(subject)) {
-				joinedGroups.get(subject).addWptTriple(triple);
+				joinedGroups.get(subject).getWptGroup().add(triple);
 			} else {
 				final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
-				newGroup.addWptTriple(triple);
+				newGroup.getWptGroup().add(triple);
 				joinedGroups.put(subject, newGroup);
 			}
 
 			// group by object value
 			if (joinedGroups.containsKey(object)) {
-				joinedGroups.get(object).addIwptTriple(triple);
+				joinedGroups.get(object).getIwptGroup().add(triple);
 			} else {
 				final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
-				newGroup.addIwptTriple(triple);
+				newGroup.getIwptGroup().add(triple);
 				joinedGroups.put(object, newGroup);
 			}
 		}
