@@ -3,11 +3,8 @@ package translator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -113,9 +110,9 @@ public class Translator {
 			// set the root node with the variables that need to be projected
 			// only for the main tree
 			final ArrayList<String> projectionList = new ArrayList<>();
-			for (int i = 0; i < projectionVars.size(); i++) {
-				projectionList.add(projectionVars.get(i).getVarName());
-			}
+            for (Var projectionVar : projectionVars) {
+                projectionList.add(projectionVar.getVarName());
+            }
 			tree.setProjectionList(projectionList);
 		}
 
@@ -277,11 +274,10 @@ public class Translator {
 		if (joinedGroup.getIwptGroup().size() + joinedGroup.getWptGroup().size() >= minimumGroupSize) {
 			nodesQueue.add(new JptNode(joinedGroup, prefixes));
 		} else {
-			// TODO patterns with same subject and object, i.e ?v fof ?v, will have duplicate vp nodes
-			createVpNodes(joinedGroup.getWptGroup().stream().collect(Collectors.toList()), nodesQueue);
+			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
 			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v fof ?v.
 			joinedGroup.getIwptGroup().removeAll(joinedGroup.getWptGroup());
-			createVpNodes(joinedGroup.getIwptGroup().stream().collect(Collectors.toList()), nodesQueue);
+			createVpNodes(new ArrayList<>(joinedGroup.getIwptGroup()), nodesQueue);
 		}
 	}
 
@@ -357,13 +353,7 @@ public class Translator {
 			entry.getValue().removeAll(triples);
 		}
 		// remove empty groups
-		final Iterator<Entry<String, List<Triple>>> it = groups.entrySet().iterator();
-		while (it.hasNext()) {
-			final HashMap.Entry<String, List<Triple>> pair = it.next();
-			if (pair.getValue().size() == 0) {
-				it.remove(); // avoids a ConcurrentModificationException
-			}
-		}
+        groups.entrySet().removeIf(pair -> pair.getValue().size() == 0);
 	}
 
 	/**
@@ -551,5 +541,4 @@ public class Translator {
 			setUseInversePropertyTable(false);
 		}
 	}
-
 }
