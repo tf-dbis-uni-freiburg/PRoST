@@ -1,6 +1,8 @@
 package run;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -128,22 +130,24 @@ public class Main {
 			generateVP = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
-			// TODO instead of using contains, the input should be split, and be tested with equals
 			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
-			if (lpStrategies.contains("TT")) {
+
+			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
+
+			if (strategies.contains("TT")) {
 				generateTT = true;
 				logger.info("Logical strategy used: TT");
 			}
-			if (lpStrategies.contains("WPT")) {
+			if (strategies.contains("WPT")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
 							"Logical strategy activated: TT (mandatory for WPT) with default physical partitioning");
 				}
-				logger.info("Logical strategy used: WPT");
 				generateWPT = true;
+				logger.info("Logical strategy used: WPT");
 			}
-			if (lpStrategies.contains("VP")) {
+			if (strategies.contains("VP")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
@@ -151,7 +155,7 @@ public class Main {
 				generateVP = true;
 				logger.info("Logical strategy used: VP");
 			}
-			if (lpStrategies.contains("IPT")) {
+			if (strategies.contains("IWPT")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
@@ -160,13 +164,13 @@ public class Main {
 				logger.info("Logical strategy used: IWPT");
 				generateIWPT = true;
 			}
-			if (lpStrategies.contains("JPT")) {
+			if (strategies.contains("JWPT")) {
 				if (generateTT == false) {
 					generateTT = true;
 					logger.info(
-							"Logical strategy activated: TT (mandatory for IWPT) with default physical partitioning");
+							"Logical strategy activated: TT (mandatory for JWPT) with default physical partitioning");
 				}
-				logger.info("Logical strategy used: IWPT");
+				logger.info("Logical strategy used: JWPT");
 				generateJWPT = true;
 			}
 		}
@@ -202,6 +206,15 @@ public class Main {
 		if (cmd.hasOption("stats")) {
 			useStatistics = true;
 			logger.info("Statistics active!");
+
+			if (!generateVP) {
+				logger.info("Logical strategy activated: VP. VP needed to generate statistics.");
+				generateVP = true;
+				if (generateTT == false) {
+					generateTT = true;
+					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
+				}
+			}
 		}
 
 		// Set the loader from the inputFile to the outputDB
@@ -243,13 +256,6 @@ public class Main {
 		}
 
 		if (generateJWPT) {
-			/*
-			 * final String join =
-			 * ("select * from wide_property_table full outer join inverse_wide_property_table on " +
-			 * "wide_property_table.s = inverse_wide_property_table.o"); final Dataset<Row> pt =
-			 * spark.sql(join); pt.write().mode(SaveMode.Overwrite).format("parquet").saveAsTable
-			 * ("pt");
-			 */
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader joinedWpt_loader = new WidePropertyTableLoader(input_location, outputDB,
 					spark, wptPartitionedBySub, PropertyTableType.JWPT);

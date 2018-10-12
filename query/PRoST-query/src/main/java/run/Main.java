@@ -71,20 +71,18 @@ public class Main {
 		options.addOption(helpOpt);
 		final Option widthOpt = new Option("w", "width", true, "The maximum Tree width");
 		options.addOption(widthOpt);
-		// final Option propertyTableOpt = new Option("v", "only_vp", false, "Use only Vertical
-		// Partitioning");
-		// options.addOption(propertyTableOpt);
-		final Option propertyTableOpt = new Option("pt", "property_table", false, "Use Propery Table");
+		final Option propertyTableOpt = new Option("wpt", "property_table", false, "Use Wide Propery Table");
 		options.addOption(propertyTableOpt);
 		final Option reversePropertyTableOpt =
-				new Option("ipt", "inverse_property_table", false, "Use Inverse Property Table");
+				new Option("iwpt", "inverse_property_table", false, "Use Inverse Wide Property Table");
 		options.addOption(reversePropertyTableOpt);
 		final Option joinedPropertyTable =
-				new Option("jpt", "joined_property_table", false, "Use the Joined Property Table");
+				new Option("jwpt", "joined_property_table", false, "Use Joined Wide Property Table");
 		options.addOption(joinedPropertyTable);
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-		final Option groupsizeOpt = new Option("g", "groupsize", true, "Minimum Group Size for Property Table nodes");
+		final Option groupsizeOpt =
+				new Option("g", "groupsize", true, "Minimum Group Size for Wide Property Table nodes");
 		options.addOption(groupsizeOpt);
 
 		final HelpFormatter formatter = new HelpFormatter();
@@ -122,17 +120,17 @@ public class Main {
 		// }
 		if (cmd.hasOption("property_table")) {
 			usePropertyTable = true;
-			logger.info("Using Property Table.");
+			logger.info("Using Wide Property Table.");
 		}
 		if (cmd.hasOption("inverse_property_table")) {
 			useInversePropertyTable = true;
-			logger.info("Using Inverse Property Table.");
+			logger.info("Using Inverse Wide Property Table.");
 		}
 		if (cmd.hasOption("joined_property_table")) {
 			useInversePropertyTable = false;
 			usePropertyTable = false;
 			useJoinedPropertyTable = true;
-			logger.info("Using Joined Property Table.");
+			logger.info("Using Joined Wide Property Table.");
 		}
 		if (cmd.hasOption("groupsize")) {
 			setGroupSize = Integer.valueOf(cmd.getOptionValue("groupsize"));
@@ -202,9 +200,6 @@ public class Main {
 			translator.setUseInversePropertyTable(false);
 			translator.setUsePropertyTable(false);
 		}
-		// if (!useVP) {
-		// translator.setPropertyTable(true);
-		// }
 		if (setGroupSize != -1) {
 			translator.setMinimumGroupSize(setGroupSize);
 		}
@@ -232,5 +227,4 @@ public class Main {
 		}
 		return sample;
 	}
-
 }

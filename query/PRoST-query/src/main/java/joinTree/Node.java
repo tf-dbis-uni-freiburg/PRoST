@@ -66,22 +66,22 @@ public abstract class Node {
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
 		if (this instanceof PtNode) {
-			str.append("pt node: ");
+			str.append("WPT node: ");
 			for (final TriplePattern tpGroup : tripleGroup) {
 				str.append(tpGroup.toString() + ", ");
 			}
 		} else if (this instanceof IptNode) {
-			str.append("ipt node: ");
+			str.append("IWPT node: ");
 			for (final TriplePattern tpGroup : tripleGroup) {
 				str.append(tpGroup.toString() + ", ");
 			}
 		} else if (this instanceof JptNode) {
-			str.append("jpt node: ");
+			str.append("JWPT node: ");
 			for (final TriplePattern tpGroup : tripleGroup) {
 				str.append(tpGroup.toString() + ", ");
 			}
 		} else {
-			str.append("vp node: ");
+			str.append("VP node: ");
 			str.append(triplePattern.toString());
 		}
 		str.append(" }");
