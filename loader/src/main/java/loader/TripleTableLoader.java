@@ -9,7 +9,7 @@ import org.apache.spark.sql.SparkSession;
 /**
  * Class that constructs a triples table. First, the loader creates an external
  * table ("raw"). The data is read using SerDe capabilities and by means of a
- * regular expresion. An additional table ("fixed") is created to make sure that
+ * regular expression. An additional table ("fixed") is created to make sure that
  * only valid triples are passed to the next stages in which other models e.g.
  * Property Table, or Vertical Partitioning are built.
  *
