@@ -39,11 +39,11 @@ public class Translator {
 	private static final Logger logger = Logger.getLogger("PRoST");
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
-	final int DEFAULT_MIN_GROUP_SIZE = 2;
-	String inputFile;
-	int treeWidth;
-	int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
-	PrefixMapping prefixes;
+	private final int DEFAULT_MIN_GROUP_SIZE = 2;
+	private final String inputFile;
+	private int treeWidth;
+	private int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
+	private PrefixMapping prefixes;
 
 	// if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable = false;
@@ -101,7 +101,7 @@ public class Translator {
 	/*
 	 * buildTree constructs the JoinTree
 	 */
-	public Node buildTree(final List<Triple> triples, final List<Var> projectionVars) {
+	private Node buildTree(final List<Triple> triples, final List<Var> projectionVars) {
 		// sort the triples before adding them
 		// this.sortTriples();
 
