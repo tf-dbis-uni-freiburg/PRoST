@@ -38,7 +38,7 @@ import scala.Tuple2;
 public class WidePropertyTableLoader extends Loader {
 	/**
 	 * Type of the property table to be created. WPT = Wide Property Table IWPT = Inverse
-	 * Wide; Property Table; JWPT = Joined Wide Property Table
+	 * Wide Property Table; JWPT = Joined Wide Property Table
 	 */
 	public static enum PropertyTableType {
 	WPT, IWPT, JWPT
