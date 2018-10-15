@@ -177,25 +177,24 @@ public class Translator {
 			while (!joinedGroups.isEmpty()) {
 				// get largest group
 				final String largestGroupKey = getLargestJoinedGroupKey(joinedGroups);
+				final JoinedTriplesGroup largestJoinedTriplesGroup = joinedGroups.get(largestGroupKey);
 
 				// remove triples from smaller groups
-				for (final Triple triple : joinedGroups.get(largestGroupKey).getWptGroup()) {
+				for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
 					final String object = triple.getObject().toString();
 					joinedGroups.get(object).getIwptGroup().remove(triple);
-					if (joinedGroups.get(object).getIwptGroup().size()
-							+ joinedGroups.get(object).getWptGroup().size() == 0) {
+					if (joinedGroups.get(object).size() == 0) {
 						joinedGroups.remove(object);
 					}
 				}
-				for (final Triple triple : joinedGroups.get(largestGroupKey).getIwptGroup()) {
+				for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
 					final String subject = triple.getSubject().toString();
 					joinedGroups.get(subject).getWptGroup().remove(triple);
-					if (joinedGroups.get(subject).getIwptGroup().size()
-							+ joinedGroups.get(subject).getWptGroup().size() == 0) {
+					if (joinedGroups.get(subject).size() == 0) {
 						joinedGroups.remove(subject);
 					}
 				}
-				createNodes(joinedGroups.get(largestGroupKey), nodesQueue);
+				createNodes(largestJoinedTriplesGroup, nodesQueue);
 				joinedGroups.remove(largestGroupKey);
 			}
 		} else if (usePropertyTable && !useInversePropertyTable) {
