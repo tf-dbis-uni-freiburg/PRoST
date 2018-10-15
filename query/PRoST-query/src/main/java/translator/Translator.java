@@ -35,6 +35,10 @@ import javax.annotation.Nullable;
  * @author Matteo Cossu
  */
 public class Translator {
+	enum NODE_TYPE{
+		VP, WPT, IWPT, JWPT
+	}
+
 	private static final Logger logger = Logger.getLogger("PRoST");
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
@@ -191,21 +195,20 @@ public class Translator {
 						joinedGroups.remove(subject);
 					}
 				}
-				createJwptVpNodes(joinedGroups.get(largestGroupKey), nodesQueue);
-
+				createNodes(joinedGroups.get(largestGroupKey), nodesQueue);
 				joinedGroups.remove(largestGroupKey);
 			}
 		} else if (usePropertyTable && !useInversePropertyTable) {
 			logger.info("WPT and VP models only");
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				createPtVPNode(triplesGroup, nodesQueue);
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
 			}
 		} else if (!usePropertyTable && useInversePropertyTable) {
 			logger.info("IWPT and VP only");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
-				createRPtVPNode(triplesGroup, nodesQueue);
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT);
 			}
 		} else if (usePropertyTable && useInversePropertyTable) {
 			logger.info("WPT, IWPT, and VP models only");
@@ -243,13 +246,13 @@ public class Translator {
 
 				// create nodes
 				if (largestObjectGroupSize > largestSubjectGroupSize) {
-					// create and add the rpt or vp node
-					createRPtVPNode(largestObjectGroupTriples, nodesQueue);
+					// create and add the rpt or vp nodes
+					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT);
 					removeTriplesFromGroups(largestObjectGroupTriples, subjectGroups);
 					objectGroups.remove(largestObjectGroupIndex);
 				} else {
-					/// create and add the pt or vp node
-					createPtVPNode(largestSubjectGroupTriples, nodesQueue);
+					/// create and add the pt or vp nodes
+					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
 					removeTriplesFromGroups(largestSubjectGroupTriples, objectGroups);
 					subjectGroups.remove(largestSubjectGroupIndex);
 				}
@@ -263,17 +266,41 @@ public class Translator {
 	}
 
 	/**
-	 * Given a <code>JoinedTriplesGroup</code>, creates its JWPT node, or VP nodes for each
-	 * element.
+	 * Creates nodes for the given triples and add them to the <code>nodesQueue</code>.
 	 *
-	 * @param joinedGroup
-	 *            <code>JoinedTriplesGroup</code> object with the lists of WPT and IWPT
-	 *            groups to be added to a single JWPT node, or to individual VP nodes
-	 * @param nodesQueue
-	 *            PriorityQueue where created nodes are added to
+	 * @param triples Triples for which nodes are to be created
+	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
+	 * @param nodeType Type of the node to be created. Defaults to a VP nodes if not possible create the given node type.
 	 */
-	private void createJwptVpNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
-		if (joinedGroup.getIwptGroup().size() + joinedGroup.getWptGroup().size() >= minimumGroupSize) {
+	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue, final NODE_TYPE nodeType){
+		if (triples.size()>=minimumGroupSize){
+			switch (nodeType){
+				case WPT:
+					nodesQueue.add(new PtNode(triples, prefixes));
+					break;
+				case IWPT:
+					nodesQueue.add(new IptNode(triples, prefixes));
+					break;
+				case JWPT:
+					throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
+				default:
+					createVpNodes(triples,nodesQueue);
+			}
+		}
+		else {
+			createVpNodes(triples, nodesQueue);
+		}
+	}
+
+	/**
+	 * Creates JWPT nodes for the given <code>JoinedTriplesGroup</code> and add them to the <code>nodesQueue</code>. If not possible to
+	 * create a JWPT node, creates VP nodes instead.
+	 *
+	 * @param joinedGroup <code>JoinedTriplesGroup</code> for which nodes are to be created
+	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
+	 */
+	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue){
+		if (joinedGroup.size()>=minimumGroupSize){
 			nodesQueue.add(new JptNode(joinedGroup, prefixes));
 		} else {
 			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
@@ -296,48 +323,6 @@ public class Translator {
 			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
 			final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 			nodesQueue.add(newNode);
-		}
-	}
-
-	/**
-	 * Receives a list of triples, create a PT node or VP nodes, according to the minimum
-	 * group size, and add it to the nodesQueue.
-	 *
-	 * @param triples
-	 *            triples for which nodes are to be created
-	 * @param nodesQueue
-	 *            <Code>PriorityQueue</code> of existing nodes
-	 */
-	private void createPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		if (triples.size() >= minimumGroupSize) {
-			nodesQueue.add(new PtNode(triples, prefixes));
-		} else {
-			for (final Triple t : triples) {
-				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-				nodesQueue.add(newNode);
-			}
-		}
-	}
-
-	/**
-	 * Receives a list of triples, create a RPT node or VP nodes, according to the minimum
-	 * group size, and add it to the nodesQueue.
-	 *
-	 * @param triples
-	 *            triples for which nodes are to be created
-	 * @param nodesQueue
-	 *            <Code>PriorityQueue</code> of existing nodes
-	 */
-	private void createRPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		if (triples.size() >= minimumGroupSize) {
-			nodesQueue.add(new IptNode(triples, prefixes));
-		} else {
-			for (final Triple t : triples) {
-				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-				nodesQueue.add(newNode);
-			}
 		}
 	}
 

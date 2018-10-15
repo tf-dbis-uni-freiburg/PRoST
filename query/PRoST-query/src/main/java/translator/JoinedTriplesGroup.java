@@ -30,4 +30,11 @@ class JoinedTriplesGroup {
 	HashSet<Triple> getIwptGroup() {
 		return iwptGroup;
 	}
+
+	/**
+	 * @return returns the number of elements in this group.
+	 */
+	int size(){
+		return wptGroup.size() + iwptGroup.size();
+	}
 }
