@@ -26,6 +26,8 @@ import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
 
+import javax.annotation.Nullable;
+
 /**
  * This class parses the SPARQL query, build the Tree and save its serialization in a
  * file.
@@ -169,11 +171,11 @@ public class Translator {
 			logger.info("JWPT and VP models only");
 
 			while (!joinedGroups.isEmpty()) {
-				// get biggest group
-				final String biggestGroupKey = getBiggestGroupKey(joinedGroups);
+				// get largest group
+				final String largestGroupKey = getLargestJoinedGroupKey(joinedGroups);
 
 				// remove triples from smaller groups
-				for (final Triple triple : joinedGroups.get(biggestGroupKey).getWptGroup()) {
+				for (final Triple triple : joinedGroups.get(largestGroupKey).getWptGroup()) {
 					final String object = triple.getObject().toString();
 					joinedGroups.get(object).getIwptGroup().remove(triple);
 					if (joinedGroups.get(object).getIwptGroup().size()
@@ -181,7 +183,7 @@ public class Translator {
 						joinedGroups.remove(object);
 					}
 				}
-				for (final Triple triple : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
+				for (final Triple triple : joinedGroups.get(largestGroupKey).getIwptGroup()) {
 					final String subject = triple.getSubject().toString();
 					joinedGroups.get(subject).getWptGroup().remove(triple);
 					if (joinedGroups.get(subject).getIwptGroup().size()
@@ -189,9 +191,9 @@ public class Translator {
 						joinedGroups.remove(subject);
 					}
 				}
-				createJwptVpNodes(joinedGroups.get(biggestGroupKey), nodesQueue);
+				createJwptVpNodes(joinedGroups.get(largestGroupKey), nodesQueue);
 
-				joinedGroups.remove(biggestGroupKey);
+				joinedGroups.remove(largestGroupKey);
 			}
 		} else if (usePropertyTable && !useInversePropertyTable) {
 			logger.info("WPT and VP models only");
@@ -213,43 +215,43 @@ public class Translator {
 
 			// repeats until there are no unassigned triple patterns left
 			while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
-				// Calculate biggest group by object
-				String biggestObjectGroupIndex = "";
-				int biggestObjectGroupSize = 0;
-				List<Triple> biggestObjectGroupTriples = new ArrayList<>();
+				// Calculate largest group by object
+				String largestObjectGroupIndex = "";
+				int largestObjectGroupSize = 0;
+				List<Triple> largestObjectGroupTriples = new ArrayList<>();
 				for (final HashMap.Entry<String, List<Triple>> entry : objectGroups.entrySet()) {
 					final int size = entry.getValue().size();
-					if (size > biggestObjectGroupSize) {
-						biggestObjectGroupIndex = entry.getKey();
-						biggestObjectGroupSize = size;
-						biggestObjectGroupTriples = entry.getValue();
+					if (size > largestObjectGroupSize) {
+						largestObjectGroupIndex = entry.getKey();
+						largestObjectGroupSize = size;
+						largestObjectGroupTriples = entry.getValue();
 					}
 				}
 
 				// calculate biggest group by subject
-				String biggestSubjectGroupIndex = "";
-				int biggestSubjectGroupSize = 0;
-				List<Triple> biggestSubjectGroupTriples = new ArrayList<>();
+				String largestSubjectGroupIndex = "";
+				int largestSubjectGroupSize = 0;
+				List<Triple> largestSubjectGroupTriples = new ArrayList<>();
 				for (final HashMap.Entry<String, List<Triple>> entry : subjectGroups.entrySet()) {
 					final int size = entry.getValue().size();
-					if (size > biggestSubjectGroupSize) {
-						biggestSubjectGroupIndex = entry.getKey();
-						biggestSubjectGroupSize = size;
-						biggestSubjectGroupTriples = entry.getValue();
+					if (size > largestSubjectGroupSize) {
+						largestSubjectGroupIndex = entry.getKey();
+						largestSubjectGroupSize = size;
+						largestSubjectGroupTriples = entry.getValue();
 					}
 				}
 
 				// create nodes
-				if (biggestObjectGroupSize > biggestSubjectGroupSize) {
+				if (largestObjectGroupSize > largestSubjectGroupSize) {
 					// create and add the rpt or vp node
-					createRPtVPNode(biggestObjectGroupTriples, nodesQueue);
-					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups);
-					objectGroups.remove(biggestObjectGroupIndex);
+					createRPtVPNode(largestObjectGroupTriples, nodesQueue);
+					removeTriplesFromGroups(largestObjectGroupTriples, subjectGroups);
+					objectGroups.remove(largestObjectGroupIndex);
 				} else {
 					/// create and add the pt or vp node
-					createPtVPNode(biggestSubjectGroupTriples, nodesQueue);
-					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups);
-					subjectGroups.remove(biggestSubjectGroupIndex);
+					createPtVPNode(largestSubjectGroupTriples, nodesQueue);
+					removeTriplesFromGroups(largestSubjectGroupTriples, objectGroups);
+					subjectGroups.remove(largestSubjectGroupIndex);
 				}
 			}
 		} else {
@@ -430,7 +432,8 @@ public class Translator {
 		return joinedGroups;
 	}
 
-	private String getBiggestGroupKey(final HashMap<String, JoinedTriplesGroup> joinedGroups) {
+	@Nullable
+	private String getLargestJoinedGroupKey(final HashMap<String, JoinedTriplesGroup> joinedGroups) {
 		int biggestGroupSize = 0;
 		String biggestGroupKey = null;
 
