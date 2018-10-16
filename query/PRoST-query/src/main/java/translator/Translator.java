@@ -26,8 +26,6 @@ import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
 
-import javax.annotation.Nullable;
-
 /**
  * This class parses the SPARQL query, build the Tree and save its serialization in a
  * file.
@@ -238,13 +236,32 @@ public class Translator {
 					// create and add the iwpt or vp nodes
 					List<Triple> largestObjectGroupTriples = objectGroups.get(largestObjectGroupKey);
 					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT);
-					removeTriplesFromGroups(largestObjectGroupTriples, subjectGroups);
+
+					// remove triples from subject group
+					for (Triple triple : largestObjectGroupTriples){
+						String key = triple.getObject().toString();
+						if (subjectGroups.containsKey(key)){
+							subjectGroups.get(key).remove(triple);
+							if (subjectGroups.get(key).size()==0){
+								subjectGroups.remove(key);
+							}
+						}
+					}
 					objectGroups.remove(largestObjectGroupKey);
 				} else {
 					/// create and add the wpt or vp nodes
 					List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
 					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
-					removeTriplesFromGroups(largestSubjectGroupTriples, objectGroups);
+					// remove triples from object group
+					for (Triple triple : largestSubjectGroupTriples){
+						String key = triple.getSubject().toString();
+						if (objectGroups.containsKey(key)){
+							objectGroups.get(key).remove(triple);
+							if (objectGroups.get(key).size()==0){
+								objectGroups.remove(key);
+							}
+						}
+					}
 					subjectGroups.remove(largestSubjectGroupKey);
 				}
 			}
@@ -315,23 +332,6 @@ public class Translator {
 			final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 			nodesQueue.add(newNode);
 		}
-	}
-
-	/**
-	 * Remove every instance of a triple from input triples from the given groups and
-	 * guarantees that there are no empty entries in groups.
-	 *
-	 * @param triples
-	 *            list of triples to be removed
-	 * @param groups
-	 *            HashMap containing a list of grouped triples
-	 */
-	private void removeTriplesFromGroups(final List<Triple> triples, final HashMap<String, List<Triple>> groups) {
-		for (final HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
-			entry.getValue().removeAll(triples);
-		}
-		// remove empty groups
-        groups.entrySet().removeIf(pair -> pair.getValue().size() == 0);
 	}
 
 	/**
