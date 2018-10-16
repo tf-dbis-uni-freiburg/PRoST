@@ -167,6 +167,19 @@ public class Translator {
 		return tree;
 	}
 
+	/**
+	 * Removes an entry with the given key from <code>joinedGroups</code> if its element size is 0.
+	 * @param joinedGroups a mapping of <code>JoinedTriplesGroup</code>
+	 * @param key a key from <code>joinedGroups</code>
+	 */
+	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups, String key){
+		if (joinedGroups.containsKey(key)){
+			if (joinedGroups.get(key).size() == 0) {
+				joinedGroups.remove(key);
+			}
+		}
+	}
+
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 
@@ -183,16 +196,12 @@ public class Translator {
 				for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
 					final String object = triple.getObject().toString();
 					joinedGroups.get(object).getIwptGroup().remove(triple);
-					if (joinedGroups.get(object).size() == 0) {
-						joinedGroups.remove(object);
-					}
+					removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
 				}
 				for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
 					final String subject = triple.getSubject().toString();
 					joinedGroups.get(subject).getWptGroup().remove(triple);
-					if (joinedGroups.get(subject).size() == 0) {
-						joinedGroups.remove(subject);
-					}
+					removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
 				}
 				createNodes(largestJoinedTriplesGroup, nodesQueue);
 				joinedGroups.remove(largestGroupKey);
