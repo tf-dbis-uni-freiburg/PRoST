@@ -3,6 +3,8 @@ package run;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -36,11 +38,14 @@ public class Main {
 	private static String statsFileName = "";
 	private static String database_name;
 	private static int treeWidth = -1;
-	// private static boolean useVP = false;
+	private static String lpStrategies;
+	private static boolean useVerticalPartitioning = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
-	private static int setGroupSize = -1;
+	// if triples with the same subject are grouped when using wide property table
+	private static boolean noGroupsBySubject = false;	
+	
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
 	private static String loj4jFileName = "log4j.properties";
@@ -71,20 +76,17 @@ public class Main {
 		options.addOption(helpOpt);
 		final Option widthOpt = new Option("w", "width", true, "The maximum Tree width");
 		options.addOption(widthOpt);
-		final Option propertyTableOpt = new Option("wpt", "property_table", false, "Use Wide Propery Table");
-		options.addOption(propertyTableOpt);
-		final Option reversePropertyTableOpt =
-				new Option("iwpt", "inverse_property_table", false, "Use Inverse Wide Property Table");
-		options.addOption(reversePropertyTableOpt);
-		final Option joinedPropertyTable =
-				new Option("jwpt", "joined_property_table", false, "Use Joined Wide Property Table");
-		options.addOption(joinedPropertyTable);
+		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
+		lpOpt.setRequired(false);
+		options.addOption(lpOpt);
+		
+		final Option groupBySubject = new Option("ngs", "noGroupsBySubject", false, "If triples are not grouped by subject when WPT is used.");
+		groupBySubject.setRequired(false);
+		options.addOption(groupBySubject);
+
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-		final Option groupsizeOpt =
-				new Option("g", "groupsize", true, "Minimum Group Size for Wide Property Table nodes");
-		options.addOption(groupsizeOpt);
-
+		
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
@@ -95,7 +97,6 @@ public class Main {
 		} catch (final ParseException e) {
 			e.printStackTrace();
 		}
-
 		if (cmd.hasOption("help")) {
 			formatter.printHelp("JAR", "Execute a  SPARQL query with Spark", options, "", true);
 			return;
@@ -114,28 +115,6 @@ public class Main {
 			treeWidth = Integer.valueOf(cmd.getOptionValue("width"));
 			logger.info("Maximum tree width is set to " + String.valueOf(treeWidth));
 		}
-		// if (cmd.hasOption("only_vp")) {
-		// useVP = true;
-		// logger.info("Using Vertical Partitioning only.");
-		// }
-		if (cmd.hasOption("property_table")) {
-			usePropertyTable = true;
-			logger.info("Using Wide Property Table.");
-		}
-		if (cmd.hasOption("inverse_property_table")) {
-			useInversePropertyTable = true;
-			logger.info("Using Inverse Wide Property Table.");
-		}
-		if (cmd.hasOption("joined_property_table")) {
-			useInversePropertyTable = false;
-			usePropertyTable = false;
-			useJoinedPropertyTable = true;
-			logger.info("Using Joined Wide Property Table.");
-		}
-		if (cmd.hasOption("groupsize")) {
-			setGroupSize = Integer.valueOf(cmd.getOptionValue("groupsize"));
-			logger.info("Minimum Group Size set to " + String.valueOf(setGroupSize));
-		}
 		if (cmd.hasOption("DB")) {
 			database_name = cmd.getOptionValue("DB");
 		}
@@ -144,6 +123,39 @@ public class Main {
 			benchmark_file = cmd.getOptionValue("times");
 		}
 
+		// default if a logical partition is not specified is: WPT, and VP.
+		if (!cmd.hasOption("logicalPartitionStrategies")) {
+			useVerticalPartitioning = true;
+			usePropertyTable = true;
+			logger.info("Default strategies used: WPT + VP");
+		} else {
+			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+
+			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
+
+			if (strategies.contains("VP")) {
+				useVerticalPartitioning = true;
+				logger.info("Logical strategy used: VP");
+			}
+			if (strategies.contains("WPT")) {
+				usePropertyTable = true;
+				logger.info("Logical strategy used: WPT");
+				// if triples are grouped by subject
+				if (cmd.hasOption("noGroupsBySubject")) {
+					noGroupsBySubject = true;
+				}
+			}
+			if (strategies.contains("IWPT")) {
+				useInversePropertyTable = true;
+				logger.info("Logical strategy used: IWPT");
+				
+			}
+			if (strategies.contains("JWPT")) {
+				useJoinedPropertyTable = true;
+				logger.info("Logical strategy used: JWPT");
+			}
+		}
+		
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
 
@@ -189,8 +201,14 @@ public class Main {
 
 	private static JoinTree translateSingleQuery(final String query, final int width) {
 		final Translator translator = new Translator(query, width);
+		if (useVerticalPartitioning) {
+			translator.setUseVerticalPartitioning(true);
+		}
 		if (usePropertyTable) {
 			translator.setUsePropertyTable(true);
+			if (noGroupsBySubject) {
+				translator.setGroupBySubjectWPT(false);
+			}
 		}
 		if (useInversePropertyTable) {
 			translator.setUseInversePropertyTable(true);
@@ -199,9 +217,6 @@ public class Main {
 			translator.setUseJoinedPropertyTable(true);
 			translator.setUseInversePropertyTable(false);
 			translator.setUsePropertyTable(false);
-		}
-		if (setGroupSize != -1) {
-			translator.setMinimumGroupSize(setGroupSize);
 		}
 		return translator.translateQuery();
 	}

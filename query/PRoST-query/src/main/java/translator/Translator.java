@@ -2,6 +2,7 @@ package translator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,25 +30,28 @@ import joinTree.TriplePattern;
 import joinTree.VpNode;
 
 /**
- * This class parses the SPARQL query, build the Tree and save its serialization in a
- * file.
+ * This class parses the SPARQL query, build the Tree and save its serialization
+ * in a file.
  *
  * @author Matteo Cossu
  */
 public class Translator {
 	private static final Logger logger = Logger.getLogger("PRoST");
+	
 	// minimum number of triple patterns with the same subject to form a group
-	// (property table)
 	final int DEFAULT_MIN_GROUP_SIZE = 2;
+
 	String inputFile;
 	int treeWidth;
-	int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
-	PrefixMapping prefixes;
 
-	// if false, only virtual partitioning tables will be queried
+	PrefixMapping prefixes;
+	private boolean useVerticalPartitioning = false;
 	private boolean usePropertyTable = false;
 	private boolean useInversePropertyTable = false;
 	private boolean useJoinedPropertyTable = false;
+
+	// if triples with the same subject are grouped when using wide property table
+	private boolean groupBySubjectWPT = true;
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when
@@ -192,9 +196,10 @@ public class Translator {
 						joinedGroups.remove(subject);
 					}
 				}
-				// create node
+
+				// create appropriate node
 				if (joinedGroups.get(biggestGroupKey).getIwptGroup().size()
-						+ joinedGroups.get(biggestGroupKey).getWptGroup().size() >= minimumGroupSize) {
+						+ joinedGroups.get(biggestGroupKey).getWptGroup().size() >= DEFAULT_MIN_GROUP_SIZE) {
 					nodesQueue.add(new JptNode(joinedGroups.get(biggestGroupKey), prefixes));
 				} else {
 					for (final Triple t : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
@@ -208,18 +213,41 @@ public class Translator {
 						nodesQueue.add(newNode);
 					}
 				}
-
 				joinedGroups.remove(biggestGroupKey);
 			}
 		} else if (usePropertyTable && !useInversePropertyTable) {
-			// RPT disabled
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+			// IWPT disabled
+			logger.info("IWPRT disabled.");
 
-			logger.info("WPT and VP models only");
+			if (useVerticalPartitioning) {
+				logger.info("WPT and VP models are used.");
 
-			// create and add the proper nodes
-			for (final String subject : subjectGroups.keySet()) {
-				createPtVPNode(subjectGroups.get(subject), nodesQueue);
+				// group by subject
+				final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+				// create either VP or WPT node depending on the number of triples in a group
+				// (by subject)
+				for (final String subject : subjectGroups.keySet()) {
+					createPtVPNode(subjectGroups.get(subject), nodesQueue);
+				}
+			} else {
+				logger.info("WPT model only is used.");
+				// create only WPT nodes
+
+				if (!groupBySubjectWPT) {
+					// for each triple, create an individual WPT node, no grouping by subject is
+					// done
+					logger.info("groupBySubjectWPT");
+					for (final Triple t : triples) {
+						nodesQueue.add(new PtNode(Arrays.asList(t), prefixes));
+					}
+				} else {
+					// create a WPT node for each group which contains triples with the same subject
+					final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+					for (final String subject : subjectGroups.keySet()) {
+						List<Triple> tripleGroup = subjectGroups.get(subject);
+						nodesQueue.add(new PtNode(tripleGroup, prefixes));
+					}
+				}
 			}
 		} else if (!usePropertyTable && useInversePropertyTable) {
 			// PT disabled
@@ -267,7 +295,7 @@ public class Translator {
 				// create nodes
 				if (biggestObjectGroupSize > biggestSubjectGroupSize) {
 					// create and add the rpt or vp node
-					if (biggestObjectGroupSize >= minimumGroupSize) {
+					if (biggestObjectGroupSize >= DEFAULT_MIN_GROUP_SIZE) {
 						nodesQueue.add(new IptNode(biggestObjectGroupTriples, prefixes));
 					} else {
 						for (final Triple t : biggestObjectGroupTriples) {
@@ -279,8 +307,8 @@ public class Translator {
 					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups); // remove empty groups
 					objectGroups.remove(biggestObjectGroupIndex); // remove group of created node
 				} else {
-					/// create and add the pt or vp node
-					if (biggestSubjectGroupSize >= minimumGroupSize) {
+					// create and add the pt or vp node
+					if (biggestSubjectGroupSize >= DEFAULT_MIN_GROUP_SIZE) {
 						nodesQueue.add(new PtNode(biggestSubjectGroupTriples, prefixes));
 					} else {
 						for (final Triple t : biggestSubjectGroupTriples) {
@@ -293,7 +321,7 @@ public class Translator {
 					subjectGroups.remove(biggestSubjectGroupIndex); // remove group of created node
 				}
 			}
-		} else {
+		} else if (useVerticalPartitioning) {
 			// VP only
 			logger.info("VP model only");
 			for (final Triple t : triples) {
@@ -306,16 +334,14 @@ public class Translator {
 	}
 
 	/**
-	 * Receives a list of triples, create a PT node or VP nodes, according to the minimum
-	 * group size, and add it to the nodesQueue.
+	 * Receives a list of triples, create a PT node or VP nodes, according to the
+	 * minimum group size, and add it to the nodesQueue.
 	 *
-	 * @param triples
-	 *            triples for which nodes are to be created
-	 * @param nodesQueue
-	 *            <Code>PriorityQueue</code> of existing nodes
+	 * @param triples    triples for which nodes are to be created
+	 * @param nodesQueue <Code>PriorityQueue</code> of existing nodes
 	 */
 	private void createPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		if (triples.size() >= minimumGroupSize) {
+		if (triples.size() >= DEFAULT_MIN_GROUP_SIZE) {
 			nodesQueue.add(new PtNode(triples, prefixes));
 		} else {
 			for (final Triple t : triples) {
@@ -327,16 +353,14 @@ public class Translator {
 	}
 
 	/**
-	 * Receives a list of triples, create a RPT node or VP nodes, according to the minimum
-	 * group size, and add it to the nodesQueue.
+	 * Receives a list of triples, create a RPT node or VP nodes, according to the
+	 * minimum group size, and add it to the nodesQueue.
 	 *
-	 * @param triples
-	 *            triples for which nodes are to be created
-	 * @param nodesQueue
-	 *            <Code>PriorityQueue</code> of existing nodes
+	 * @param triples    triples for which nodes are to be created
+	 * @param nodesQueue <Code>PriorityQueue</code> of existing nodes
 	 */
 	private void createRPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		if (triples.size() >= minimumGroupSize) {
+		if (triples.size() >= DEFAULT_MIN_GROUP_SIZE) {
 			nodesQueue.add(new IptNode(triples, prefixes));
 		} else {
 			for (final Triple t : triples) {
@@ -348,13 +372,11 @@ public class Translator {
 	}
 
 	/**
-	 * Remove every instance of a triple from input triples from the given groups and
-	 * guarantees that there are no empty entries in groups.
+	 * Remove every instance of a triple from input triples from the given groups
+	 * and guarantees that there are no empty entries in groups.
 	 *
-	 * @param triples
-	 *            list of triples to be removed
-	 * @param groups
-	 *            HashMap containing a list of grouped triples
+	 * @param triples list of triples to be removed
+	 * @param groups  HashMap containing a list of grouped triples
 	 */
 	private void removeTriplesFromGroups(final List<Triple> triples, final HashMap<String, List<Triple>> groups) {
 		for (final HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
@@ -373,8 +395,7 @@ public class Translator {
 	/**
 	 * Groups the input triples by subject.
 	 *
-	 * @param triples
-	 *            triples to be grouped
+	 * @param triples triples to be grouped
 	 * @return hashmap of triples grouped by the subject
 	 */
 	private HashMap<String, List<Triple>> getSubjectGroups(final List<Triple> triples) {
@@ -396,8 +417,7 @@ public class Translator {
 	/**
 	 * Groups the input triples by object.
 	 *
-	 * @param triples
-	 *            triples to be grouped
+	 * @param triples triples to be grouped
 	 * @return hashmap of triples grouped by the object
 	 */
 	private HashMap<String, List<Triple>> getObjectGroups(final List<Triple> triples) {
@@ -460,8 +480,8 @@ public class Translator {
 	}
 
 	/*
-	 * findRelateNode, given a source node, finds another node with at least one variable in
-	 * common, if there isn't return null.
+	 * findRelateNode, given a source node, finds another node with at least one
+	 * variable in common, if there isn't return null.
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 
@@ -519,8 +539,8 @@ public class Translator {
 	}
 
 	/*
-	 * heuristicWidth decides a width based on the proportion between the number of elements
-	 * in a table and the unique subjects.
+	 * heuristicWidth decides a width based on the proportion between the number of
+	 * elements in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
 		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
@@ -544,10 +564,6 @@ public class Translator {
 		this.useInversePropertyTable = useInversePropertyTable;
 	}
 
-	public void setMinimumGroupSize(final int size) {
-		minimumGroupSize = size;
-	}
-
 	public void setUseJoinedPropertyTable(final boolean useJoinedPropertyTable) {
 		this.useJoinedPropertyTable = useJoinedPropertyTable;
 		if (this.useJoinedPropertyTable) {
@@ -556,4 +572,16 @@ public class Translator {
 		}
 	}
 
+	public void setUseVerticalPartitioning(boolean useVerticalPartitioning) {
+		this.useVerticalPartitioning = useVerticalPartitioning;
+	}
+
+	public boolean isGroupBySubjectWPT() {
+		return groupBySubjectWPT;
+	}
+
+	public void setGroupBySubjectWPT(boolean groupBySubjectWPT) {
+		this.groupBySubjectWPT = groupBySubjectWPT;
+	}
+	
 }
