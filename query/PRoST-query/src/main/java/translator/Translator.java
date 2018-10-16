@@ -189,7 +189,7 @@ public class Translator {
 
 			while (!joinedGroups.isEmpty()) {
 				// get largest group
-				final String largestGroupKey = getLargestJoinedGroupKey(joinedGroups);
+				final String largestGroupKey = getLargestGroupKey(joinedGroups);
 				final JoinedTriplesGroup largestJoinedTriplesGroup = joinedGroups.get(largestGroupKey);
 
 				// remove triples from smaller groups
@@ -227,42 +227,25 @@ public class Translator {
 			// repeats until there are no unassigned triple patterns left
 			while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
 				// Calculate largest group by object
-				String largestObjectGroupIndex = "";
-				int largestObjectGroupSize = 0;
-				List<Triple> largestObjectGroupTriples = new ArrayList<>();
-				for (final HashMap.Entry<String, List<Triple>> entry : objectGroups.entrySet()) {
-					final int size = entry.getValue().size();
-					if (size > largestObjectGroupSize) {
-						largestObjectGroupIndex = entry.getKey();
-						largestObjectGroupSize = size;
-						largestObjectGroupTriples = entry.getValue();
-					}
-				}
-
+				String largestObjectGroupKey = getLargestGroupKey(objectGroups);
+				int largestObjectGroupSize = objectGroups.get(largestObjectGroupKey).size();
 				// calculate biggest group by subject
-				String largestSubjectGroupIndex = "";
-				int largestSubjectGroupSize = 0;
-				List<Triple> largestSubjectGroupTriples = new ArrayList<>();
-				for (final HashMap.Entry<String, List<Triple>> entry : subjectGroups.entrySet()) {
-					final int size = entry.getValue().size();
-					if (size > largestSubjectGroupSize) {
-						largestSubjectGroupIndex = entry.getKey();
-						largestSubjectGroupSize = size;
-						largestSubjectGroupTriples = entry.getValue();
-					}
-				}
+				String largestSubjectGroupKey = getLargestGroupKey(subjectGroups);
+				int largestSubjectGroupSize = subjectGroups.get(largestSubjectGroupKey).size();
 
 				// create nodes
 				if (largestObjectGroupSize > largestSubjectGroupSize) {
-					// create and add the rpt or vp nodes
+					// create and add the iwpt or vp nodes
+					List<Triple> largestObjectGroupTriples = objectGroups.get(largestObjectGroupKey);
 					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT);
 					removeTriplesFromGroups(largestObjectGroupTriples, subjectGroups);
-					objectGroups.remove(largestObjectGroupIndex);
+					objectGroups.remove(largestObjectGroupKey);
 				} else {
-					/// create and add the pt or vp nodes
-					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
+					/// create and add the wpt or vp nodes
+					List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
+					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
 					removeTriplesFromGroups(largestSubjectGroupTriples, objectGroups);
-					subjectGroups.remove(largestSubjectGroupIndex);
+					subjectGroups.remove(largestSubjectGroupKey);
 				}
 			}
 		} else {
@@ -425,14 +408,25 @@ public class Translator {
 		return joinedGroups;
 	}
 
-	@Nullable
-	private String getLargestJoinedGroupKey(final HashMap<String, JoinedTriplesGroup> joinedGroups) {
+	/**
+	 * Given a Map with groups, return the key of the largest group.
+	 *
+	 * @param groupsMapping Map with the groups whose size are to be checked.
+	 * @param <T> Type of the groups. <code>JoinedTriplesGroup</code> or a list of <code>Triple</code>
+	 * @return Returns the key of the biggest group
+	 */
+	private <T> String getLargestGroupKey(final HashMap<String, T> groupsMapping) {
 		int biggestGroupSize = 0;
 		String biggestGroupKey = null;
 
-		for (final String key : joinedGroups.keySet()) {
-			final JoinedTriplesGroup joinedTriplesGroup = joinedGroups.get(key);
-			final int groupSize = joinedTriplesGroup.getIwptGroup().size() + joinedTriplesGroup.getWptGroup().size();
+		for (final String key : groupsMapping.keySet()) {
+			final T group = groupsMapping.get(key);
+			final int groupSize;
+			if (group instanceof JoinedTriplesGroup) {
+				groupSize = ((JoinedTriplesGroup) group).size();
+			} else{
+				groupSize = ((List<Triple>)group).size();
+			}
 			if (groupSize >= biggestGroupSize) {
 				biggestGroupKey = key;
 				biggestGroupSize = groupSize;

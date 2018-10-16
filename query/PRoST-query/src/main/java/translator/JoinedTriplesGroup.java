@@ -40,7 +40,7 @@ public class JoinedTriplesGroup {
 	/**
 	 * @return returns the number of elements in this group.
 	 */
-	int size(){
+	public int size(){
 		return wptGroup.size() + iwptGroup.size();
 	}
 }
