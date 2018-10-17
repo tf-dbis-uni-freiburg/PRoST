@@ -3,7 +3,9 @@ package translator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
 import org.apache.log4j.Logger;
@@ -21,10 +23,11 @@ import com.hp.hpl.jena.sparql.core.Var;
 
 import extVp.DatabaseStatistics;
 import extVp.ExtVpCreator;
-import extVp.TableStatistic;
 import joinTree.ElementType;
 import joinTree.ExtVpNode;
+import joinTree.IptNode;
 import joinTree.JoinTree;
+import joinTree.JptNode;
 import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
@@ -39,8 +42,6 @@ import joinTree.VpNode;
 public class Translator {
 	static final int DEFAULT_MIN_GROUP_SIZE = 2;
 	private static final Logger logger = Logger.getLogger("PRoST");
-	// minimum number of triple patterns with the same subject to form a group
-	// (property table)
 
 	private final SparkSession spark;
 	private final SQLContext sqlContext;
@@ -52,6 +53,8 @@ public class Translator {
 
 	// if false, only virtual partitioning tables will be queried
 	private boolean usePropertyTable;
+	private boolean useInversePropertyTable = false;
+	private boolean useJoinedPropertyTable = false;
 	private boolean useExtVP = false;
 
 	private final String databaseName;
@@ -137,7 +140,7 @@ public class Translator {
 			changeVpNodesToExtVPNodes(child, node.triplePattern);
 
 			// TODO if current node is an EXTVP node, it should still create EXTVP nodes
-			if (child.isVPNode && node.isVPNode) {
+			if (child instanceof VpNode && node instanceof VpNode) {
 				final ExtVpCreator extVPcreator = new ExtVpCreator();
 				final String createdTable = extVPcreator.createExtVPTable(child.triplePattern, node.triplePattern,
 						spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes);
@@ -233,94 +236,136 @@ public class Translator {
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 
-		if (useExtVP) {
-			final List<Triple> remainingTriples = new ArrayList<>();
-			remainingTriples.addAll(triples);
+		if (useJoinedPropertyTable) {
+			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
+			logger.info("JWPT and VP models only");
 
-			// uses property table when group is bigger than minimum group size
-			if (usePropertyTable) {
-				final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
-				// group by subjects
-				for (final Triple triple : triples) {
-					final String subject = triple.getSubject().toString(prefixes);
+			while (!joinedGroups.isEmpty()) {
+				// get biggest group
+				final String biggestGroupKey = getBiggestGroupKey(joinedGroups);
 
-					if (subjectGroups.containsKey(subject)) {
-						subjectGroups.get(subject).add(triple);
-					} else {
-						final List<Triple> subjTriples = new ArrayList<>();
-						subjTriples.add(triple);
-						subjectGroups.put(subject, subjTriples);
+				// remove from smaller groups
+				for (final Triple triple : joinedGroups.get(biggestGroupKey).getWptGroup()) {
+					final String object = triple.getObject().toString();
+					joinedGroups.get(object).removeIwptTriple(triple);
+					if (joinedGroups.get(object).getIwptGroup().size()
+							+ joinedGroups.get(object).getWptGroup().size() == 0) {
+						joinedGroups.remove(object);
 					}
 				}
 
-				// create and adds the proper nodes
-				for (final String subject : subjectGroups.keySet()) {
-					if (subjectGroups.get(subject).size() >= minimumGroupSize) {
-						final List<Triple> groupedTriples = subjectGroups.get(subject);
-						nodesQueue.add(new PtNode(groupedTriples, prefixes));
-						logger.info("added PTNode with subject " + subject + ", group size: "
-								+ subjectGroups.get(subject).size());
-						remainingTriples.removeAll(groupedTriples);
+				for (final Triple triple : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
+					final String subject = triple.getSubject().toString();
+					joinedGroups.get(subject).removeWptTriple(triple);
+					if (joinedGroups.get(subject).getIwptGroup().size()
+							+ joinedGroups.get(subject).getWptGroup().size() == 0) {
+						joinedGroups.remove(subject);
 					}
 				}
-			}
-
-			// remaining triples uses ExtVP or VP
-			for (final Triple currentTriple : remainingTriples) {
-				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples,
-						extVPDatabaseStatistic.getTables(), prefixes);
-				if (tableName != "") {
-					// ExtVp
-					final Node newNode =
-							new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
-					nodesQueue.add(newNode);
-					logger.info("added ExtVpNode for triple " + currentTriple.toString());
+				// create node
+				if (joinedGroups.get(biggestGroupKey).getIwptGroup().size()
+						+ joinedGroups.get(biggestGroupKey).getWptGroup().size() >= minimumGroupSize) {
+					nodesQueue.add(new JptNode(joinedGroups.get(biggestGroupKey), prefixes));
 				} else {
-					// VP
-					tableName = Stats.getInstance().findTableName(currentTriple.getPredicate().toString());
-					final Node newNode = new VpNode(new TriplePattern(currentTriple, prefixes), tableName);
-					nodesQueue.add(newNode);
-					logger.info("added VpNode for triple " + currentTriple.toString());
-				}
-			}
-		} else if (usePropertyTable) {
-			final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
-
-			// group by subjects
-			for (final Triple triple : triples) {
-				final String subject = triple.getSubject().toString(prefixes);
-
-				if (subjectGroups.containsKey(subject)) {
-					subjectGroups.get(subject).add(triple);
-				} else {
-					final List<Triple> subjTriples = new ArrayList<>();
-					subjTriples.add(triple);
-					subjectGroups.put(subject, subjTriples);
-				}
-			}
-
-			// create and add the proper nodes
-			for (final String subject : subjectGroups.keySet()) {
-				if (minimumGroupSize == 0) {
-					for (final Triple t : subjectGroups.get(subject)) {
-						// triple group with a single triple
-						final List<Triple> singleGroup = new ArrayList<>();
-						singleGroup.add(t);
-						final Node newNode = new PtNode(singleGroup, prefixes);
+					for (final Triple t : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
+						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
-				} else if (subjectGroups.get(subject).size() >= minimumGroupSize) {
-					nodesQueue.add(new PtNode(subjectGroups.get(subject), prefixes));
-				} else {
-					for (final Triple t : subjectGroups.get(subject)) {
+					for (final Triple t : joinedGroups.get(biggestGroupKey).getWptGroup()) {
 						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
 						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 				}
-			}
 
+				joinedGroups.remove(biggestGroupKey);
+			}
+		} else if (usePropertyTable && !useInversePropertyTable) {
+			// RPT disabled
+			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+
+			logger.info("WPT and VP models only");
+
+			// create and add the proper nodes
+			for (final String subject : subjectGroups.keySet()) {
+				createPtVPNode(subjectGroups.get(subject), nodesQueue);
+			}
+		} else if (!usePropertyTable && useInversePropertyTable) {
+			// PT disabled
+			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
+
+			logger.info("IWPT and VP only");
+			// create and add the proper nodes
+			for (final String object : objectGroups.keySet()) {
+				createRPtVPNode(objectGroups.get(object), nodesQueue);
+			}
+		} else if (usePropertyTable && useInversePropertyTable) {
+			// RPT, PT, and VP enabled
+			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
+			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+			logger.info("WPT, IWPT, and VP models only");
+
+			// repeats until there are no unassigned triple patterns left
+			while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
+				// Calculate biggest group by object
+				String biggestObjectGroupIndex = "";
+				int biggestObjectGroupSize = 0;
+				List<Triple> biggestObjectGroupTriples = new ArrayList<>();
+				for (final HashMap.Entry<String, List<Triple>> entry : objectGroups.entrySet()) {
+					final int size = entry.getValue().size();
+					if (size > biggestObjectGroupSize) {
+						biggestObjectGroupIndex = entry.getKey();
+						biggestObjectGroupSize = size;
+						biggestObjectGroupTriples = entry.getValue();
+					}
+				}
+
+				// calculate biggest group by subject
+				String biggestSubjectGroupIndex = "";
+				int biggestSubjectGroupSize = 0;
+				List<Triple> biggestSubjectGroupTriples = new ArrayList<>();
+				for (final HashMap.Entry<String, List<Triple>> entry : subjectGroups.entrySet()) {
+					final int size = entry.getValue().size();
+					if (size > biggestSubjectGroupSize) {
+						biggestSubjectGroupIndex = entry.getKey();
+						biggestSubjectGroupSize = size;
+						biggestSubjectGroupTriples = entry.getValue();
+					}
+				}
+
+				// create nodes
+				if (biggestObjectGroupSize > biggestSubjectGroupSize) {
+					// create and add the rpt or vp node
+					if (biggestObjectGroupSize >= minimumGroupSize) {
+						nodesQueue.add(new IptNode(biggestObjectGroupTriples, prefixes));
+					} else {
+						for (final Triple t : biggestObjectGroupTriples) {
+							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							nodesQueue.add(newNode);
+						}
+					}
+					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups); // remove empty groups
+					objectGroups.remove(biggestObjectGroupIndex); // remove group of created node
+				} else {
+					/// create and add the pt or vp node
+					if (biggestSubjectGroupSize >= minimumGroupSize) {
+						nodesQueue.add(new PtNode(biggestSubjectGroupTriples, prefixes));
+					} else {
+						for (final Triple t : biggestSubjectGroupTriples) {
+							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							nodesQueue.add(newNode);
+						}
+					}
+					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups); // remove empty groups
+					subjectGroups.remove(biggestSubjectGroupIndex); // remove group of created node
+				}
+			}
 		} else {
+			// VP only
+			logger.info("VP model only");
 			for (final Triple t : triples) {
 				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
 				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
@@ -330,16 +375,170 @@ public class Translator {
 		return nodesQueue;
 	}
 
+	/**
+	 * Receives a list of triples, create a PT node or VP nodes, according to the minimum
+	 * group size, and add it to the nodesQueue.
+	 *
+	 * @param triples
+	 *            triples for which nodes are to be created
+	 * @param nodesQueue
+	 *            <Code>PriorityQueue</code> of existing nodes
+	 */
+	private void createPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
+		if (triples.size() >= minimumGroupSize) {
+			nodesQueue.add(new PtNode(triples, prefixes));
+		} else {
+			for (final Triple t : triples) {
+				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+				nodesQueue.add(newNode);
+			}
+		}
+	}
+
+	/**
+	 * Receives a list of triples, create a RPT node or VP nodes, according to the minimum
+	 * group size, and add it to the nodesQueue.
+	 *
+	 * @param triples
+	 *            triples for which nodes are to be created
+	 * @param nodesQueue
+	 *            <Code>PriorityQueue</code> of existing nodes
+	 */
+	private void createRPtVPNode(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
+		if (triples.size() >= minimumGroupSize) {
+			nodesQueue.add(new IptNode(triples, prefixes));
+		} else {
+			for (final Triple t : triples) {
+				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+				nodesQueue.add(newNode);
+			}
+		}
+	}
+
+	/**
+	 * Remove every instance of a triple from input triples from the given groups and
+	 * guarantees that there are no empty entries in groups.
+	 *
+	 * @param triples
+	 *            list of triples to be removed
+	 * @param groups
+	 *            HashMap containing a list of grouped triples
+	 */
+	private void removeTriplesFromGroups(final List<Triple> triples, final HashMap<String, List<Triple>> groups) {
+		for (final HashMap.Entry<String, List<Triple>> entry : groups.entrySet()) {
+			entry.getValue().removeAll(triples);
+		}
+		// remove empty groups
+		final Iterator<Entry<String, List<Triple>>> it = groups.entrySet().iterator();
+		while (it.hasNext()) {
+			final HashMap.Entry<String, List<Triple>> pair = it.next();
+			if (pair.getValue().size() == 0) {
+				it.remove(); // avoids a ConcurrentModificationException
+			}
+		}
+	}
+
+	/**
+	 * Groups the input triples by subject.
+	 *
+	 * @param triples
+	 *            triples to be grouped
+	 * @return hashmap of triples grouped by the subject
+	 */
+	private HashMap<String, List<Triple>> getSubjectGroups(final List<Triple> triples) {
+		final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
+		for (final Triple triple : triples) {
+			final String subject = triple.getSubject().toString(prefixes);
+
+			if (subjectGroups.containsKey(subject)) {
+				subjectGroups.get(subject).add(triple);
+			} else { // new entry in the HashMap
+				final List<Triple> subjTriples = new ArrayList<>();
+				subjTriples.add(triple);
+				subjectGroups.put(subject, subjTriples);
+			}
+		}
+		return subjectGroups;
+	}
+
+	/**
+	 * Groups the input triples by object.
+	 *
+	 * @param triples
+	 *            triples to be grouped
+	 * @return hashmap of triples grouped by the object
+	 */
+	private HashMap<String, List<Triple>> getObjectGroups(final List<Triple> triples) {
+		final HashMap<String, List<Triple>> objectGroups = new HashMap<>();
+		for (final Triple triple : triples) {
+			final String object = triple.getObject().toString(prefixes);
+
+			if (objectGroups.containsKey(object)) {
+				objectGroups.get(object).add(triple);
+			} else { // new entry in the HashMap
+				final List<Triple> objTriples = new ArrayList<>();
+				objTriples.add(triple);
+				objectGroups.put(object, objTriples);
+			}
+		}
+		return objectGroups;
+	}
+
+	private HashMap<String, JoinedTriplesGroup> getJoinedGroups(final List<Triple> triples) {
+		final HashMap<String, JoinedTriplesGroup> joinedGroups = new HashMap<>();
+
+		for (final Triple triple : triples) {
+			final String subject = triple.getSubject().toString(prefixes);
+			final String object = triple.getObject().toString(prefixes);
+
+			// group by subject value
+			if (joinedGroups.containsKey(subject)) {
+				joinedGroups.get(subject).addWptTriple(triple);
+			} else {
+				final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
+				newGroup.addWptTriple(triple);
+				joinedGroups.put(subject, newGroup);
+			}
+
+			// group by object value
+			if (joinedGroups.containsKey(object)) {
+				joinedGroups.get(object).addIwptTriple(triple);
+			} else {
+				final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
+				newGroup.addIwptTriple(triple);
+				joinedGroups.put(object, newGroup);
+			}
+		}
+		return joinedGroups;
+	}
+
+	private String getBiggestGroupKey(final HashMap<String, JoinedTriplesGroup> joinedGroups) {
+		int biggestGroupSize = 0;
+		String biggestGroupKey = null;
+
+		for (final String key : joinedGroups.keySet()) {
+			final JoinedTriplesGroup joinedTriplesGroup = joinedGroups.get(key);
+			final int groupSize = joinedTriplesGroup.getIwptGroup().size() + joinedTriplesGroup.getWptGroup().size();
+			if (groupSize >= biggestGroupSize) {
+				biggestGroupKey = key;
+				biggestGroupSize = groupSize;
+			}
+		}
+		return biggestGroupKey;
+	}
+
 	/*
 	 * findRelateNode, given a source node, finds another node with at least one variable in
 	 * common, if there isn't return null
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
-		if (sourceNode.isPropertyTable) {
+		if (sourceNode instanceof PtNode || sourceNode instanceof IptNode || sourceNode instanceof JptNode) {
 			// sourceNode is a group
 			for (final TriplePattern tripleSource : sourceNode.tripleGroup) {
 				for (final Node node : availableNodes) {
-					if (node.isPropertyTable) {
+					if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 						for (final TriplePattern tripleDest : node.tripleGroup) {
 							if (existsVariableInCommon(tripleSource, tripleDest)) {
 								return node;
@@ -352,11 +551,10 @@ public class Translator {
 					}
 				}
 			}
-
 		} else {
 			// source node is not a group
 			for (final Node node : availableNodes) {
-				if (node.isPropertyTable) {
+				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 					for (final TriplePattern tripleDest : node.tripleGroup) {
 						if (existsVariableInCommon(tripleDest, sourceNode.triplePattern)) {
 							return node;
@@ -373,7 +571,7 @@ public class Translator {
 	}
 
 	/*
-	 * check if two Triple Patterns share at least one variable
+	 * check if two Triple Patterns share at least one variable.
 	 */
 	private boolean existsVariableInCommon(final TriplePattern triple_a, final TriplePattern triple_b) {
 		if (triple_a.objectType == ElementType.VARIABLE
@@ -394,7 +592,7 @@ public class Translator {
 	 * in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
-		if (node.isPropertyTable) {
+		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 			return 5;
 		}
 		final String predicate = node.triplePattern.predicate;
@@ -407,16 +605,27 @@ public class Translator {
 		return 2;
 	}
 
-	public void setPropertyTable(final boolean b) {
-		usePropertyTable = b;
+	public void setUsePropertyTable(final boolean usePropertyTable) {
+		this.usePropertyTable = usePropertyTable;
+	}
+
+	public void setUseInversePropertyTable(final boolean useInversePropertyTable) {
+		this.useInversePropertyTable = useInversePropertyTable;
 	}
 
 	public void setMinimumGroupSize(final int size) {
 		minimumGroupSize = size;
 	}
 
-	public void setUseExtVP(final boolean b) {
+	public void setUseExtVP(final boolean b){
 		useExtVP = b;
 	}
 
+	public void setUseJoinedPropertyTable(final boolean useJoinedPropertyTable) {
+		this.useJoinedPropertyTable = useJoinedPropertyTable;
+		if (this.useJoinedPropertyTable) {
+			setUsePropertyTable(false);
+			setUseInversePropertyTable(false);
+		}
+	}
 }

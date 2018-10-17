@@ -11,7 +11,8 @@ import executor.Utils;
 import joinTree.ProtobufStats;
 
 /**
- * This class is used to parse statistics from a Protobuf file and it exposes methods to retrieve singular entries.
+ * This class is used to parse statistics from a Protobuf file and it exposes methods to
+ * retrieve singular entries.
  *
  * TODO: implement whole graph statistics
  *
@@ -31,11 +32,13 @@ public class Stats {
 	private HashMap<String, joinTree.ProtobufStats.TableStats> tableStats;
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
+	private HashMap<String, Boolean> iptPropertyComplexity;
 
 	/**
-	 * Are prefixes used in the data set. The data will be stored as it comes, if it comes with full URIs, it will be
-	 * stored with full URIs. If it comes prefixed, prefixed version of the data will be stored. NO substitution will be
-	 * done. This property indicates if the data is stored with full URIs or with its prefixed version.
+	 * Are prefixes used in the data set. The data will be stored as it comes, if it comes
+	 * with full URIs, it will be stored with full URIs. If it comes prefixed, prefixed
+	 * version of the data will be stored. NO substitution will be done. This property
+	 * indicates if the data is stored with full URIs or with its prefixed version.
 	 */
 	private boolean arePrefixesActive;
 	private String[] tableNames;
@@ -50,6 +53,7 @@ public class Stats {
 			instance.tableSize = new HashMap<>();
 			instance.tableDistinctSubjects = new HashMap<>();
 			instance.tableStats = new HashMap<>();
+			instance.iptPropertyComplexity = new HashMap<>();
 			return instance;
 		}
 		if (areStatsParsed) {
@@ -86,6 +90,7 @@ public class Stats {
 			tableStats.put(tableNames[i], table);
 			tableSize.put(tableNames[i], table.getSize());
 			tableDistinctSubjects.put(tableNames[i], table.getDistinctSubjects());
+			iptPropertyComplexity.put(tableNames[i], table.getIsInverseComplex());
 			i++;
 		}
 		logger.info("Statistics correctly parsed");
@@ -120,10 +125,15 @@ public class Stats {
 		return getTableSize(cleanedTableName) != getTableDistinctSubjects(cleanedTableName);
 	}
 
+	public boolean isInverseTableComplex(String table) {
+		table = findTableName(table);
+		return iptPropertyComplexity.get(table);
+	}
+
 	/*
-	 * This method returns the same name for the table (VP) or column (PT) that was used in the loading phase. Returns
-	 * the name from an exact match or from a partial one, if a prefix was used in loading or in the query. Return null
-	 * if there is no match
+	 * This method returns the same name for the table (VP) or column (PT) that was used in
+	 * the loading phase. Returns the name from an exact match or from a partial one, if a
+	 * prefix was used in loading or in the query. Return null if there is no match
 	 */
 	public String findTableName(final String tableName) {
 		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();

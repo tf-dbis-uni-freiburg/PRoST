@@ -18,7 +18,6 @@ public class ExtVpNode extends Node {
 
 	public ExtVpNode(final TriplePattern triplePattern, final String tableName, final String databaseName) {
 		super();
-		isExtVPNode = true;
 		this.triplePattern = triplePattern;
 		tripleGroup = Collections.emptyList();
 		this.tableName = tableName;

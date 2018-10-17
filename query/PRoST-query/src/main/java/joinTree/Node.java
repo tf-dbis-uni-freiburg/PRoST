@@ -21,9 +21,6 @@ public abstract class Node {
 	public List<TriplePattern> tripleGroup;
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
-	public boolean isPropertyTable = false;
-	public boolean isExtVPNode = false;
-	public boolean isVPNode = false;
 	public String filter;
 
 	// private static final Logger logger = Logger.getLogger("PRoST");
@@ -61,8 +58,7 @@ public abstract class Node {
 		for (final Node child : children) {
 			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
-			currentResult = currentResult.join(childResult,
-					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
+			currentResult = currentResult.join(childResult, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 		}
 		return currentResult;
 	}
@@ -74,7 +70,18 @@ public abstract class Node {
 			for (final TriplePattern tp_group : tripleGroup) {
 				str.append(tp_group.toString() + ", ");
 			}
+		} else if (this instanceof IptNode) {
+			str.append("IWPT node: ");
+			for (final TriplePattern tpGroup : tripleGroup) {
+				str.append(tpGroup.toString() + ", ");
+			}
+		} else if (this instanceof JptNode) {
+			str.append("JWPT node: ");
+			for (final TriplePattern tpGroup : tripleGroup) {
+				str.append(tpGroup.toString() + ", ");
+			}
 		} else {
+			str.append("VP node: ");
 			str.append(triplePattern.toString());
 		}
 		str.append(" }");
@@ -88,11 +95,9 @@ public abstract class Node {
 
 	public void addChildren(final Node newNode) {
 		children.add(newNode);
-
 	}
 
 	public int getChildrenCount() {
 		return children.size();
 	}
-
 }

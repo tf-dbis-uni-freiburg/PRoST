@@ -52,8 +52,8 @@ public class VerticalPartitioningLoader extends Loader {
 			// Commented code is partitioning by subject
 			/*
 			 * String createVPTableFixed = String.format(
-			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET" , "vp_" +
-			 * this.getValidHiveName(property), column_name_subject, column_name_object);
+			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET"
+			 * , "vp_" + this.getValidHiveName(property), column_name_subject, column_name_object);
 			 */
 			spark.sql(createVPTableFixed);
 
@@ -63,9 +63,10 @@ public class VerticalPartitioningLoader extends Loader {
 					column_name_predicate, property);
 			// Commented code is partitioning by subject
 			/*
-			 * String populateVPTable = String.format( "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " +
-			 * "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
-			 * column_name_subject, column_name_object, name_tripletable, column_name_predicate, property);
+			 * String populateVPTable = String.format( "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) "
+			 * + "SELECT %3$s, %2$s " + "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" +
+			 * this.getValidHiveName(property), column_name_subject, column_name_object,
+			 * name_tripletable, column_name_predicate, property);
 			 */
 			spark.sql(populateVPTable);
 
@@ -91,8 +92,8 @@ public class VerticalPartitioningLoader extends Loader {
 	}
 
 	/*
-	 * calculate the statistics for a single table: size, number of distinct subjects and isComplex. It returns a
-	 * protobuf object defined in ProtobufStats.proto
+	 * calculate the statistics for a single table: size, number of distinct subjects and
+	 * isComplex. It returns a protobuf object defined in ProtobufStats.proto
 	 */
 	private TableStats calculate_stats_table(final Dataset<Row> table, final String tableName) {
 		final TableStats.Builder table_stats_builder = TableStats.newBuilder();
@@ -102,9 +103,15 @@ public class VerticalPartitioningLoader extends Loader {
 		final int distinct_subjects = (int) table.select(column_name_subject).distinct().count();
 		final boolean is_complex = table_size != distinct_subjects;
 
-		// put them in the protobuf object
 		table_stats_builder.setSize(table_size).setDistinctSubjects(distinct_subjects).setIsComplex(is_complex)
 				.setName(tableName);
+
+		if (spark.catalog().tableExists("inverse_properties")) {
+			final String query = new String("select is_complex from inverse_properties where p='" + tableName + "'");
+			final boolean isInverseComplex = spark.sql(query.toString()).head().getInt(0) == 1;
+			// put them in the protobuf object
+			table_stats_builder.setIsInverseComplex(isInverseComplex);
+		}
 
 		logger.info(
 				"Adding these properties to Protobuf object. Table size:" + table_size + ", " + "Distinct subjects: "

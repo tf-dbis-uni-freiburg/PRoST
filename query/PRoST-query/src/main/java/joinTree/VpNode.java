@@ -20,7 +20,6 @@ public class VpNode extends Node {
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 		tripleGroup = Collections.emptyList();
-		isVPNode = true;
 	}
 
 	@Override

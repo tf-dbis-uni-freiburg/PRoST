@@ -16,7 +16,6 @@ import executor.Utils;
  *
  */
 public class JoinTree {
-
 	public String queryName; // identifier for the query, useful for debugging
 	private final Node root;
 	private final List<Node> optionalTreeRoots;
