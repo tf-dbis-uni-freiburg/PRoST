@@ -5,6 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import loader.InverseWidePropertyTable;
+import loader.JoinedWidePropertyTable;
+import loader.TripleTableLoader;
+import loader.VerticalPartitioningLoader;
+import loader.WidePropertyTableLoader;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -16,11 +21,6 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.sql.SparkSession;
-
-import loader.TripleTableLoader;
-import loader.VerticalPartitioningLoader;
-import loader.WidePropertyTableLoader;
-import loader.WidePropertyTableLoader.PropertyTableType;
 
 /**
  * <p>
@@ -240,27 +240,25 @@ public class Main {
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader pt_loader =
-					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub);
-			pt_loader.load();
+			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(input_location,outputDB, spark, wptPartitionedBySub);
+			wptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
 		}
 
 		if (generateIWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader ipt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
-					wptPartitionedBySub, PropertyTableType.IWPT);
-			ipt_loader.load();
+			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(input_location,outputDB, spark, wptPartitionedBySub);
+			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
 		}
 
 		if (generateJWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader joinedWpt_loader = new WidePropertyTableLoader(input_location, outputDB,
-					spark, wptPartitionedBySub, PropertyTableType.JWPT);
-			joinedWpt_loader.load();
+			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(input_location,outputDB, spark,
+					wptPartitionedBySub);
+			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Joined Property Table: " + String.valueOf(executionTime));
 		}
@@ -273,6 +271,5 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
 		}
-
 	}
 }
