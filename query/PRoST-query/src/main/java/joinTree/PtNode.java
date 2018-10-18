@@ -16,6 +16,7 @@ import translator.Stats;
  * A node of the JoinTree that refers to the Property Table.
  */
 public class PtNode extends Node {
+	private static final String COLUMN_NAME_SUBJECT = "s";
 
 	public PtNode(final List<TriplePattern> tripleGroup) {
 		super();
