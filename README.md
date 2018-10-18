@@ -94,7 +94,7 @@ If you want to enable only WPT, you need to add only it to -lp parameter. For ex
 IWPT may be used together with the WPT model.
 If JWPT is enabled, WPT and IWPT will be automatically disabled.
 
-Moreover, one might use the option -ngs to set if triples have to be grouped by subject or not. For example, when the option is presented the Wide Property Table is queried for each triple.
+Moreover, one might use the option -dg to set if triples have to be grouped by subject or not. For example, when the option is presented the Wide Property Table is queried for each triple.
 The option is supported only for WPT for the moment.
 
 The database name(-d option) and the statistics file(-s option) needs to be the ones used to load the graph.
