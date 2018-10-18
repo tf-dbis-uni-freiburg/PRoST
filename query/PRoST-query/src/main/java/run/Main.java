@@ -43,8 +43,8 @@ public class Main {
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
-	// if triples with the same subject are grouped when using wide property table
-	private static boolean noGroupsBySubject = false;	
+	// if triples have to be grouped when using property table
+	private static boolean disablesGrouping = false;	
 	
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
@@ -80,9 +80,9 @@ public class Main {
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
 		
-		final Option groupBySubject = new Option("ngs", "noGroupsBySubject", false, "If triples are not grouped by subject when WPT is used.");
-		groupBySubject.setRequired(false);
-		options.addOption(groupBySubject);
+		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "If triples are not grouped by subject when WPT is used.");
+		disableGroupingOpt.setRequired(false);
+		options.addOption(disableGroupingOpt);
 
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
@@ -140,10 +140,6 @@ public class Main {
 			if (strategies.contains("WPT")) {
 				usePropertyTable = true;
 				logger.info("Logical strategy used: WPT");
-				// if triples are grouped by subject
-				if (cmd.hasOption("noGroupsBySubject")) {
-					noGroupsBySubject = true;
-				}
 			}
 			if (strategies.contains("IWPT")) {
 				useInversePropertyTable = true;
@@ -156,6 +152,11 @@ public class Main {
 			}
 		}
 		
+		if (cmd.hasOption("disablesGrouping")) {
+			disablesGrouping = true;
+			logger.info("Grouping of multiple triples is disabled.");
+		}
+
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
 
@@ -206,9 +207,6 @@ public class Main {
 		}
 		if (usePropertyTable) {
 			translator.setUsePropertyTable(true);
-			if (noGroupsBySubject) {
-				translator.setGroupBySubjectWPT(false);
-			}
 		}
 		if (useInversePropertyTable) {
 			translator.setUseInversePropertyTable(true);
@@ -217,6 +215,9 @@ public class Main {
 			translator.setUseJoinedPropertyTable(true);
 			translator.setUseInversePropertyTable(false);
 			translator.setUsePropertyTable(false);
+		}
+		if (disablesGrouping) {
+			translator.setGroupingDisabled(true);
 		}
 		return translator.translateQuery();
 	}
