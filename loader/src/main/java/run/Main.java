@@ -193,7 +193,7 @@ public class Main {
 			logger.info("Wide Property Table will be partitioned by subject.");
 		}
 
-		// The defaulf value of dropDuplicates is true, so this needs to be
+		// The default value of dropDuplicates is true, so this needs to be
 		// changed just in case user sets it as false.
 		if (cmd.hasOption("dropDuplicates")) {
 			final String dropDuplicateValue = cmd.getOptionValue("dropDuplicates");
