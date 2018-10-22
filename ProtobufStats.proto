@@ -17,7 +17,5 @@ message TableStats {
 
 message Graph {
     string name = 1;
-    bool arePrefixesActive = 2;
-    repeated TableStats tables = 3;
-     
+    repeated TableStats tables = 2;     
 }
