@@ -1,11 +1,13 @@
 package joinTree;
 
+import org.apache.log4j.Logger;
+
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import translator.Stats;
-
 public class TriplePattern {
+
+	private static final Logger logger = Logger.getLogger("PRoST");
 
 	public String subject;
 	public String predicate;
@@ -17,15 +19,18 @@ public class TriplePattern {
 
 	// construct from Jena triple
 	public TriplePattern(final Triple triple, final PrefixMapping prefixes) {
-
 		// extract and set the subject
 		if (triple.getSubject().isVariable()) {
 			subjectType = ElementType.VARIABLE;
 			subject = triple.getSubject().toString();
 		} else {
 			subjectType = ElementType.CONSTANT;
-			subject = Stats.getInstance().arePrefixesActive() ? triple.getSubject().toString(prefixes)
-					: "<" + triple.getSubject().getURI() + ">";
+			logger.info("Subject of the triple:" + triple.getSubject());
+			if (triple.getSubject().isLiteral()) {
+				subject = triple.getSubject().toString();
+			} else {
+				subject = "<" + triple.getSubject().getURI() + ">";
+			}
 		}
 
 		// extract and set the predicate
@@ -38,10 +43,13 @@ public class TriplePattern {
 			object = triple.getObject().toString(prefixes);
 		} else {
 			objectType = ElementType.CONSTANT;
-			object = Stats.getInstance().arePrefixesActive() ? triple.getObject().toString(prefixes)
-					: "<" + triple.getObject().getURI() + ">";
+			logger.info("Object of the triple :" + triple.getObject());
+			if (triple.getObject().isLiteral()) {
+				object = triple.getObject().toString();
+			} else {
+				object = "<" + triple.getObject().getURI() + ">";
+			}
 		}
-
 	}
 
 	@Override
