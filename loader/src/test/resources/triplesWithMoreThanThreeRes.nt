@@ -1,7 +1,7 @@
-<http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1> <http://dbpedia.org/resource/Template:Sisterlinks> .
-<http://dbpedia.org/resource/Anarchism2> <http://dbpedia.org/property/pro2> <http://dbpedia.org/resource/Res1> <http://dbpedia.org/resource/Res2> .
-<http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1> <http://dbpedia.org/resource/Res3> .
-<http://dbpedia.org/resource/Anarchism1> <http://dbpedia.org/property/pro1> "wow" "hi" .
-<http://dbpedia.org/resource/Anarchism3> <http://dbpedia.org/property/pro3> "wow\" \" . \"ok\" hi" .
-<http://dbpedia.org/resource/Anarchism4> <http://dbpedia.org/property/pro2> <http://dbpedia.org/resource/Res4>.
-<http://dbpedia.org/resource/Anarchism2> <http://dbpedia.org/property/pro3> "wow hi".
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res:1000> .
+<http://example.org/resource/Res2> <http://example.org/property/pro2> <http://example.org/resource/Res1> <http://example.org/resource/Res2> .
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res3> .
+<http://example.org/resource/Res1> <http://example.org/property/pro1> "wow" "hi" .
+<http://example.org/resource/Res3> <http://example.org/property/pro3> "wow\" \" . \"ok\" hi" .
+<http://example.org/resource/Res4> <http://example.org/property/pro2> <http://example.org/resource/Res4>.
+<http://example.org/resource/Res2> <http://example.org/property/pro3> "wow hi".
