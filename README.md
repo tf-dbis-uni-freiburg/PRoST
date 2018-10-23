@@ -8,7 +8,8 @@ Input graphs are partitioned efficiently and stored across several tables regist
   - Cossu, Matteo, Michael Färber, and Georg Lausen. "PRoST: Distributed Execution of SPARQL Queries Using Mixed Partitioning Strategies." (EDBT 2018).
   
 ## Support
-prost@informatik.uni-freiburg.de
+If you have any problems using PRoST, write us an email:
+prost-support@informatik.uni-freiburg.de
 
 ## Requirements
   - Apache Spark 2+
