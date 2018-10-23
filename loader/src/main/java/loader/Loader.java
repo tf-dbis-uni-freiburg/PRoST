@@ -76,5 +76,4 @@ public abstract class Loader {
 		spark.sql("USE " + database_name);
 		logger.info("Using the database: " + database_name);
 	}
-
 }
