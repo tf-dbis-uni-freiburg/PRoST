@@ -80,20 +80,23 @@ If you wish to do so, add the following lines to the log4j.properties file:
 ## PRoST-Query: Querying with SPARQL
 To query the data use the following command:
 
-    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file> -wpt
+    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file> -lp <logical_partition_strategies>
+    Example:
+	spark2-submit --class run.Main PRoST-Query.jar -i /DbPedia/q1.txt -d dbpedia -s dbpedia.stats -o q1_dbpedia -lp VP,WPT
 
-This command will execute the queries using both VP and WPT models.
-    
-The database name and the statistics file need to be the ones used to load the graph.
+This command will execute the queries using the combination of the default partitioning strategies - VP and WPT. 
+
+The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies, for instance "WPT,VP".
+Possible values are "WPT" for Wide Property Table, "IWPT" for Inverse Wide Property Table, "JWPT" for a single table with the joined data from both a Inverse Wide Property Table and a Wide Property Table, and "VP" for Vertical Partitioning. 
+If this option is missing, the default is "WPT,VP". 
+Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. 
+If you want to enable only WPT, you need to add only it to -lp parameter. For example -lp WPT. 
+IWPT may be used together with the WPT model.
+If JWPT is enabled, WPT and IWPT will be automatically disabled.
+
+Moreover, one might use the option -dg to set if triples have to be grouped by subject or not. For example, when the option is presented the Wide Property Table is queried for each triple.
+The option is supported only for WPT for the moment.
+
+The database name(-d option) and the statistics file(-s option) needs to be the ones used to load the graph.
 
 The -o option contains the name of the HDFS file in which PRoST will save the results of the query.
-
-The -wpt enables the use of the WPT.
-
-One might also use the option -iwpt to enable the use of the IWPT. IWPT may be used together with the WPT model.
-
-The -jwpt option enables the use of the JWPT model. If it is enabled, WPT and IWPT will be automatically disabled.
-
-If no grouped strategy (WPT, IWPT, or JWPT) is used, only VP will be used.
-
-Alternatively, one might use the option -g <minimum_group_size> to set the minimum size of the WPT, IWPT, and JWPT nodes. If this option is not present, the minimum size defaults to 2. A minimum group size of 1 (-g 1) guarantees that VP will not be used.
