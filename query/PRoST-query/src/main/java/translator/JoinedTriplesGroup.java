@@ -4,36 +4,43 @@ import java.util.HashSet;
 
 import com.hp.hpl.jena.graph.Triple;
 
+import javax.annotation.Nullable;
+
+/**
+ * A group of triples that have their common variable at either their subject or object.
+ */
 public class JoinedTriplesGroup {
+	@Nullable
 	private final HashSet<Triple> wptGroup;
+	@Nullable
 	private final HashSet<Triple> iwptGroup;
 
-	public JoinedTriplesGroup() {
+	JoinedTriplesGroup() {
 		wptGroup = new HashSet<>();
 		iwptGroup = new HashSet<>();
 	}
 
+	/**
+	 * @return returns the triples whose common variable is a subject
+	 */
+	@Nullable
 	public HashSet<Triple> getWptGroup() {
 		return wptGroup;
 	}
 
+	/**
+	 *
+	 * @return returns the triples whose common variable is an object
+	 */
+	@Nullable
 	public HashSet<Triple> getIwptGroup() {
 		return iwptGroup;
 	}
 
-	public void addWptTriple(final Triple triple) {
-		wptGroup.add(triple);
-	}
-
-	public void addIwptTriple(final Triple triple) {
-		iwptGroup.add(triple);
-	}
-
-	public void removeWptTriple(final Triple triple) {
-		wptGroup.remove(triple);
-	}
-
-	public void removeIwptTriple(final Triple triple) {
-		iwptGroup.remove(triple);
+	/**
+	 * @return returns the number of elements in this group.
+	 */
+	public int size(){
+		return wptGroup.size() + iwptGroup.size();
 	}
 }
