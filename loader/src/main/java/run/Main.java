@@ -34,7 +34,6 @@ import org.apache.spark.sql.SparkSession;
 public class Main {
 	private static String input_location;
 	private static String outputDB;
-	private static String lpStrategies;
 	private static final String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private static boolean useStatistics = false;
@@ -130,7 +129,7 @@ public class Main {
 			generateVP = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
-			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 
 			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
 			if (strategies.contains("TT")) {
