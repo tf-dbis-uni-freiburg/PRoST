@@ -206,26 +206,15 @@ public class Translator {
 					}
 					createNodes(largestJoinedTriplesGroup, nodesQueue);
 					joinedGroups.remove(largestGroupKey);
-				} else {//if grouping is disabled, there will be no repeated triples
+				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
 					for (String key : joinedGroups.keySet()){
 						createNodes(joinedGroups.get(key), nodesQueue);
 						joinedGroups.remove(key);
 					}
 				}
 			}
-		} else if (usePropertyTable && !useInversePropertyTable) {
-			logger.info("WPT and VP models only");
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
-			}
-		} else if (!usePropertyTable && useInversePropertyTable) {
-			logger.info("IWPT and VP only");
-			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
-			for (final List<Triple> triplesGroup : objectGroups.values()) {
-				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT);
-			}
-		} else if (usePropertyTable && useInversePropertyTable) {
+			return nodesQueue;
+		} else if (usePropertyTable && useInversePropertyTable && isGrouping) {
 			logger.info("WPT, IWPT, and VP models only");
 
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
@@ -274,14 +263,29 @@ public class Translator {
 					subjectGroups.remove(largestSubjectGroupKey);
 				}
 			}
-		} else if (useVerticalPartitioning){
+			return nodesQueue;
+		} else if (usePropertyTable) {
+			logger.info("WPT and VP models only");
+			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+			for (final List<Triple> triplesGroup : subjectGroups.values()) {
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
+			}
+			return nodesQueue;
+		} else if (useInversePropertyTable) {
+			logger.info("IWPT and VP only");
+			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
+			for (final List<Triple> triplesGroup : objectGroups.values()) {
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT);
+			}
+			return nodesQueue;
+		}
+		 else if (useVerticalPartitioning){
 			// VP only
 			logger.info("VP model only");
 			createVpNodes(triples, nodesQueue);
-		} else {
-			throw new RuntimeException("Cannot generate nodes queue. No partitioning model enabled.");
+			return nodesQueue;
 		}
-		return nodesQueue;
+		throw new RuntimeException("Cannot generate nodes queue. No valid partitioning model enabled.");
 	}
 
 	/**
