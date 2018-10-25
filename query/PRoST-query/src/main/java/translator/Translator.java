@@ -413,7 +413,7 @@ public class Translator {
 
 	private HashMap<String, JoinedTriplesGroup> getJoinedGroups(final List<Triple> triples) {
 		final HashMap<String, JoinedTriplesGroup> joinedGroups = new HashMap<>();
-
+		int key = 0; //creates a unique key to be used when grouping is disabled, to avoid overwriting values
 		for (final Triple triple : triples) {
 			if (isGrouping){
 				final String subject = triple.getSubject().toString(prefixes);
@@ -439,7 +439,8 @@ public class Translator {
 			} else {
 				final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
 				newGroup.getWptGroup().add(triple);
-				joinedGroups.put(triple.getSubject().toString(prefixes), newGroup);
+				joinedGroups.put(String.valueOf(key), newGroup);
+				key++;
 			}
 		}
 
