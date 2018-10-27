@@ -138,7 +138,7 @@ public class Main {
 			logger.info("Default strategies used: WPT + VP");
 		} else {
 			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
-			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
+			final List<String> strategies = Arrays.asList(lpStrategies.toUpperCase().split(","));
 
 			if (strategies.contains("VP")) {
 				useVerticalPartitioning = true;

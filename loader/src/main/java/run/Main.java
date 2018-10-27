@@ -131,7 +131,7 @@ public class Main {
 		} else {
 			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 
-			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
+			final List<String> strategies = Arrays.asList(lpStrategies.toUpperCase().split(","));
 			if (strategies.contains("TT")) {
 				generateTT = true;
 				logger.info("Logical strategy used: TT");
