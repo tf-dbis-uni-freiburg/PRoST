@@ -209,8 +209,9 @@ public class Translator {
 				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
 					for (String key : joinedGroups.keySet()){
 						createNodes(joinedGroups.get(key), nodesQueue);
-						joinedGroups.remove(key);
+						// joinedGroups.remove(key);
 					}
+					joinedGroups.clear(); //avoid concurrent modifications
 				}
 			}
 			return nodesQueue;
