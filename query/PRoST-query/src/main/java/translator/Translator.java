@@ -215,7 +215,8 @@ public class Translator {
 				}
 			}
 			return nodesQueue;
-		} else if (usePropertyTable && useInversePropertyTable && isGrouping) {
+		}
+		if (usePropertyTable && useInversePropertyTable && isGrouping) {
 			logger.info("WPT, IWPT, and VP models only");
 
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
@@ -265,14 +266,16 @@ public class Translator {
 				}
 			}
 			return nodesQueue;
-		} else if (usePropertyTable) {
+		}
+		if (usePropertyTable) {
 			logger.info("WPT and VP models only");
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
 			}
 			return nodesQueue;
-		} else if (useInversePropertyTable) {
+		}
+		if (useInversePropertyTable) {
 			logger.info("IWPT and VP only");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
@@ -280,7 +283,7 @@ public class Translator {
 			}
 			return nodesQueue;
 		}
-		 else if (useVerticalPartitioning){
+		if (useVerticalPartitioning){
 			// VP only
 			logger.info("VP model only");
 			createVpNodes(triples, nodesQueue);
