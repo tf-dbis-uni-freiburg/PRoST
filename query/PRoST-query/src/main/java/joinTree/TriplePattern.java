@@ -3,8 +3,6 @@ package joinTree;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import translator.Stats;
-
 public class TriplePattern {
 
 	public String subject;
@@ -24,8 +22,11 @@ public class TriplePattern {
 			subject = triple.getSubject().toString();
 		} else {
 			subjectType = ElementType.CONSTANT;
-			subject = Stats.getInstance().arePrefixesActive() ? triple.getSubject().toString(prefixes)
-					: "<" + triple.getSubject().getURI() + ">";
+			if (triple.getSubject().isLiteral()) {
+				subject = triple.getSubject().toString();
+			} else {
+				subject = "<" + triple.getSubject().getURI() + ">";
+			}
 		}
 
 		// extract and set the predicate
@@ -38,10 +39,12 @@ public class TriplePattern {
 			object = triple.getObject().toString(prefixes);
 		} else {
 			objectType = ElementType.CONSTANT;
-			object = Stats.getInstance().arePrefixesActive() ? triple.getObject().toString(prefixes)
-					: "<" + triple.getObject().getURI() + ">";
+			if (triple.getObject().isLiteral()) {
+				object = triple.getObject().toString();
+			} else {
+				object = "<" + triple.getObject().getURI() + ">";
+			}
 		}
-
 	}
 
 	@Override

@@ -136,21 +136,11 @@ public class Stats {
 	 */
 	public String findTableName(final String tableName) {
 		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
-
-		if (cleanedTableName.contains("_")) {
-			final int lstIdx = cleanedTableName.lastIndexOf("_");
-			cleanedTableName = cleanedTableName.substring(lstIdx);
-		}
-
 		for (final String realTableName : tableNames) {
 
 			final boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
-			// one of the two is prefixed the other not
-			final boolean partialMatch1 = realTableName.toLowerCase().endsWith(cleanedTableName);
-			final boolean partialMatch2 = cleanedTableName.endsWith(realTableName.toLowerCase());
-
 			// if there is a match, return the correct table name
-			if (exactMatch || partialMatch1 || partialMatch2) {
+			if (exactMatch) {
 				return realTableName;
 			}
 		}

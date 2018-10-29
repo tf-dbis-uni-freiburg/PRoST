@@ -81,12 +81,7 @@ public class FilterVisitor extends ExprVisitorBase {
 	public void visit(final NodeValue nv) {
 		// for literals and URIs
 		if (nv.isIRI()) {
-			if (Stats.getInstance().arePrefixesActive()) {
-				// use the short form
-				builder.append(prefixes.shortForm(nv.asString()));
-			} else {
-				builder.append("<" + nv.asString() + ">");
-			}
+			builder.append("<" + nv.asString() + ">");
 		} else {
 			builder.append(nv.asString());
 		}

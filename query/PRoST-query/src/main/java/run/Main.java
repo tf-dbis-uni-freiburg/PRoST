@@ -176,6 +176,10 @@ public class Main {
 				executor.setOutputFile(outputFile);
 			}
 			executor.execute();
+			
+			if (benchmarkMode) {
+				executor.saveResultsCsv(benchmark_file);
+			}
 		} else if (file.isDirectory()) {
 			// set of queries
 			// empty executor to initialize Spark
