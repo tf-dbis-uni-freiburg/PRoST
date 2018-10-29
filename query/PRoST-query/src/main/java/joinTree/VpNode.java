@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.Collections;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
@@ -12,7 +13,7 @@ import executor.Utils;
 public class VpNode extends Node {
 
 	private final String tableName;
-
+	private static final Logger logger = Logger.getLogger("PRoST");
 	/*
 	 * The node contains a single triple pattern.
 	 */
@@ -58,8 +59,17 @@ public class VpNode extends Node {
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" s='" + triplePattern.subject + "' ");
 		}
-
+		
+		logger.info("VP Node ...");
+		logger.info(query.toString());
+		
+		final long startTime = System.currentTimeMillis();
+		
 		sparkNodeData = sqlContext.sql(query.toString());
+		
+		logger.info(sparkNodeData.count());
+		long executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Execution time: " + String.valueOf(executionTime));
 	}
 
 }

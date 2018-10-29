@@ -14,7 +14,6 @@ public class NodeComparator implements Comparator<Node> {
 	// used to sort nodes when building a join tree
 	public float heuristicNodePriority(final Node node) {
 		float priority = 0;
-
 		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 			for (final TriplePattern t : node.tripleGroup) {
 				final boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
@@ -49,5 +48,4 @@ public class NodeComparator implements Comparator<Node> {
 
 		return (int) Math.ceil(priorityNode2 - priorityNode1);
 	}
-
 }

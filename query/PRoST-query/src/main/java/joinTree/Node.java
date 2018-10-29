@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -15,6 +16,9 @@ import executor.Utils;
  *
  */
 public abstract class Node {
+	
+	private static final Logger logger = Logger.getLogger("PRoST");
+	
 	public TriplePattern triplePattern;
 	public List<Node> children;
 	public List<String> projection;
@@ -52,12 +56,20 @@ public abstract class Node {
 		if (sparkNodeData == null) {
 			computeNodeData(sqlContext);
 		}
+		logger.info("computeJoinWithChildren");
 		Dataset<Row> currentResult = sparkNodeData;
 		for (final Node child : children) {
 			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 			currentResult = currentResult.join(childResult,
 					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
+			final long startTime = System.currentTimeMillis();
+			logger.info("JoinVars: " + joinVariables);
+			logger.info("Compute join");
+			logger.info(currentResult.count());
+			long executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Execution time: " + String.valueOf(executionTime));
+			
 		}
 		return currentResult;
 	}

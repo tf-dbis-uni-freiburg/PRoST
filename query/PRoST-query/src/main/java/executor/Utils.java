@@ -6,17 +6,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import joinTree.ElementType;
 import joinTree.TriplePattern;
 
 public class Utils {
-
+	
 	/**
 	 * Makes the string conform to the requirements for HiveMetastore column names. e.g. remove braces, replace non word
 	 * characters, trim spaces.
 	 */
 	public static String toMetastoreName(final String s) {
-		return s.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
+		return s.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");		
 	}
 
 	public static String removeQuestionMark(final String s) {

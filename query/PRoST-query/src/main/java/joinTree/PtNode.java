@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import com.hp.hpl.jena.graph.Triple;
@@ -18,6 +19,8 @@ import translator.Stats;
 public class PtNode extends Node {
 	private static final String COLUMN_NAME_SUBJECT = "s";
 
+	private static final Logger logger = Logger.getLogger("PRoST");
+
 	public PtNode(final List<TriplePattern> tripleGroup) {
 		super();
 		this.tripleGroup = tripleGroup;
@@ -25,8 +28,8 @@ public class PtNode extends Node {
 	}
 
 	/*
-	 * Alternative constructor, used to instantiate a Node directly with a list of jena triple
-	 * patterns.
+	 * Alternative constructor, used to instantiate a Node directly with a list of
+	 * jena triple patterns.
 	 */
 	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
@@ -97,7 +100,16 @@ public class PtNode extends Node {
 			query.append(" WHERE ");
 			query.append(String.join(" AND ", whereConditions));
 		}
+		logger.info("PT Node ...");
+		logger.info(query.toString());
+
+		final long startTime = System.currentTimeMillis();
 
 		sparkNodeData = sqlContext.sql(query.toString());
+
+		logger.info(sparkNodeData.count());
+		
+		long executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Execution time: " + String.valueOf(executionTime));
 	}
 }

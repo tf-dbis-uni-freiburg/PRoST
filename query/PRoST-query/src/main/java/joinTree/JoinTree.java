@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -16,6 +17,9 @@ import executor.Utils;
  *
  */
 public class JoinTree {
+	
+	private static final Logger logger = Logger.getLogger("PRoST");
+	
 	private final Node root;
 	private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
@@ -42,6 +46,7 @@ public class JoinTree {
 
 	public Dataset<Row> computeJoins(final SQLContext sqlContext) {
 		// compute all the joins
+		logger.info("computeJoins");
 		Dataset<Row> results = root.computeJoinWithChildren(sqlContext);
 
 		// select only the requested result

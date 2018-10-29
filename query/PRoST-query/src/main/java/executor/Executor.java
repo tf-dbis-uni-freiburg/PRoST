@@ -2,8 +2,10 @@ package executor;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,8 +120,8 @@ public class Executor {
 	 * Save the results <query name, execution time, number of results> in a csv file.
 	 */
 	public void saveResultsCsv(final String fileName) {
-		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName));
-
+		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8, 
+                StandardOpenOption.APPEND);
 				CSVPrinter csvPrinter = new CSVPrinter(writer,
 						CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"));) {
 			for (final String[] res : query_time_results) {
