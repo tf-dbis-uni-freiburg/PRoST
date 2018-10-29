@@ -1,20 +1,19 @@
 package loader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.apache.log4j.Logger;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
+
+import loader.utilities.HdfsUtilities;
+import loader.utilities.SparkSqlUtilities;
 
 /**
  * This class tests the parsing of the NT triples file and the building of the
@@ -39,9 +38,10 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		ClassLoader classLoader = getClass().getClassLoader();
 		File triplesWithMoreThanThreeRes = new File(
 				classLoader.getResource("triplesWithMoreThanThreeRes.nt").getFile());
-		putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(), "/triplesWithMoreThanThreeRes");
+		HdfsUtilities.putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(), "/triplesWithMoreThanThreeRes",
+				jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithMoreThanThreeRes_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/triplesWithMoreThanThreeRes",
 				"triplesWithMoreThanThreeRes_db", spark(), false, true, true);
@@ -98,9 +98,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingIncompleteTriples() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File incompleteTriples = new File(classLoader.getResource("incompleteTriples.nt").getFile());
-		putFileToHDFS(incompleteTriples.getAbsolutePath(), "/incompleteTriples");
+		HdfsUtilities.putFileToHDFS(incompleteTriples.getAbsolutePath(), "/incompleteTriples", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS incompleteTriples_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/incompleteTriples", "incompleteTriples_db", spark(),
 				false, true, true);
@@ -139,9 +139,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingEmptyLines() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File triplesWithEmptyLines = new File(classLoader.getResource("triplesWithEmptyLines.nt").getFile());
-		putFileToHDFS(triplesWithEmptyLines.getAbsolutePath(), "/triplesWithEmptyLines");
+		HdfsUtilities.putFileToHDFS(triplesWithEmptyLines.getAbsolutePath(), "/triplesWithEmptyLines", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithEmptyLines_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/triplesWithEmptyLines", "triplesWithEmptyLines_db",
 				spark(), false, true, true);
@@ -181,9 +181,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingCaseInsensitivePredicates() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File caseInsensitivePredicates = new File(classLoader.getResource("caseInsensitivePredicates.nt").getFile());
-		putFileToHDFS(caseInsensitivePredicates.getAbsolutePath(), "/caseInsensitivePredicates");
+		HdfsUtilities.putFileToHDFS(caseInsensitivePredicates.getAbsolutePath(), "/caseInsensitivePredicates", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS caseInsensitivePredicates_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/caseInsensitivePredicates",
 				"caseInsensitivePredicates_db", spark(), false, true, true);
@@ -229,9 +229,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingLiteralsWithDots() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File triplesWithDotsInLiterals = new File(classLoader.getResource("triplesWithDotsInLiterals.nt").getFile());
-		putFileToHDFS(triplesWithDotsInLiterals.getAbsolutePath(), "/triplesWithDotsInLiterals");
+		HdfsUtilities.putFileToHDFS(triplesWithDotsInLiterals.getAbsolutePath(), "/triplesWithDotsInLiterals", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDotsInLiterals_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/triplesWithDotsInLiterals",
 				"triplesWithDotsInLiterals_db", spark(), false, true, true);
@@ -295,9 +295,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingDuplicates() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File triplesWithDuplicates = new File(classLoader.getResource("triplesWithDuplicates.nt").getFile());
-		putFileToHDFS(triplesWithDuplicates.getAbsolutePath(), "/triplesWithDuplicates");
+		HdfsUtilities.putFileToHDFS(triplesWithDuplicates.getAbsolutePath(), "/triplesWithDuplicates", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDuplicates_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/triplesWithDuplicates", "triplesWithDuplicates_db",
 				spark(), false, true, true);
@@ -358,7 +358,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 
 		// Now with duplicates
 		spark().sql("DROP TABLE tripletable");
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		tt_loader = new TripleTableLoader("/triplesWithDuplicates", "triplesWithDuplicates_db", spark(), false, true,
 				false);
 		tt_loader.load();
@@ -379,9 +379,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingEmptyFile() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File emptyFile = new File(classLoader.getResource("emptyFile.nt").getFile());
-		putFileToHDFS(emptyFile.getAbsolutePath(), "/emptyFile");
+		HdfsUtilities.putFileToHDFS(emptyFile.getAbsolutePath(), "/emptyFile", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS emptyFile_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/emptyFile", "emptyFile_db", spark(), false, true, true);
 		tt_loader.load();
@@ -392,9 +392,9 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	public void parsingTriplesWithPrefixes() throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File triplesWithPrefixes = new File(classLoader.getResource("triplesWithPrefixes.nt").getFile());
-		putFileToHDFS(triplesWithPrefixes.getAbsolutePath(), "/triplesWithPrefixes");
+		HdfsUtilities.putFileToHDFS(triplesWithPrefixes.getAbsolutePath(), "/triplesWithPrefixes", jsc());
 
-		enableSessionForPhysicalPartitioning();
+		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithPrefixes_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader("/triplesWithPrefixes", "triplesWithPrefixes_db", spark(),
 				false, true, true);
@@ -421,42 +421,5 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		Dataset<Row> actualTT = spark().sql("SELECT s,p,o FROM tripletable ORDER BY s,p,o");
 
 		assertDataFrameEquals(expectedTT, actualTT);
-	}
-
-	/**
-	 * Sets the spark session to be able to partition physically.
-	 */
-	public void enableSessionForPhysicalPartitioning() {
-		spark().sql("SET hive.exec.dynamic.partition = true");
-		spark().sql("SET hive.exec.dynamic.partition.mode = nonstrict");
-		spark().sql("SET hive.exec.max.dynamic.partitions = 4000");
-		spark().sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
-	}
-
-	/**
-	 * This method puts the file in an HDFS folder, so that this can be used for
-	 * applications working on top of Hadoop. In case the HDFS folder passed as
-	 * argument exists, this will be deleted.
-	 * 
-	 * @param localPath
-	 * @param hdfsFolderPath
-	 * @throws IOException
-	 */
-	public void putFileToHDFS(String localPath, String hdfsFolderPath) throws IOException {
-		// TODO: improve. Using the Hadoop API didn't work (see commented code).
-		// fs.copyFromLocalFile(new
-		// Path(triplesMoreThan3Resources.getAbsolutePath()), new
-		// Path("/triplesMoreThanThreeElements"));
-		// FileUtil.copy(fs, new
-		// Path(triplesMoreThan3Resources.getAbsolutePath()), fs, new
-		// Path("/triplesMoreThanThreeElements"), false,
-		// sc.hadoopConfiguration());
-
-		FileSystem fs = FileSystem.get(jsc().hadoopConfiguration());
-		if (fs.exists(new Path(hdfsFolderPath)))
-			fs.delete(new Path(hdfsFolderPath), true);
-
-		JavaRDD<String> lines = jsc().textFile(localPath);
-		lines.map(x -> x.toString().replace("[", "").replace("]", "")).saveAsTextFile(hdfsFolderPath);
 	}
 }
