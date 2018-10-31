@@ -5,7 +5,8 @@ PRoST allows to load and query very large RDF graphs in Hadoop clusters.
 Input graphs are partitioned efficiently and stored across several tables registered in the Hive Metastore. PRoST contains an optimized engine that executes SPARQL queries on its particular data representation. For alternative ad-hoc solutions, a graph can be also queried using common Hadoop technologies, e.g. Spark SQL, Hive or Impala. 
 
 ## Publications
-  - Cossu, Matteo, Michael Färber, and Georg Lausen. "PRoST: Distributed Execution of SPARQL Queries Using Mixed Partitioning Strategies." (EDBT 2018).
+  - Cossu, Matteo, Michael Färber, and Georg Lausen. "PRoST: Distributed Execution of SPARQL Queries Using Mixed Partitioning Strategies". (EDBT 2018).
+  -	Victor Anthony Arrascue Ayala, Georg Lausen. "A Flexible N-Triples Loader for Hadoop. International Semantic Web Conference". (ISWC 2018).
   
 ## Support
 prost@informatik.uni-freiburg.de
@@ -15,6 +16,7 @@ prost@informatik.uni-freiburg.de
   - Hive
   - HDFS
   - Java 1.8+
+  - A local Hadoop environment to be able to run the tests
   
 ## Recommended cluster settings (relevant for the loader)
 The setting names are specific to Cloudera 5.10.0.
@@ -33,6 +35,21 @@ Both are built using [Apache Maven](http://maven.apache.org/).
 To build PRoST run:
 
     mvn package
+	
+## Running test cases
+You need to have a local Hadoop environment. In particular you need to set up the environment variable "HADOOP_HOME" to point to your Hadoop distribution.
+Install the same version of Hadoop we are using, which is: hadoop-2.7.1.
+
+For Windows users: you need to winutils.exe binary with the above-mentioned distribution of Hadoop.
+Further details see here: https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html
+
+For Linux users: there is also plenty of documentation. 
+You can follow instructions from: https://doctuts.readthedocs.io/en/latest/hadoop.html
+
+To run the test cases:
+
+	mvn test
+
 
 ## PRoST-Loader: loading RDF graphs and creating the logical partitions.
 PRoST-Loader generates partitions according to the following five strategies: Triple Table (TT), Wide Property Table (WPT), Inverse Wide Property Table (IWPT), Joined Wide Property Table (JWPT), and Vertical Partitioning (VP).

@@ -1,0 +1,6 @@
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res:1000> .
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res3> .
+<http://example.org/resource/Res5> <http://example.org/property/pro1> <http://example.org/resource/Res1> .
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res3> .
+<http://example.org/resource/Res5> <http://example.org/property/pro1> <http://example.org/resource/Res1> .
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res:1000> .
