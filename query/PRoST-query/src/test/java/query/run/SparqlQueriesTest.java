@@ -44,8 +44,7 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		List<TripleBean> triplesList = TestData.createSingleTripleTestData();
 		Dataset<TripleBean> data = spark().createDataset(triplesList, triplesEncoder);
 		HiveDatabaseUtilities.writeTriplesToDatabase("singleTripleDb", data, spark());
-
-		/*
+		
 		ClassLoader classLoader = getClass().getClassLoader();
 		File singleTripleQuery1 = new File(classLoader.getResource("singleTripleQuery1.q").getFile());
 		File statsSingleTripleQuery1 = new File(classLoader.getResource("singletripledb.stats").getFile());
@@ -58,22 +57,5 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		Executor executor = new Executor(jt, "singleTripleDb");
 		executor.setOutputFile("F:\\works.txt");
 		executor.execute();
-		*/
-		
-		/*
-		//-i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file> -wpt
-		String[] args = new String[9];
-		args[0] = "i";
-		args[1] = singleTripleQuery1.getAbsolutePath();
-		args[2] = "d";
-		args[3] = "singleTripleDb";
-		args[4] = "s";
-		args[5] = "test";
-		args[6] = "o";
-		args[7] = "/results";
-		args[8] = "wpt";
-		Main.main(args);
-		*/
-		
 	}
 }

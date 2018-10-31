@@ -1,7 +1,6 @@
 package query.utilities;
 
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
 /**
@@ -45,9 +44,7 @@ public class HiveDatabaseUtilities {
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + databaseName);
 		spark.sql("USE " + databaseName);
 
-		triples.write().saveAsTable(HiveDatabaseUtilities.tt);
-		
-		//We create the stats file:
-		
-	}
+		triples.write().saveAsTable(HiveDatabaseUtilities.tt);		
+		//We create the stats file:		
+	}	
 }
