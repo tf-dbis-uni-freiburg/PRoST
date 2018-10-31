@@ -10,6 +10,8 @@ import loader.JoinedWidePropertyTable;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
 import loader.WidePropertyTableLoader;
+import stats.StatisticsWriter;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -25,8 +27,9 @@ import org.apache.spark.sql.SparkSession;
 /**
  * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options: -h, --help prints the usage help message. -i, --input <file> HDFS input path
- * of the RDF graph. -o, --output <DBname> output database name. -s, compute statistics
+ * Options: -h, --help prints the usage help message. -i, --input <file> HDFS
+ * input path of the RDF graph. -o, --output <DBname> output database name. -s,
+ * compute statistics
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
@@ -89,8 +92,8 @@ public class Main {
 		ttpPartPredOpt.setRequired(false);
 		options.addOption(ttpPartPredOpt);
 
-		final Option ttpPartSubOpt =
-				new Option("tts", "ttPartitionedBySub", false, "To physically partition the Triple Table by subject.");
+		final Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false,
+				"To physically partition the Triple Table by subject.");
 		ttpPartSubOpt.setRequired(false);
 		options.addOption(ttpPartSubOpt);
 
@@ -207,6 +210,9 @@ public class Main {
 			useStatistics = true;
 			logger.info("Statistics active!");
 
+			// create a statistics writer with statistics enabled
+			StatisticsWriter.getInstance().setUseStatistics(true);
+			
 			if (!generateVP) {
 				logger.info("Logical strategy activated: VP. VP needed to generate statistics.");
 				generateVP = true;
@@ -239,7 +245,8 @@ public class Main {
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(input_location,outputDB, spark, wptPartitionedBySub);
+			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			wptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
@@ -247,7 +254,8 @@ public class Main {
 
 		if (generateIWPT) {
 			startTime = System.currentTimeMillis();
-			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(input_location,outputDB, spark, wptPartitionedBySub);
+			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
@@ -255,7 +263,7 @@ public class Main {
 
 		if (generateJWPT) {
 			startTime = System.currentTimeMillis();
-			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(input_location,outputDB, spark,
+			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(input_location, outputDB, spark,
 					wptPartitionedBySub);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
@@ -264,11 +272,15 @@ public class Main {
 
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
-			final VerticalPartitioningLoader vp_loader =
-					new VerticalPartitioningLoader(input_location, outputDB, spark, useStatistics);
+			final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB,
+					spark);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
 		}
+		
+		// save statistics if needed
+		StatisticsWriter.getInstance().saveStatistics(outputDB);
+		
 	}
 }

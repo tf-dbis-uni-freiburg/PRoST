@@ -17,5 +17,13 @@ message TableStats {
 
 message Graph {
     string name = 1;
-    repeated TableStats tables = 2;     
+    repeated TableStats tables = 2; 
+    repeated CharacteristicSet CharacteristicSets = 3;
 }
+
+message CharacteristicSet {
+    repeated string predicates = 1; // all the predicates part of this char set
+    int32 subjectsCount = 2; // count of all subjects part of this char set
+    map<string, int32> triplesPerPredicate = 3; // key -> predicate, value -> count of all triples that has this predicate
+}
+
