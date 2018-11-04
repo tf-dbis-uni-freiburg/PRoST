@@ -18,9 +18,10 @@ import translator.Stats;
  *
  */
 public class JptNode extends Node {
-	private static String tableName = "joined_wide_property_table";
-	private static String wptPrefix = "o_";
-	private static String iwptPrefix = "s_";
+	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
+	private static final String TABLE_NAME = "joined_wide_property_table";
+	private static final String WPT_PREFIX = "o_";
+	private static final String IWPT_PREFIX = "s_";
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
@@ -72,23 +73,23 @@ public class JptNode extends Node {
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append("s AS " + Utils.removeQuestionMark(wptTripleGroup.get(0).subject) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS " + Utils.removeQuestionMark(wptTripleGroup.get(0).subject) + ",");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append("s AS " + Utils.removeQuestionMark(iwptTripleGroup.get(0).object) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS " + Utils.removeQuestionMark(iwptTripleGroup.get(0).object) + ",");
 			}
 		}
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
-			final String columnName = wptPrefix.concat(Stats.getInstance().findTableName(t.predicate.toString()));
-			if (columnName.equals(wptPrefix)) {
+			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.subject + "'");
+				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.subject + "'");
 			}
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
@@ -107,13 +108,13 @@ public class JptNode extends Node {
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = iwptPrefix.concat(Stats.getInstance().findTableName(t.predicate.toString()));
-			if (columnName.equals(iwptPrefix)) {
+			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.object + "'");
+				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.object + "'");
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
@@ -133,7 +134,7 @@ public class JptNode extends Node {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 
-		query.append(" FROM ").append(tableName).append(" ");
+		query.append(" FROM ").append(TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);

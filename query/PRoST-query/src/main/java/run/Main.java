@@ -38,13 +38,13 @@ public class Main {
 	private static String statsFileName = "";
 	private static String database_name;
 	private static int treeWidth = -1;
-	private static String lpStrategies;
+	private static int minimumGroupSize = -1;
 	private static boolean useVerticalPartitioning = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
 	// if triples have to be grouped when using property table
-	private static boolean disablesGrouping = false;	
+	private static boolean isGrouping = true;
 	
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
@@ -79,14 +79,17 @@ public class Main {
 		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
-		
-		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "If triples are not grouped by subject when WPT is used.");
+
+		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "Disables grouping of triple patterns when using " + "WPT, IWPT, or JWPT models");
 		disableGroupingOpt.setRequired(false);
 		options.addOption(disableGroupingOpt);
 
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-		
+
+		final Option groupSizeOpt = new Option("g", "groupSize", true, "Minimum Group Size for Wide Property Table nodes");
+		options.addOption(groupSizeOpt);
+
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
@@ -123,15 +126,19 @@ public class Main {
 			benchmark_file = cmd.getOptionValue("times");
 		}
 
+		if (cmd.hasOption("groupSize")) {
+			minimumGroupSize = Integer.valueOf(cmd.getOptionValue("groupSize"));
+			logger.info("Minimum Group Size set to " + String.valueOf(minimumGroupSize));
+		}
+
 		// default if a logical partition is not specified is: WPT, and VP.
 		if (!cmd.hasOption("logicalPartitionStrategies")) {
 			useVerticalPartitioning = true;
 			usePropertyTable = true;
 			logger.info("Default strategies used: WPT + VP");
 		} else {
-			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
-
-			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
+			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+			final List<String> strategies = Arrays.asList(lpStrategies.toUpperCase().split(","));
 
 			if (strategies.contains("VP")) {
 				useVerticalPartitioning = true;
@@ -144,17 +151,35 @@ public class Main {
 			if (strategies.contains("IWPT")) {
 				useInversePropertyTable = true;
 				logger.info("Logical strategy used: IWPT");
-				
 			}
 			if (strategies.contains("JWPT")) {
 				useJoinedPropertyTable = true;
 				logger.info("Logical strategy used: JWPT");
 			}
 		}
-		
+
 		if (cmd.hasOption("disablesGrouping")) {
-			disablesGrouping = true;
+			isGrouping = false;
 			logger.info("Grouping of multiple triples is disabled.");
+		}
+
+		//validate input
+		if (useJoinedPropertyTable && (useInversePropertyTable || usePropertyTable)) {
+			useInversePropertyTable = false;
+			usePropertyTable = false;
+			logger.info("WPT and IWPT disabled. WPT and IWPT are not used when JWPT is enabled");
+		}
+		if (!isGrouping && minimumGroupSize != 1) {
+			minimumGroupSize = 1;
+			logger.info("Minimum group size set to 1 when grouping is disabled");
+		}
+		if (!useVerticalPartitioning && minimumGroupSize != 1) {
+			minimumGroupSize = 1;
+			logger.info("Minimum group size set to 1 when VP is disabled");
+		}
+		if (!isGrouping && useInversePropertyTable && usePropertyTable){
+			useInversePropertyTable = false;
+			logger.info("Disabled IWPT. Not used when grouping is disabled and WPT is enabled");
 		}
 
 		// create a singleton parsing a file with statistics
@@ -194,30 +219,19 @@ public class Main {
 				executor.saveResultsCsv(benchmark_file);
 			}
 
-		} else {
-			logger.error("The input file is not set correctly or contains errors");
-			return;
 		}
+		logger.error("The input file is not set correctly or contains errors");
 	}
 
 	private static JoinTree translateSingleQuery(final String query, final int width) {
 		final Translator translator = new Translator(query, width);
-		if (useVerticalPartitioning) {
-			translator.setUseVerticalPartitioning(true);
-		}
-		if (usePropertyTable) {
-			translator.setUsePropertyTable(true);
-		}
-		if (useInversePropertyTable) {
-			translator.setUseInversePropertyTable(true);
-		}
-		if (useJoinedPropertyTable) {
-			translator.setUseJoinedPropertyTable(true);
-			translator.setUseInversePropertyTable(false);
-			translator.setUsePropertyTable(false);
-		}
-		if (disablesGrouping) {
-			translator.setGroupingDisabled(true);
+		translator.setUseVerticalPartitioning(useVerticalPartitioning);
+		translator.setUsePropertyTable(usePropertyTable);
+		translator.setUseInversePropertyTable(useInversePropertyTable);
+		translator.setUseJoinedPropertyTable(useJoinedPropertyTable);
+		translator.setIsGrouping(isGrouping);
+		if (minimumGroupSize != -1) {
+			translator.setMinimumGroupSize(minimumGroupSize);
 		}
 		return translator.translateQuery();
 	}

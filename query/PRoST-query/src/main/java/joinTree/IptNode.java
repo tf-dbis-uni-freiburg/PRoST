@@ -13,7 +13,8 @@ import executor.Utils;
 import translator.Stats;
 
 public class IptNode extends Node {
-	protected final String inversePropertyTableName = "inverse_wide_property_table";
+	private static final String COLUMN_NAME_OBJECT = "o";
+	private static final String TABLE_NAME = "inverse_wide_property_table";
 
 	/**
 	 * The node contains a list of triple patterns with the same object.
@@ -70,7 +71,7 @@ public class IptNode extends Node {
 
 		// object
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
+			query.append(COLUMN_NAME_OBJECT + " AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
 		}
 
 		// subjects
@@ -81,7 +82,7 @@ public class IptNode extends Node {
 				return;
 			}
 			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.object + "'");
+				whereConditions.add(COLUMN_NAME_OBJECT + "='" + t.object + "'");
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
@@ -101,7 +102,7 @@ public class IptNode extends Node {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 
-		query.append(" FROM ").append(inversePropertyTableName).append(" ");
+		query.append(" FROM ").append(TABLE_NAME).append(" ");
 		final int counter = 0;
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
