@@ -127,6 +127,7 @@ public class VerticalPartitioningLoader extends Loader {
 		final Graph.Builder graph_stats_builder = Graph.newBuilder();
 
 		graph_stats_builder.addAllTables(table_stats);
+		graph_stats_builder.setArePrefixesActive(arePrefixesUsed());
 		final Graph serialized_stats = graph_stats_builder.build();
 
 		FileOutputStream f_stream; // s
@@ -188,4 +189,17 @@ public class VerticalPartitioningLoader extends Loader {
 		final String[] cleanedProperties = propertiesSet.toArray(new String[propertiesSet.size()]);
 		return cleanedProperties;
 	}
+
+	/**
+	 * Checks if there is at least one property that uses prefixes.
+	 */
+	private boolean arePrefixesUsed() {
+		for (final String property : properties_names) {
+			if (property.contains(":")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }
