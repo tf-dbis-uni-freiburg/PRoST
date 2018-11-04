@@ -1,0 +1,3 @@
+example:Res1 example:pred1 example:Res:1000 .
+example:Res1 example:pred1 example:Res3 .
+example:Res5 example:pred2 example:Res1 .

@@ -22,12 +22,6 @@ public class InverseWidePropertyTable extends PropertyTableLoader {
 		Map<String,Boolean> propertiesCardinalitiesMap = createPropertiesComplexitiesMap(propertiesCardinalities);
 		properties_names = propertiesCardinalitiesMap.keySet().toArray(new String[0]);
 		Dataset<Row> iwpt =  createPropertyTableDataset(propertiesCardinalitiesMap, column_name_object,column_name_subject);
-
-		// renames the column so that its name is consistent with the non
-		// inverse Wide Property Table.This guarantees that any method that access a Property
-		// Table can be used with a Inverse Property Table without any changes
-		iwpt = iwpt.withColumnRenamed(column_name_object, column_name_subject);
-
 		return iwpt;
 	}
 }

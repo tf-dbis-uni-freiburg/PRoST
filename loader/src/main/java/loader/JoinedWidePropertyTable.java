@@ -7,6 +7,7 @@ import org.apache.spark.sql.SparkSession;
 import java.util.Arrays;
 
 public class JoinedWidePropertyTable extends PropertyTableLoader {
+	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String IWPT_PREFIX = "s_";
 	private static final String WPT_PREFIX = "o_";
 	private static final String JWPT_TABLE_NAME = "joined_wide_property_table";
@@ -30,7 +31,9 @@ public class JoinedWidePropertyTable extends PropertyTableLoader {
 			wptDataset = wptDataset.withColumnRenamed(property, WPT_PREFIX.concat(property));
 		}
 
+		wptDataset = wptDataset.withColumnRenamed(column_name_subject, COLUMN_NAME_COMMON_RESOURCE);
+		iwptDataset = iwptDataset.withColumnRenamed(column_name_object, COLUMN_NAME_COMMON_RESOURCE);
 		return wptDataset.join(iwptDataset, scala.collection.JavaConverters
-				.asScalaIteratorConverter(Arrays.asList("s").iterator()).asScala().toSeq(), "outer");
+				.asScalaIteratorConverter(Arrays.asList(COLUMN_NAME_COMMON_RESOURCE).iterator()).asScala().toSeq(), "outer");
 	}
 }
