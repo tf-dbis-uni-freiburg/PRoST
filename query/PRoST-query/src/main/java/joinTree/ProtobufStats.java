@@ -846,30 +846,25 @@ public final class ProtobufStats {
         getNameBytes();
 
     /**
-     * <code>optional bool arePrefixesActive = 2;</code>
-     */
-    boolean getArePrefixesActive();
-
-    /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     java.util.List<ProtobufStats.TableStats> 
         getTablesList();
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     ProtobufStats.TableStats getTables(int index);
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     int getTablesCount();
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
         getTablesOrBuilderList();
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
         int index);
@@ -887,7 +882,6 @@ public final class ProtobufStats {
     }
     private Graph() {
       name_ = "";
-      arePrefixesActive_ = false;
       tables_ = java.util.Collections.emptyList();
     }
 
@@ -922,15 +916,10 @@ public final class ProtobufStats {
               name_ = s;
               break;
             }
-            case 16: {
-
-              arePrefixesActive_ = input.readBool();
-              break;
-            }
-            case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
                 tables_ = new java.util.ArrayList<ProtobufStats.TableStats>();
-                mutable_bitField0_ |= 0x00000004;
+                mutable_bitField0_ |= 0x00000002;
               }
               tables_.add(
                   input.readMessage(ProtobufStats.TableStats.parser(), extensionRegistry));
@@ -944,7 +933,7 @@ public final class ProtobufStats {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           tables_ = java.util.Collections.unmodifiableList(tables_);
         }
         makeExtensionsImmutable();
@@ -997,44 +986,35 @@ public final class ProtobufStats {
       }
     }
 
-    public static final int AREPREFIXESACTIVE_FIELD_NUMBER = 2;
-    private boolean arePrefixesActive_;
-    /**
-     * <code>optional bool arePrefixesActive = 2;</code>
-     */
-    public boolean getArePrefixesActive() {
-      return arePrefixesActive_;
-    }
-
-    public static final int TABLES_FIELD_NUMBER = 3;
+    public static final int TABLES_FIELD_NUMBER = 2;
     private java.util.List<ProtobufStats.TableStats> tables_;
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     public java.util.List<ProtobufStats.TableStats> getTablesList() {
       return tables_;
     }
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     public java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
         getTablesOrBuilderList() {
       return tables_;
     }
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     public int getTablesCount() {
       return tables_.size();
     }
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     public ProtobufStats.TableStats getTables(int index) {
       return tables_.get(index);
     }
     /**
-     * <code>repeated .TableStats tables = 3;</code>
+     * <code>repeated .TableStats tables = 2;</code>
      */
     public ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
         int index) {
@@ -1056,11 +1036,8 @@ public final class ProtobufStats {
       if (!getNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
       }
-      if (arePrefixesActive_ != false) {
-        output.writeBool(2, arePrefixesActive_);
-      }
       for (int i = 0; i < tables_.size(); i++) {
-        output.writeMessage(3, tables_.get(i));
+        output.writeMessage(2, tables_.get(i));
       }
     }
 
@@ -1072,13 +1049,9 @@ public final class ProtobufStats {
       if (!getNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
       }
-      if (arePrefixesActive_ != false) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(2, arePrefixesActive_);
-      }
       for (int i = 0; i < tables_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, tables_.get(i));
+          .computeMessageSize(2, tables_.get(i));
       }
       memoizedSize = size;
       return size;
@@ -1098,8 +1071,6 @@ public final class ProtobufStats {
       boolean result = true;
       result = result && getName()
           .equals(other.getName());
-      result = result && (getArePrefixesActive()
-          == other.getArePrefixesActive());
       result = result && getTablesList()
           .equals(other.getTablesList());
       return result;
@@ -1114,9 +1085,6 @@ public final class ProtobufStats {
       hash = (19 * hash) + getDescriptorForType().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + AREPREFIXESACTIVE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getArePrefixesActive());
       if (getTablesCount() > 0) {
         hash = (37 * hash) + TABLES_FIELD_NUMBER;
         hash = (53 * hash) + getTablesList().hashCode();
@@ -1242,11 +1210,9 @@ public final class ProtobufStats {
         super.clear();
         name_ = "";
 
-        arePrefixesActive_ = false;
-
         if (tablesBuilder_ == null) {
           tables_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000002);
         } else {
           tablesBuilder_.clear();
         }
@@ -1275,11 +1241,10 @@ public final class ProtobufStats {
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         result.name_ = name_;
-        result.arePrefixesActive_ = arePrefixesActive_;
         if (tablesBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          if (((bitField0_ & 0x00000002) == 0x00000002)) {
             tables_ = java.util.Collections.unmodifiableList(tables_);
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000002);
           }
           result.tables_ = tables_;
         } else {
@@ -1331,14 +1296,11 @@ public final class ProtobufStats {
           name_ = other.name_;
           onChanged();
         }
-        if (other.getArePrefixesActive() != false) {
-          setArePrefixesActive(other.getArePrefixesActive());
-        }
         if (tablesBuilder_ == null) {
           if (!other.tables_.isEmpty()) {
             if (tables_.isEmpty()) {
               tables_ = other.tables_;
-              bitField0_ = (bitField0_ & ~0x00000004);
+              bitField0_ = (bitField0_ & ~0x00000002);
             } else {
               ensureTablesIsMutable();
               tables_.addAll(other.tables_);
@@ -1351,7 +1313,7 @@ public final class ProtobufStats {
               tablesBuilder_.dispose();
               tablesBuilder_ = null;
               tables_ = other.tables_;
-              bitField0_ = (bitField0_ & ~0x00000004);
+              bitField0_ = (bitField0_ & ~0x00000002);
               tablesBuilder_ = 
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getTablesFieldBuilder() : null;
@@ -1456,38 +1418,12 @@ public final class ProtobufStats {
         return this;
       }
 
-      private boolean arePrefixesActive_ ;
-      /**
-       * <code>optional bool arePrefixesActive = 2;</code>
-       */
-      public boolean getArePrefixesActive() {
-        return arePrefixesActive_;
-      }
-      /**
-       * <code>optional bool arePrefixesActive = 2;</code>
-       */
-      public Builder setArePrefixesActive(boolean value) {
-        
-        arePrefixesActive_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bool arePrefixesActive = 2;</code>
-       */
-      public Builder clearArePrefixesActive() {
-        
-        arePrefixesActive_ = false;
-        onChanged();
-        return this;
-      }
-
       private java.util.List<ProtobufStats.TableStats> tables_ =
         java.util.Collections.emptyList();
       private void ensureTablesIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
           tables_ = new java.util.ArrayList<ProtobufStats.TableStats>(tables_);
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
          }
       }
 
@@ -1495,7 +1431,7 @@ public final class ProtobufStats {
           ProtobufStats.TableStats, ProtobufStats.TableStats.Builder, ProtobufStats.TableStatsOrBuilder> tablesBuilder_;
 
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public java.util.List<ProtobufStats.TableStats> getTablesList() {
         if (tablesBuilder_ == null) {
@@ -1505,7 +1441,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public int getTablesCount() {
         if (tablesBuilder_ == null) {
@@ -1515,7 +1451,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public ProtobufStats.TableStats getTables(int index) {
         if (tablesBuilder_ == null) {
@@ -1525,7 +1461,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder setTables(
           int index, ProtobufStats.TableStats value) {
@@ -1542,7 +1478,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder setTables(
           int index, ProtobufStats.TableStats.Builder builderForValue) {
@@ -1556,7 +1492,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder addTables(ProtobufStats.TableStats value) {
         if (tablesBuilder_ == null) {
@@ -1572,7 +1508,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder addTables(
           int index, ProtobufStats.TableStats value) {
@@ -1589,7 +1525,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder addTables(
           ProtobufStats.TableStats.Builder builderForValue) {
@@ -1603,7 +1539,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder addTables(
           int index, ProtobufStats.TableStats.Builder builderForValue) {
@@ -1617,7 +1553,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder addAllTables(
           java.lang.Iterable<? extends ProtobufStats.TableStats> values) {
@@ -1632,12 +1568,12 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder clearTables() {
         if (tablesBuilder_ == null) {
           tables_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000002);
           onChanged();
         } else {
           tablesBuilder_.clear();
@@ -1645,7 +1581,7 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public Builder removeTables(int index) {
         if (tablesBuilder_ == null) {
@@ -1658,14 +1594,14 @@ public final class ProtobufStats {
         return this;
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public ProtobufStats.TableStats.Builder getTablesBuilder(
           int index) {
         return getTablesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public ProtobufStats.TableStatsOrBuilder getTablesOrBuilder(
           int index) {
@@ -1675,7 +1611,7 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public java.util.List<? extends ProtobufStats.TableStatsOrBuilder> 
            getTablesOrBuilderList() {
@@ -1686,14 +1622,14 @@ public final class ProtobufStats {
         }
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public ProtobufStats.TableStats.Builder addTablesBuilder() {
         return getTablesFieldBuilder().addBuilder(
             ProtobufStats.TableStats.getDefaultInstance());
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public ProtobufStats.TableStats.Builder addTablesBuilder(
           int index) {
@@ -1701,7 +1637,7 @@ public final class ProtobufStats {
             index, ProtobufStats.TableStats.getDefaultInstance());
       }
       /**
-       * <code>repeated .TableStats tables = 3;</code>
+       * <code>repeated .TableStats tables = 2;</code>
        */
       public java.util.List<ProtobufStats.TableStats.Builder> 
            getTablesBuilderList() {
@@ -1714,7 +1650,7 @@ public final class ProtobufStats {
           tablesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               ProtobufStats.TableStats, ProtobufStats.TableStats.Builder, ProtobufStats.TableStatsOrBuilder>(
                   tables_,
-                  ((bitField0_ & 0x00000004) == 0x00000004),
+                  ((bitField0_ & 0x00000002) == 0x00000002),
                   getParentForChildren(),
                   isClean());
           tables_ = null;
@@ -1792,9 +1728,8 @@ public final class ProtobufStats {
       "\n\023ProtobufStats.proto\"o\n\nTableStats\022\014\n\004n" +
       "ame\030\001 \001(\t\022\014\n\004size\030\002 \001(\005\022\021\n\tisComplex\030\003 \001" +
       "(\010\022\030\n\020distinctSubjects\030\004 \001(\005\022\030\n\020isInvers" +
-      "eComplex\030\005 \001(\010\"M\n\005Graph\022\014\n\004name\030\001 \001(\t\022\031\n" +
-      "\021arePrefixesActive\030\002 \001(\010\022\033\n\006tables\030\003 \003(\013" +
-      "2\013.TableStatsb\006proto3"
+      "eComplex\030\005 \001(\010\"2\n\005Graph\022\014\n\004name\030\001 \001(\t\022\033\n" +
+      "\006tables\030\002 \003(\0132\013.TableStatsb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1819,7 +1754,7 @@ public final class ProtobufStats {
     internal_static_Graph_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Graph_descriptor,
-        new java.lang.String[] { "Name", "ArePrefixesActive", "Tables", });
+        new java.lang.String[] { "Name", "Tables", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
