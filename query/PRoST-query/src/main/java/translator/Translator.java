@@ -258,6 +258,16 @@ public class Translator {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 		List<Triple> unassignedTriples = new ArrayList<>(triples);
 
+		//TODO only creates one, if none available, when looking for a table at the later stage
+		//Creating all possible extvp tables
+		if (useExtVP){
+			ExtVpCreator extVPcreator = new ExtVpCreator();
+			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
+			logger.info("ExtVP: all tables created!");
+
+			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
+		}
+
 		if (useJoinedPropertyTable) {
 			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
 			logger.info("JWPT model");

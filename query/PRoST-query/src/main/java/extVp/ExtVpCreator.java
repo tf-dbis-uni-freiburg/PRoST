@@ -64,7 +64,11 @@ public class ExtVpCreator {
 
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + extVPDatabaseName);
 
-		if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
+		if (!databaseStatistics.getTables().containsKey(extVpTableName) ||
+				(databaseStatistics.getTables().containsKey(extVpTableName) && !databaseStatistics.getTables().get(extVpTableName).getTableExists())){
+
+		//if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
+			logger.info("table " + tableNameWithDatabaseIdentifier + " does not exist. Creating it.");
 			final String createTableQuery =
 					String.format("create table if not exists %1$s(s string, o string) stored as parquet",
 							tableNameWithDatabaseIdentifier);
