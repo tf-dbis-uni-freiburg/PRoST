@@ -30,6 +30,7 @@ import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
+import extVp.TableStatistic;
 
 /**
  * This class parses the SPARQL query, build the Tree and save its serialization in a
@@ -124,10 +125,11 @@ public class Translator {
 		// create new extVP nodes if possible. Compares a child node with its parent to create the
 		// ExtVP node.
 		// This creates EXTVP nodes after tree is created
-		if (useExtVP) {
+		// TODO is creating extVP nodes before, but might want to use this at some point again
+		/*if (useExtVP) {
 			changeVpNodesToExtVPNodes(tree.getRoot(), null);
 			logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
-		}
+		}*/
 
 		return tree;
 	}
@@ -287,7 +289,7 @@ public class Translator {
 				}
 			}
 		} else if (usePropertyTable && useInversePropertyTable && isGrouping) {
-			logger.info("WPT, IWPT, and VP models only");
+			logger.info("WPT and IWPT models");
 
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
@@ -336,25 +338,42 @@ public class Translator {
 				}
 			}
 		} else if (usePropertyTable) {
-			logger.info("WPT and VP models only");
+			logger.info("WPT model");
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 			}
 			return nodesQueue;
 		} else if (useInversePropertyTable) {
-			logger.info("IWPT and VP only");
+			logger.info("IWPT model");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT, unassignedTriples);
 			}
 			return nodesQueue;
 		}
+		if (useExtVP){
+			logger.info("ExtVP model");
+			List<Triple> triplesToRemove = new ArrayList<Triple>();
+			for (Triple currentTriple : unassignedTriples) {
+				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples, extVPDatabaseStatistic.getTables(), prefixes);
+				if (!tableName.equals("")){
+					Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
+					nodesQueue.add(newNode);
+					logger.info("added ExtVpNode for triple " + currentTriple.toString());
+					triplesToRemove.add(currentTriple);
+				} else {
+					logger.info("no suitable ExtVP table found for triple " + currentTriple.toString());
+				}
+			}
+			unassignedTriples.removeAll(triplesToRemove);
+		}
+
 		if (useVerticalPartitioning){
 			// VP only
-			logger.info("VP model only");
+			logger.info("VP model");
 			createVpNodes(unassignedTriples, nodesQueue);
-
+			unassignedTriples.clear();
 		}
 		if (unassignedTriples.size()>0){
 			throw new RuntimeException("Triples without nodes");
