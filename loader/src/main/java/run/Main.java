@@ -35,12 +35,11 @@ import org.apache.spark.sql.SparkSession;
 public class Main {
 	private static String input_location;
 	private static String outputDB;
-	private static String lpStrategies;
-	private static String loj4jFileName = "log4j.properties";
+	private static final String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private static boolean useStatistics = false;
 	private static boolean dropDuplicates = true;
-	private static boolean generateTT = true;
+	private static boolean generateTT = false;
 	private static boolean generateWPT = false;
 	private static boolean generateVP = false;
 	private static boolean generateIWPT = false;
@@ -131,46 +130,27 @@ public class Main {
 			generateVP = true;
 			logger.info("Logical strategy used: TT + WPT + VP");
 		} else {
-			lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
+			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 
-			final List<String> strategies = Arrays.asList(lpStrategies.split(","));
-
+			final List<String> strategies = Arrays.asList(lpStrategies.toUpperCase().split(","));
 			if (strategies.contains("TT")) {
 				generateTT = true;
 				logger.info("Logical strategy used: TT");
 			}
 			if (strategies.contains("WPT")) {
-				if (generateTT == false) {
-					generateTT = true;
-					logger.info(
-							"Logical strategy activated: TT (mandatory for WPT) with default physical partitioning");
-				}
+
 				generateWPT = true;
 				logger.info("Logical strategy used: WPT");
 			}
 			if (strategies.contains("VP")) {
-				if (generateTT == false) {
-					generateTT = true;
-					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
-				}
 				generateVP = true;
 				logger.info("Logical strategy used: VP");
 			}
 			if (strategies.contains("IWPT")) {
-				if (generateTT == false) {
-					generateTT = true;
-					logger.info(
-							"Logical strategy activated: TT (mandatory for IWPT) with default physical partitioning");
-				}
 				logger.info("Logical strategy used: IWPT");
 				generateIWPT = true;
 			}
 			if (strategies.contains("JWPT")) {
-				if (generateTT == false) {
-					generateTT = true;
-					logger.info(
-							"Logical strategy activated: TT (mandatory for JWPT) with default physical partitioning");
-				}
 				logger.info("Logical strategy used: JWPT");
 				generateJWPT = true;
 			}
@@ -194,11 +174,11 @@ public class Main {
 			logger.info("Wide Property Table will be partitioned by subject.");
 		}
 
-		// The defaulf value of dropDuplicates is true, so this needs to be
+		// The default value of dropDuplicates is true, so this needs to be
 		// changed just in case user sets it as false.
 		if (cmd.hasOption("dropDuplicates")) {
 			final String dropDuplicateValue = cmd.getOptionValue("dropDuplicates");
-			if (dropDuplicateValue.compareTo("false") == 0) {
+			if (dropDuplicateValue.equals("false")) {
 				dropDuplicates = false;
 			}
 			logger.info("Duplicates won't be removed from the tables.");
@@ -207,16 +187,18 @@ public class Main {
 		if (cmd.hasOption("stats")) {
 			useStatistics = true;
 			logger.info("Statistics active!");
-
-			if (!generateVP) {
-				logger.info("Logical strategy activated: VP. VP needed to generate statistics.");
-				generateVP = true;
-				if (generateTT == false) {
-					generateTT = true;
-					logger.info("Logical strategy activated: TT (mandatory for VP) with default physical partitioning");
-				}
-			}
 		}
+
+		//Validate parameters
+		if (useStatistics && !generateVP){
+			logger.info("Logical strategy activated: VP. Mandatory to generate statistics.");
+			generateVP = true;
+		}
+		if (!generateTT && (generateVP || generateJWPT || generateIWPT || generateWPT)){
+			generateTT = true;
+			logger.info("Logical strategy activated: TT (mandatory for VP, WPT, IWPT, and JWPT) with default physical partitioning");
+		}
+
 
 		// Set the loader from the inputFile to the outputDB
 		final SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
@@ -224,6 +206,7 @@ public class Main {
 		// Removing previous instances of the database in case a database with
 		// the same name already exists.
 		// In this case a new database with the same name will be created.
+		// TODO keep database and only load missing tables
 		spark.sql("DROP DATABASE IF EXISTS " + outputDB + " CASCADE");
 
 		long startTime;
