@@ -208,8 +208,10 @@ public class Main {
 		}
 
 		// initializes ExtVP database statistics
-		extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
-		extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+		if (useExtVP) {
+			extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
+			extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+		}
 
 		// initialize the Spark environment
 		final SparkSession spark = SparkSession.builder().appName("PRoST-Query").getOrCreate();
@@ -235,8 +237,12 @@ public class Main {
 			}
 			executor.execute();
 
-			extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
-			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			if (useExtVP) {
+				if (extVPMaximumSize>0) {
+					extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
+				}
+				DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			}
 		} else if (file.isDirectory()) { // set of queries
 			// empty executor to initialize Spark
 			final Executor executor = new Executor(null, database_name);
@@ -254,10 +260,14 @@ public class Main {
 				executor.saveResultsCsv(benchmark_file);
 			}
 
-			DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			if (useExtVP) {
+				if (extVPMaximumSize>0) {
+					extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
+				}
+				DatabaseStatistics.saveStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			}
 		} else {
 			logger.error("The input file is not set correctly or contains errors");
-			return;
 		}
 	}
 
