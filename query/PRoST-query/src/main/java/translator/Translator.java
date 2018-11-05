@@ -254,11 +254,11 @@ public class Translator {
 
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
+		List<Triple> unassignedTriples = new ArrayList<>(triples);
 
 		if (useJoinedPropertyTable) {
 			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
-			logger.info("JWPT and VP models only");
-
+			logger.info("JWPT model");
 			while (!joinedGroups.isEmpty()) {
 				if (isGrouping) {
 					// get largest group
@@ -276,19 +276,17 @@ public class Translator {
 						joinedGroups.get(subject).getWptGroup().remove(triple);
 						removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
 					}
-					createNodes(largestJoinedTriplesGroup, nodesQueue);
+					createNodes(largestJoinedTriplesGroup, nodesQueue, unassignedTriples);
 					joinedGroups.remove(largestGroupKey);
 				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
 					for (String key : joinedGroups.keySet()){
-						createNodes(joinedGroups.get(key), nodesQueue);
+						createNodes(joinedGroups.get(key), nodesQueue, unassignedTriples);
 						// joinedGroups.remove(key);
 					}
 					joinedGroups.clear(); //avoid concurrent modifications
 				}
 			}
-			return nodesQueue;
-		}
-		if (usePropertyTable && useInversePropertyTable && isGrouping) {
+		} else if (usePropertyTable && useInversePropertyTable && isGrouping) {
 			logger.info("WPT, IWPT, and VP models only");
 
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
@@ -307,7 +305,7 @@ public class Translator {
 				if (largestObjectGroupSize > largestSubjectGroupSize) {
 					// create and add the iwpt or vp nodes
 					List<Triple> largestObjectGroupTriples = objectGroups.get(largestObjectGroupKey);
-					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT);
+					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT, unassignedTriples);
 
 					// remove triples from subject group
 					for (Triple triple : largestObjectGroupTriples){
@@ -323,7 +321,7 @@ public class Translator {
 				} else {
 					/// create and add the wpt or vp nodes
 					List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
-					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
+					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 					// remove triples from object group
 					for (Triple triple : largestSubjectGroupTriples){
 						String key = triple.getSubject().toString();
@@ -337,31 +335,32 @@ public class Translator {
 					subjectGroups.remove(largestSubjectGroupKey);
 				}
 			}
-			return nodesQueue;
-		}
-		if (usePropertyTable) {
+		} else if (usePropertyTable) {
 			logger.info("WPT and VP models only");
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 			}
 			return nodesQueue;
-		}
-		if (useInversePropertyTable) {
+		} else if (useInversePropertyTable) {
 			logger.info("IWPT and VP only");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
-				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT);
+				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT, unassignedTriples);
 			}
 			return nodesQueue;
 		}
 		if (useVerticalPartitioning){
 			// VP only
 			logger.info("VP model only");
-			createVpNodes(triples, nodesQueue);
-			return nodesQueue;
+			createVpNodes(unassignedTriples, nodesQueue);
+
 		}
-		throw new RuntimeException("Cannot generate nodes queue. No valid partitioning model enabled.");
+		if (unassignedTriples.size()>0){
+			throw new RuntimeException("Triples without nodes");
+		}
+
+		return nodesQueue;
 	}
 
 	/**
@@ -371,26 +370,27 @@ public class Translator {
 	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
 	 * @param nodeType Type of the node to be created. Defaults to a VP nodes if not possible create the given node type.
 	 */
-	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue, final NODE_TYPE nodeType){
+	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue, final NODE_TYPE nodeType,
+							 List<Triple> unassignedTriples){
 		if (triples.size()>=minimumGroupSize){
 			switch (nodeType){
 				case WPT:
 					nodesQueue.add(new PtNode(triples, prefixes));
+					unassignedTriples.removeAll(triples);
 					break;
 				case IWPT:
 					nodesQueue.add(new IptNode(triples, prefixes));
+					unassignedTriples.removeAll(triples);
 					break;
 				case JWPT:
 					throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
 				default:
-					createVpNodes(triples,nodesQueue);
+					throw new RuntimeException("Cannot create node. No valid partitioning enabled");
 			}
+		} else {
+			logger.info("Group too small. Node not created");
 		}
-		else if (useVerticalPartitioning) {
-			createVpNodes(triples, nodesQueue);
-		} else{
-			throw new RuntimeException("Cannot create node. No valid partitioning enabled");
-		}
+
 	}
 
 	/**
@@ -400,14 +400,13 @@ public class Translator {
 	 * @param joinedGroup <code>JoinedTriplesGroup</code> for which nodes are to be created
 	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
 	 */
-	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue){
+	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue, List<Triple> unassignedTriples){
 		if (joinedGroup.size()>=minimumGroupSize){
 			nodesQueue.add(new JptNode(joinedGroup, prefixes));
+			unassignedTriples.removeAll(joinedGroup.getWptGroup());
+			unassignedTriples.removeAll(joinedGroup.getIwptGroup());
 		} else {
-			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
-			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v fof ?v.
-			joinedGroup.getIwptGroup().removeAll(joinedGroup.getWptGroup());
-			createVpNodes(new ArrayList<>(joinedGroup.getIwptGroup()), nodesQueue);
+			logger.info("Group too small. Node not created");
 		}
 	}
 
