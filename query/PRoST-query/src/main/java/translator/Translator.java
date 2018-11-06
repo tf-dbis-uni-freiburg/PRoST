@@ -353,14 +353,12 @@ public class Translator {
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 			}
-			return nodesQueue;
 		} else if (useInversePropertyTable) {
 			logger.info("IWPT model");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.IWPT, unassignedTriples);
 			}
-			return nodesQueue;
 		}
 		if (useExtVP){
 			logger.info("ExtVP model");
