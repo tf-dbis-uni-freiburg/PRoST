@@ -46,6 +46,7 @@ public class Main {
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
 	private static boolean useExtVP = false;
+	private static boolean useVpToExtVP = false;
 	private static long extVPMaximumSize = -1; // 25000=~5gb -1=never clear cache
 	// if triples have to be grouped when using property table
 	private static boolean isGrouping = true;
@@ -170,6 +171,11 @@ public class Main {
 				useExtVP = true;
 				logger.info("Logical strategy used: ExtVP");
 			}
+
+			if (strategies.contains("VPtoEXTVP")) {
+				useVpToExtVP = true;
+				logger.info("Logical strategy used: VPtoExtVP");
+			}
 		}
 
 		if (cmd.hasOption("extVPSize")) {
@@ -209,6 +215,13 @@ public class Main {
 
 		// initializes ExtVP database statistics
 		if (useExtVP) {
+			extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
+			extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
+			useVpToExtVP = false;
+		}
+
+		if (useVpToExtVP){
+			useVerticalPartitioning = true;
 			extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
 			extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
 		}
@@ -260,7 +273,7 @@ public class Main {
 				executor.saveResultsCsv(benchmark_file);
 			}
 
-			if (useExtVP) {
+			if (useExtVP || useVpToExtVP) {
 				if (extVPMaximumSize>0) {
 					extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
 				}
@@ -280,6 +293,7 @@ public class Main {
 		translator.setUseInversePropertyTable(useInversePropertyTable);
 		translator.setUseJoinedPropertyTable(useJoinedPropertyTable);
 		translator.setUseExtVP(useExtVP);
+		translator.setUseVpToExtVp(useVpToExtVP);
 
 		if (minimumGroupSize != -1) {
 			translator.setMinimumGroupSize(minimumGroupSize);
@@ -299,9 +313,11 @@ public class Main {
 			// execution phase
 			executor.setQueryTree(translatedQuery);
 			executor.execute();
-			if (extVPMaximumSize>0) {
+
+			//uncomment to save after each file
+			/*if (extVPMaximumSize>0) {
 				extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
-			}
+			}*/
 		}
 	}
 

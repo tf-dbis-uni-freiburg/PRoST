@@ -62,6 +62,7 @@ public class Translator {
 	private boolean useJoinedPropertyTable = false;
 	private boolean useExtVP = false;
 	private boolean useVerticalPartitioning = false;
+	private boolean useVpToExtVp = false;
 
 	private final String databaseName;
 	private final String extVPDatabaseName;
@@ -125,11 +126,12 @@ public class Translator {
 		// create new extVP nodes if possible. Compares a child node with its parent to create the
 		// ExtVP node.
 		// This creates EXTVP nodes after tree is created
+
 		// TODO is creating extVP nodes before, but might want to use this at some point again
-		/*if (useExtVP) {
+		if (useVpToExtVp) {
 			changeVpNodesToExtVPNodes(tree.getRoot(), null);
 			logger.info("** Spark JoinTree with ExtVP nodes**\n" + tree + "\n****************");
-		}*/
+		}
 
 		return tree;
 	}
@@ -666,6 +668,10 @@ public class Translator {
 
 	public void setUseExtVP(final boolean b){
 		useExtVP = b;
+	}
+
+	public void setUseVpToExtVp(final boolean b){
+		useVpToExtVp = b;
 	}
 
 	public void setUseJoinedPropertyTable(final boolean useJoinedPropertyTable) {
