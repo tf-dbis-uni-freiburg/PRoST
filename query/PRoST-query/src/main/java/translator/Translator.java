@@ -22,8 +22,10 @@ import com.hp.hpl.jena.sparql.core.Var;
 
 import joinTree.ElementType;
 import joinTree.IptNode;
+import joinTree.JoinNode;
 import joinTree.JoinTree;
 import joinTree.JptNode;
+import joinTree.MVNode;
 import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
@@ -79,20 +81,34 @@ public class Translator {
 
 		// build main tree
 		logger.info("Build the tree...");
-		final Node rootNode = buildTree(mainTree.getTriples(), projectionVariables);
-		rootNode.filter = mainTree.getFilter();
+		final Node rootNode = buildTree(mainTree.getTriples());
 
-		final List<Node> optionalTreeRoots = new ArrayList<>();
-		// order is important TODO use ordered list
-		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
-			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
-			// build optional tree
-			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples(), null);
-			optionalTreeRoot.filter = currentOptionalTree.getFilter();
-			optionalTreeRoots.add(optionalTreeRoot);
+		// TODO fix the optional
+//		final List<Node> optionalTreeRoots = new ArrayList<>();
+//		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
+//			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
+//			// build optional tree
+//			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples());
+//			// optionalTreeRoot.filter = currentOptionalTree.getFilter();
+//			optionalTreeRoots.add(optionalTreeRoot);
+//		}
+		// final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
+
+		final JoinTree tree = new JoinTree(rootNode, null, inputFile);
+
+		// set filter
+		tree.filter = mainTree.getFilter();
+
+		// set projections
+		if (projectionVariables != null) {
+			// set the root node with the variables that need to be projected
+			// only for the main tree
+			final ArrayList<String> projectionList = new ArrayList<>();
+			for (int i = 0; i < projectionVariables.size(); i++) {
+				projectionList.add(projectionVariables.get(i).getVarName());
+			}
+			tree.setProjectionList(projectionList);
 		}
-
-		final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
 
 		// if distinct keyword is present
 		tree.setDistinct(query.isDistinct());
@@ -105,85 +121,29 @@ public class Translator {
 	/*
 	 * buildTree constructs the JoinTree
 	 */
-	public Node buildTree(final List<Triple> triples, final List<Var> projectionVars) {
-		// sort the triples before adding them
-		// this.sortTriples();
-		//logger.info("Build priority queue!");
+	public Node buildTree(final List<Triple> triples) {
+		logger.info("Build priority queue!");
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
 
-		
 		final Node tree = nodesQueue.poll();
-		//logger.info("First node: " + tree.triplePattern.toString());
-		
-		if (projectionVars != null) {
-			// set the root node with the variables that need to be projected
-			// only for the main tree
-			final ArrayList<String> projectionList = new ArrayList<>();
-			for (int i = 0; i < projectionVars.size(); i++) {
-				projectionList.add(projectionVars.get(i).getVarName());
-			}
-			tree.setProjectionList(projectionList);
-		}
 
 		// visit the hypergraph to build the tree
-		Node currentNode = tree;
-		final ArrayDeque<Node> visitableNodes = new ArrayDeque<>();
 		while (!nodesQueue.isEmpty()) {
-			//logger.info("While priority queue is empty!");
+			// visit the hypergraph to build the tree
+			Node currentNode = tree;
+			Node relatedNode = findRelateNode(currentNode, nodesQueue);
+			// append join node to the queue 
+			JoinNode joinNode = new JoinNode(null, currentNode, relatedNode);
+			nodesQueue.add(joinNode);
+			//add join node as a parent
+			currentNode.parent = joinNode;
+			relatedNode.parent = joinNode;
 			
-			int limitWidth = 0;
-			// if a limit not set, a heuristic decides the width
-			if (treeWidth == -1) {
-				treeWidth = heuristicWidth(currentNode);
-				//logger.info("Set treeWidth to " + treeWidth);
-			}
-			
-			Node newNode = findRelateNode(currentNode, nodesQueue);
-			if(newNode != null) {
-				//logger.info("Find relative node to the current: " + newNode.tripleGroup.toString());
-			}
-			// there are nodes that are impossible to join with the current tree width
-			if (newNode == null && visitableNodes.isEmpty()) {
-				//logger.info("node is empty and visitableNodes are empty. Increase the treewidth");
-				// set the limit to infinite and execute again
-				treeWidth = Integer.MAX_VALUE;
-				return buildTree(triples, projectionVars);
-			}
-
-			// add every possible children (wide tree) or limit to a custom width
-			// stop if a width limit exists and is reached
-			while (newNode != null && !(treeWidth > 0 && limitWidth == treeWidth)) {
-//				logger.info("LimitWidth: " + limitWidth);
-//				logger.info("While new node is not null");
-				
-			//	logger.info("Append the found node : " + newNode.triplePattern.toString() + " to " + currentNode.triplePattern.toString());
-				// append it to the current node and to the queue
-				newNode.parent = currentNode;
-				currentNode.addChildren(newNode);
-
-				//logger.info("Append the found node to visitableNodes");
-				// visit again the new child
-				visitableNodes.add(newNode);
-
-				// remove consumed node and look for another one
-				//logger.info("Remove the node from the priority queue!");
-				nodesQueue.remove(newNode);
-				newNode = findRelateNode(currentNode, nodesQueue);
-//				if(newNode != null) {
-//					logger.info("Find another node, connected to the current:" + newNode.triplePattern.toString());
-//				} else {
-//					logger.info("No relative nodes are find");
-//				}
-
-				limitWidth++;
-			}
-
-			// next Node is one of the children
-			if (!visitableNodes.isEmpty() && !nodesQueue.isEmpty()) {
-				currentNode = visitableNodes.pop();
-				// logger.info("Pop new cuurent node for visitableNode: " + currentNode.triplePattern.toString());
-			}
+			// remove consumed nodes
+			nodesQueue.remove(currentNode);
+			nodesQueue.remove(relatedNode);
 		}
+
 		return tree;
 	}
 
@@ -479,39 +439,50 @@ public class Translator {
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 
-		if (sourceNode instanceof PtNode || sourceNode instanceof IptNode || sourceNode instanceof JptNode) {
-			// sourceNode is a group
-			for (final TriplePattern tripleSource : sourceNode.tripleGroup) {
-				for (final Node node : availableNodes) {
-					if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
-						for (final TriplePattern tripleDest : node.tripleGroup) {
-							if (existsVariableInCommon(tripleSource, tripleDest)) {
-								return node;
-							}
-						}
-					} else {
-						if (existsVariableInCommon(tripleSource, node.triplePattern)) {
-							return node;
-						}
-					}
-				}
-			}
-		} else {
-			// source node is not a group
+		for (final TriplePattern tripleSource : sourceNode.collectTriples()) {
 			for (final Node node : availableNodes) {
-				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
-					for (final TriplePattern tripleDest : node.tripleGroup) {
-						if (existsVariableInCommon(tripleDest, sourceNode.triplePattern)) {
-							return node;
-						}
-					}
-				} else {
-					if (existsVariableInCommon(sourceNode.triplePattern, node.triplePattern)) {
+				for (final TriplePattern tripleDest : node.collectTriples()) {
+					if (existsVariableInCommon(tripleSource, tripleDest)) {
 						return node;
 					}
 				}
 			}
 		}
+		//TODO check and remove
+//		if (sourceNode instanceof MVNode) {
+//			// sourceNode is a group node
+//			for (final TriplePattern tripleSource : ((MVNode) sourceNode).tripleGroup) {
+//				for (final Node node : availableNodes) {
+//					if (node instanceof MVNode) {
+//						for (final TriplePattern tripleDest : ((MVNode) node).tripleGroup) {
+//							if (existsVariableInCommon(tripleSource, tripleDest)) {
+//								return node;
+//							}
+//						}
+//					} else {
+//						if (existsVariableInCommon(tripleSource, ((VpNode) node).triplePattern)) {
+//							return node;
+//						}
+//					}
+//				}
+//			}
+//		} else {
+//			// source node is not a group
+//			for (final Node node : availableNodes) {
+//				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+//					for (final TriplePattern tripleDest : ((MVNode) node).tripleGroup) {
+//						if (existsVariableInCommon(tripleDest, ((VpNode) sourceNode).triplePattern)) {
+//							return node;
+//						}
+//					}
+//				} else {
+//
+//					if (existsVariableInCommon(((VpNode) sourceNode).triplePattern, ((VpNode) node).triplePattern)) {
+//						return node;
+//					}
+//				}
+//			}
+//		}
 		return null;
 	}
 
@@ -540,7 +511,7 @@ public class Translator {
 		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 			return 5;
 		}
-		final String predicate = node.triplePattern.predicate;
+		final String predicate = ((VpNode) node).triplePattern.predicate;
 		final int tableSize = Stats.getInstance().getTableSize(predicate);
 		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
 		final float proportion = tableSize / numberUniqueSubjects;

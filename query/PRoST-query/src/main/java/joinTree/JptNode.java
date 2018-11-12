@@ -15,7 +15,8 @@ import translator.Stats;
  * A node that uses a Joined Wide Property Table.
  *
  */
-public class JptNode extends Node {
+public class JptNode extends MVNode {
+	
 	private static String tableName = "joined_wide_property_table";
 	private static String wptPrefix = "o_";
 	private static String iwptPrefix = "s_";
@@ -141,4 +142,5 @@ public class JptNode extends Node {
 
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
+
 }

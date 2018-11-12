@@ -1,9 +1,7 @@
 package joinTree;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.PriorityQueue;
 
 import org.apache.spark.sql.SQLContext;
 
@@ -11,17 +9,18 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import executor.Utils;
-import translator.NodeComparator2;
 import translator.Stats;
 
-public class IptNode extends Node {
-	protected final String inversePropertyTableName = "inverse_wide_property_table";
+public class IptNode extends MVNode {
+
+	protected static final String inversePropertyTableName = "inverse_wide_property_table";
+
+	public List<TriplePattern> tripleGroup;
 
 	/**
 	 * The node contains a list of triple patterns with the same object.
 	 *
-	 * @param tripleGroup
-	 *            List of TriplePattern refering to the same object
+	 * @param tripleGroup List of TriplePattern referring to the same object
 	 */
 	public IptNode(final List<TriplePattern> tripleGroup) {
 		super();
@@ -30,28 +29,24 @@ public class IptNode extends Node {
 	}
 
 	/**
-	 * Alternative constructor, used to instantiate a Node directly with a list of jena triple
-	 * patterns with the same object.
+	 * Alternative constructor, used to instantiate a Node directly with a list of
+	 * jena triple patterns with the same object.
 	 *
-	 * @param jenaTriples
-	 *            list of Triples refering to the same object.
-	 * @param prefixes
-	 *            prefix mapping of the properties.
+	 * @param jenaTriples list of Triples referring to the same object.
+	 * @param prefixes    prefix mapping of the properties.
 	 */
 	public IptNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
-		tripleGroup = triplePatterns;
-		children = new PriorityQueue<>(new NodeComparator2());
-		projection = Collections.emptyList();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
+		this.tripleGroup = triplePatterns;
 		setIsComplex();
 	}
 
 	/**
-	 * Uses the database statistics to determine if the object of triples in the node is
-	 * complex.
+	 * Uses the database statistics to determine if the object of triples in the
+	 * node is complex.
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
@@ -104,7 +99,6 @@ public class IptNode extends Node {
 		query.deleteCharAt(query.length() - 1);
 
 		query.append(" FROM ").append(inversePropertyTableName).append(" ");
-		final int counter = 0;
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);
