@@ -82,7 +82,6 @@ public class Stats {
 		}
 
 		tableNames = new String[graph.getTablesCount()];
-		arePrefixesActive = graph.getArePrefixesActive();
 		int i = 0;
 		for (final ProtobufStats.TableStats table : graph.getTablesList()) {
 			tableNames[i] = table.getName();
@@ -147,12 +146,4 @@ public class Stats {
 		// not found
 		return null;
 	}
-
-	/*
-	 * Return true if prefixes are used in the data set.
-	 */
-	public boolean arePrefixesActive() {
-		return arePrefixesActive;
-	}
-
 }

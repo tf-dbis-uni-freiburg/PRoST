@@ -11,7 +11,7 @@ import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 
-public class NodeComparator implements Comparator<Node> {
+public class NodeComparator2 implements Comparator<Node> {
 	private static final Logger logger = Logger.getLogger("PRoST");
 
 	// used to sort nodes when building a join tree
@@ -49,6 +49,6 @@ public class NodeComparator implements Comparator<Node> {
 		final float priorityNode1 = heuristicNodePriority(node1);
 		final float priorityNode2 = heuristicNodePriority(node2);
 
-		return (int) Math.ceil(priorityNode2 - priorityNode1);
+		return (int) Math.ceil(priorityNode1 - priorityNode2);
 	}
 }

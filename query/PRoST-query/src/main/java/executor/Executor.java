@@ -28,7 +28,7 @@ public class Executor {
 
 	private String outputFile;
 	private final String databaseName;
-	private JoinTree queryTree;
+	//private JoinTree queryTree;
 	private final List<String[]> query_time_results;
 
 	SparkSession spark;
@@ -36,15 +36,19 @@ public class Executor {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
 
-	public Executor(final JoinTree queryTree, final String databaseName) {
+	public Executor(/*final JoinTree queryTree,*/ final String databaseName) {
 
 		this.databaseName = databaseName;
-		this.queryTree = queryTree;
+//		this.queryTree = queryTree;
 		query_time_results = new ArrayList<>();
 
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
 		sqlContext = spark.sqlContext();
+		
+		// use the selected database
+		sqlContext.sql("USE " + databaseName);
+		logger.info("USE " + databaseName);
 	}
 
 	public void setOutputFile(final String outputFile) {
@@ -52,7 +56,7 @@ public class Executor {
 	}
 
 	public void setQueryTree(final JoinTree queryTree) {
-		this.queryTree = queryTree;
+//		this.queryTree = queryTree;
 
 		// refresh session
 		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
@@ -62,22 +66,68 @@ public class Executor {
 	/*
 	 * execute performs the Spark computation and measure the time required
 	 */
-	public void execute() {
+	public void execute(JoinTree queryTree) {
+//		// use the selected database
+//		sqlContext.sql("USE " + databaseName);
+//		logger.info("USE " + databaseName);
+//
+//		final long totalStartTime = System.currentTimeMillis();
+//		// logger.info("Start computing the query tree!");
+//		// compute the singular nodes data
+//		queryTree.computeSingularNodeData(sqlContext);
+//		// logger.info("COMPUTED nodes data");
+//
+//		long startTime;
+//		long executionTime;
+//
+//		// compute the joins
+//		// logger.info("Compute joins");
+//		final Dataset<Row> results = queryTree.computeJoins(sqlContext);
+//		//logger.info("Query plan:");
+//		//logger.info(results.queryExecution().analyzed().toString());
+//		//logger.info(results.queryExecution().executedPlan().toString());
+//		startTime = System.currentTimeMillis();
+//		long number_results = -1;
+//		// if specified, save the results in HDFS, just count otherwise
+//		if (outputFile != null) {
+//			results.write().parquet(outputFile);
+//		} else {
+//			number_results = results.count();
+//		}
+//		executionTime = System.currentTimeMillis() - startTime;
+//		logger.info("Execution time JOINS: " + String.valueOf(executionTime));
+//
+//		// save the results in the list
+//		query_time_results.add(
+//				new String[] { queryTree.query_name, String.valueOf(executionTime), String.valueOf(number_results) });
+//
+//		final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
+//		logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
+	}
+
+	/*
+	 * execute performs the Spark computation and measure the time required
+	 */
+	public void executeBottomUp(JoinTree queryTree) {
 		// use the selected database
-		sqlContext.sql("USE " + databaseName);
-		logger.info("USE " + databaseName);
+//		sqlContext.sql("USE " + databaseName);
+//		logger.info("USE " + databaseName);
 
 		final long totalStartTime = System.currentTimeMillis();
-
+		// logger.info("Start computing the query tree!");
 		// compute the singular nodes data
-		queryTree.computeSingularNodeData(sqlContext);
-		logger.info("COMPUTED nodes data");
+		// queryTree.computeSingularNodeData(sqlContext);
+		// logger.info("COMPUTED nodes data");
 
 		long startTime;
 		long executionTime;
 
 		// compute the joins
-		final Dataset<Row> results = queryTree.computeJoins(sqlContext);
+		// logger.info("Compute joins");
+		final Dataset<Row> results = queryTree.compute(sqlContext);
+		//logger.info("Query plan:");
+		//logger.info(results.queryExecution().analyzed().toString());
+		//logger.info(results.queryExecution().executedPlan().toString());
 		startTime = System.currentTimeMillis();
 		long number_results = -1;
 		// if specified, save the results in HDFS, just count otherwise
@@ -85,7 +135,6 @@ public class Executor {
 			results.write().parquet(outputFile);
 		} else {
 			number_results = results.count();
-			logger.info("Number of Results: " + String.valueOf(number_results));
 		}
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Execution time JOINS: " + String.valueOf(executionTime));
@@ -97,7 +146,7 @@ public class Executor {
 		final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
 		logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
 	}
-
+	
 	/*
 	 * When called, it loads tables into memory before execution. This method is suggested only for batch execution of
 	 * queries and in general it doesn't produce benefit (only overhead) for queries with large intermediate results.
@@ -113,7 +162,6 @@ public class Executor {
 			}
 			spark.catalog().cacheTable(name);
 		}
-
 	}
 
 	/*

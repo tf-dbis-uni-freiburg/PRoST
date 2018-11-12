@@ -78,6 +78,7 @@ public class Translator {
 		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
 
 		// build main tree
+		logger.info("Build the tree...");
 		final Node rootNode = buildTree(mainTree.getTriples(), projectionVariables);
 		rootNode.filter = mainTree.getFilter();
 
@@ -107,11 +108,13 @@ public class Translator {
 	public Node buildTree(final List<Triple> triples, final List<Var> projectionVars) {
 		// sort the triples before adding them
 		// this.sortTriples();
-
+		//logger.info("Build priority queue!");
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
 
+		
 		final Node tree = nodesQueue.poll();
-
+		//logger.info("First node: " + tree.triplePattern.toString());
+		
 		if (projectionVars != null) {
 			// set the root node with the variables that need to be projected
 			// only for the main tree
@@ -126,17 +129,22 @@ public class Translator {
 		Node currentNode = tree;
 		final ArrayDeque<Node> visitableNodes = new ArrayDeque<>();
 		while (!nodesQueue.isEmpty()) {
-
+			//logger.info("While priority queue is empty!");
+			
 			int limitWidth = 0;
 			// if a limit not set, a heuristic decides the width
 			if (treeWidth == -1) {
 				treeWidth = heuristicWidth(currentNode);
+				//logger.info("Set treeWidth to " + treeWidth);
 			}
-
+			
 			Node newNode = findRelateNode(currentNode, nodesQueue);
-
+			if(newNode != null) {
+				//logger.info("Find relative node to the current: " + newNode.tripleGroup.toString());
+			}
 			// there are nodes that are impossible to join with the current tree width
 			if (newNode == null && visitableNodes.isEmpty()) {
+				//logger.info("node is empty and visitableNodes are empty. Increase the treewidth");
 				// set the limit to infinite and execute again
 				treeWidth = Integer.MAX_VALUE;
 				return buildTree(triples, projectionVars);
@@ -145,16 +153,27 @@ public class Translator {
 			// add every possible children (wide tree) or limit to a custom width
 			// stop if a width limit exists and is reached
 			while (newNode != null && !(treeWidth > 0 && limitWidth == treeWidth)) {
-
+//				logger.info("LimitWidth: " + limitWidth);
+//				logger.info("While new node is not null");
+				
+			//	logger.info("Append the found node : " + newNode.triplePattern.toString() + " to " + currentNode.triplePattern.toString());
 				// append it to the current node and to the queue
+				newNode.parent = currentNode;
 				currentNode.addChildren(newNode);
 
+				//logger.info("Append the found node to visitableNodes");
 				// visit again the new child
 				visitableNodes.add(newNode);
 
 				// remove consumed node and look for another one
+				//logger.info("Remove the node from the priority queue!");
 				nodesQueue.remove(newNode);
 				newNode = findRelateNode(currentNode, nodesQueue);
+//				if(newNode != null) {
+//					logger.info("Find another node, connected to the current:" + newNode.triplePattern.toString());
+//				} else {
+//					logger.info("No relative nodes are find");
+//				}
 
 				limitWidth++;
 			}
@@ -162,6 +181,7 @@ public class Translator {
 			// next Node is one of the children
 			if (!visitableNodes.isEmpty() && !nodesQueue.isEmpty()) {
 				currentNode = visitableNodes.pop();
+				// logger.info("Pop new cuurent node for visitableNode: " + currentNode.triplePattern.toString());
 			}
 		}
 		return tree;

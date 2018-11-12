@@ -3,6 +3,7 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import org.apache.spark.sql.SQLContext;
 
@@ -10,6 +11,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 import executor.Utils;
+import translator.NodeComparator2;
 import translator.Stats;
 
 public class IptNode extends Node {
@@ -39,7 +41,7 @@ public class IptNode extends Node {
 	public IptNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		tripleGroup = triplePatterns;
-		children = new ArrayList<>();
+		children = new PriorityQueue<>(new NodeComparator2());
 		projection = Collections.emptyList();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
