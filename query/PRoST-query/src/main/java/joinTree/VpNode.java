@@ -26,7 +26,7 @@ public class VpNode extends Node {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-
+		
 		if (tableName == null) {
 			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
 			return;
@@ -60,16 +60,16 @@ public class VpNode extends Node {
 			query.append(" s='" + triplePattern.subject + "' ");
 		}
 		
-		logger.info("VP Node ...");
-		logger.info(query.toString());
-		
-		final long startTime = System.currentTimeMillis();
+//		logger.info("VP Node ...");
+//		logger.info(query.toString());
+//		
+//		final long startTime = System.currentTimeMillis();
 		
 		sparkNodeData = sqlContext.sql(query.toString());
 		
-		logger.info(sparkNodeData.count());
-		long executionTime = System.currentTimeMillis() - startTime;
-		logger.info("Execution time: " + String.valueOf(executionTime));
+//		logger.info(sparkNodeData.count());
+//		long executionTime = System.currentTimeMillis() - startTime;
+//		logger.info("Execution time: " + String.valueOf(executionTime));
 	}
 
 }

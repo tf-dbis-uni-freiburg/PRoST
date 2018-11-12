@@ -1,9 +1,7 @@
 package joinTree;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
 import org.apache.spark.sql.SQLContext;
 
 import com.hp.hpl.jena.graph.Triple;
@@ -27,12 +25,9 @@ public class JptNode extends Node {
 
 	public JptNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
-		tripleGroup = triplePatterns;
 
 		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
 		wptTripleGroup = wptTriplePatterns;
-		children = new ArrayList<>();
-		projection = Collections.emptyList();
 		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			wptTriplePatterns.add(tp);

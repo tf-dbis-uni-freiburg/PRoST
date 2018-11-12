@@ -196,11 +196,11 @@ public class Main {
 			// System.out.println("****************************************************");
 
 			// execution phase
-			final Executor executor = new Executor(translatedQuery, database_name);
+			final Executor executor = new Executor(database_name);
 			if (outputFile != null) {
 				executor.setOutputFile(outputFile);
 			}
-			executor.execute();
+			executor.executeBottomUp(translatedQuery);
 			
 			if (benchmarkMode) {
 				executor.saveResultsCsv(benchmark_file);
@@ -208,7 +208,7 @@ public class Main {
 		} else if (file.isDirectory()) {
 			// set of queries
 			// empty executor to initialize Spark
-			final Executor executor = new Executor(null, database_name);
+			final Executor executor = new Executor(database_name);
 
 			if (benchmarkMode) {
 				// executor.cacheTables();
@@ -248,8 +248,7 @@ public class Main {
 			final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
 
 			// execution phase
-			executor.setQueryTree(translatedQuery);
-			executor.execute();
+			executor.executeBottomUp(translatedQuery);
 		}
 	}
 
