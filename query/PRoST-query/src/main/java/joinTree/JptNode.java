@@ -15,9 +15,10 @@ import translator.Stats;
  * A node that uses a Joined Wide Property Table.
  *
  */
-public class JptNode extends Node {
+public class JptNode extends MVNode  {
+	
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
-	private static final String TABLE_NAME = "joined_wide_property_table";
+	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
 	private static final String IWPT_PREFIX = "s_";
 	private final List<TriplePattern> wptTripleGroup;
@@ -129,7 +130,7 @@ public class JptNode extends Node {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 
-		query.append(" FROM ").append(TABLE_NAME).append(" ");
+		query.append(" FROM ").append(JOINED_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);
@@ -142,4 +143,5 @@ public class JptNode extends Node {
 
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
+
 }

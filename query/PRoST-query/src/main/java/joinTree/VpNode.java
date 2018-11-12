@@ -1,6 +1,7 @@
 package joinTree;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
@@ -12,8 +13,11 @@ import executor.Utils;
  */
 public class VpNode extends Node {
 
-	private final String tableName;
 	private static final Logger logger = Logger.getLogger("PRoST");
+
+	private final String tableName;
+	public TriplePattern triplePattern;
+
 	/*
 	 * The node contains a single triple pattern.
 	 */
@@ -21,12 +25,20 @@ public class VpNode extends Node {
 		super();
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
-		tripleGroup = Collections.emptyList();
+	}
+
+	/*
+	 * The node contains a single triple pattern.
+	 */
+	public VpNode(Node parent, final TriplePattern triplePattern, final String tableName) {
+		super(parent);
+		this.tableName = tableName;
+		this.triplePattern = triplePattern;
 	}
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		
+
 		if (tableName == null) {
 			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
 			return;
@@ -59,17 +71,24 @@ public class VpNode extends Node {
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" s='" + triplePattern.subject + "' ");
 		}
-		
-//		logger.info("VP Node ...");
-//		logger.info(query.toString());
-//		
-//		final long startTime = System.currentTimeMillis();
-		
+
 		sparkNodeData = sqlContext.sql(query.toString());
-		
-//		logger.info(sparkNodeData.count());
-//		long executionTime = System.currentTimeMillis() - startTime;
-//		logger.info("Execution time: " + String.valueOf(executionTime));
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder str = new StringBuilder("{");
+		str.append("VP node: ");
+		str.append(triplePattern.toString());
+		str.append(" }");
+		return str.toString();
+	}
+
+	@Override
+	public List<TriplePattern> collectTriples() {
+		ArrayList<TriplePattern> patterns = new ArrayList<>();
+		patterns.add(triplePattern);
+		return patterns;
 	}
 
 }
