@@ -2,8 +2,6 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
@@ -12,8 +10,6 @@ import executor.Utils;
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
 public class VpNode extends Node {
-
-	private static final Logger logger = Logger.getLogger("PRoST");
 
 	private final String tableName;
 	public TriplePattern triplePattern;
@@ -90,5 +86,4 @@ public class VpNode extends Node {
 		patterns.add(triplePattern);
 		return patterns;
 	}
-
 }

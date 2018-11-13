@@ -16,7 +16,7 @@ import translator.Stats;
  *
  */
 public class JptNode extends MVNode {
-	
+
 	private static String tableName = "joined_wide_property_table";
 	private static String wptPrefix = "o_";
 	private static String iwptPrefix = "s_";
@@ -141,6 +141,17 @@ public class JptNode extends MVNode {
 		}
 
 		sparkNodeData = sqlContext.sql(query.toString());
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder str = new StringBuilder("{");
+		str.append("JWPT node: ");
+		for (final TriplePattern tpGroup : tripleGroup) {
+			str.append(tpGroup.toString() + ", ");
+		}
+		str.append(" }");
+		return str.toString();
 	}
 
 }

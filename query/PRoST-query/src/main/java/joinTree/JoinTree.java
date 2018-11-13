@@ -1,17 +1,27 @@
 package joinTree;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
+import executor.Utils;
+import translator.NodeComparator;
+
 /**
- * JoinTree definition.
+ * JoinTree definition. It represents a binary tree. The leaves are of type
+ * either {@link VpNode} or {@link MVNode}. Inner nodes are of type
+ * {@link JoinNode}.
  *
  * @author Matteo Cossu
+ * @author Polina Koleva
  *
  */
 public class JoinTree {
@@ -19,26 +29,32 @@ public class JoinTree {
 	private static final Logger logger = Logger.getLogger("PRoST");
 
 	private final Node root;
-//	private final List<Node> optionalTreeRoots;
+
+	// TODO fix optional tree
+	// private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
 	public String filter;
 	public List<String> projection;
-	
+
 	// identifier for the query, useful for debugging
 	public String query_name;
 
 	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String query_name) {
 		this.query_name = query_name;
 		this.root = root;
-//		this.optionalTreeRoots = optionalTreeRoots;
+
+		// TODO fix optional tree
+		// this.optionalTreeRoots = optionalTreeRoots;
+
 		// set the projections (if present)
 		projection = Collections.emptyList();
 	}
 
-	public Node getRoot() {
-		return root;
-	}
-	
+	/**
+	 * Compute the result of a join tree.
+	 * 
+	 * @return
+	 */
 	public Dataset<Row> compute(final SQLContext sqlContext) {
 		// compute all the joins
 		root.computeNodeData(sqlContext);
@@ -49,7 +65,7 @@ public class JoinTree {
 		for (int i = 0; i < selectedColumns.length; i++) {
 			selectedColumns[i] = new Column(this.projection.get(i));
 		}
-		//TODO fix the optional trees
+		// TODO fix the optional trees
 //		for (int i = 0; i < optionalTreeRoots.size(); i++) {
 //			// OPTIONAL
 //			final Node currentOptionalNode = optionalTreeRoots.get(i);
@@ -77,63 +93,10 @@ public class JoinTree {
 		}
 		return results;
 	}
-		
 
-//	public void computeSingularNodeData(final SQLContext sqlContext) {
-////		logger.info("computeSingularNodeData");
-////		logger.info("Start from the root. Compute subtrees!");
-////		List<Node> childen = root.children;
-////		for (Iterator iterator = childen.iterator(); iterator.hasNext();) {
-////			Node node = (Node) iterator.next();
-////			logger.info(node.triplePattern.toString());
-////		}
-//		root.computeSubTreeData(sqlContext);
-////		for (int i = 0; i < optionalTreeRoots.size(); i++) {
-////			optionalTreeRoots.get(i).computeSubTreeData(sqlContext);
-////		}
-//	}
-
-//	public Dataset<Row> computeJoins(final SQLContext sqlContext) {
-//		// compute all the joins
-//		// logger.info("Inside computeJoins. Starting from the root, compute joins with
-//		// children on the root!");
-//		Dataset<Row> results = root.computeJoinWithChildren(sqlContext);
-//
-//		// select only the requested result
-//		final Column[] selectedColumns = new Column[root.projection.size()];
-//		for (int i = 0; i < selectedColumns.length; i++) {
-//			selectedColumns[i] = new Column(root.projection.get(i));
-//		}
-//		for (int i = 0; i < optionalTreeRoots.size(); i++) {
-//			// OPTIONAL
-//			final Node currentOptionalNode = optionalTreeRoots.get(i);
-//			// compute joins in the optional tree
-//			Dataset<Row> optionalResults = currentOptionalNode.computeJoinWithChildren(sqlContext);
-//			// add selection and filter in the optional tree
-//			// if there is a filter set, apply it
-//			if (currentOptionalNode.filter == null) {
-//				optionalResults = optionalResults.filter(currentOptionalNode.filter);
-//			}
-//
-//			// add left join with the optional tree
-//			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
-//			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
-//					"left_outer");
-//		}
-//
-//		// if there is a filter set, apply it
-//		results = root.filter == null ? results.select(selectedColumns)
-//				: results.filter(root.filter).select(selectedColumns);
-//
-//		// if results are distinct
-//		if (selectDistinct) {
-//			results = results.distinct();
-//		}
-//		return results;
-//	}
-
-//	public Dataset<Row> compute(final SQLContext sqlContext) {
-//		PriorityQueue<Node> visitableNodes = new PriorityQueue<Node>(new NodeComparator2());
+	// TODO compute the tree in a bottom-up approach
+//	public Dataset<Row> computeBottomUp(final SQLContext sqlContext) {
+//		PriorityQueue<Node> visitableNodes = new PriorityQueue<Node>(new NodeComparator());
 //		visitableNodes.addAll(findLeaves());
 //		while (!visitableNodes.isEmpty()) {
 //			Node current = visitableNodes.poll();
@@ -143,7 +106,7 @@ public class JoinTree {
 //			}
 //			if (current.parent != null) {
 //				// computes parent node date
-//				if(current.parent.sparkNodeData == null) {
+//				if (current.parent.sparkNodeData == null) {
 //					current.parent.computeNodeData(sqlContext);
 //				}
 //				final List<String> joinVariables = Utils.commonVariables(current.sparkNodeData.columns(),
@@ -155,19 +118,22 @@ public class JoinTree {
 //
 //				// remove current from the queue
 //				visitableNodes.remove(current);
-//				if(!hasNotComputedChildren(current.parent)) {
+//				if (!hasNotComputedChildren(current.parent)) {
 //					visitableNodes.add(current.parent);
 //				}
 //			} else {
 //				break;
 //			}
 //		}
+//
 //		Dataset<Row> results = root.sparkNodeData;
+//
 //		// select only the requested result
-//		final Column[] selectedColumns = new Column[root.projection.size()];
+//		final Column[] selectedColumns = new Column[this.projection.size()];
 //		for (int i = 0; i < selectedColumns.length; i++) {
-//			selectedColumns[i] = new Column(root.projection.get(i));
+//			selectedColumns[i] = new Column(this.projection.get(i));
 //		}
+//		// TODO fix the optional tree
 ////		for (int i = 0; i < optionalTreeRoots.size(); i++) {
 ////			// OPTIONAL
 ////			final Node currentOptionalNode = optionalTreeRoots.get(i);
@@ -186,8 +152,8 @@ public class JoinTree {
 ////		}
 //
 //		// if there is a filter set, apply it
-//		results = root.filter == null ? results.select(selectedColumns)
-//				: results.filter(root.filter).select(selectedColumns);
+//		results = this.filter == null ? results.select(selectedColumns)
+//				: results.filter(this.filter).select(selectedColumns);
 //
 //		// if results are distinct
 //		if (selectDistinct) {
@@ -195,46 +161,57 @@ public class JoinTree {
 //		}
 //		return results;
 //	}
-
+//
 //	public boolean hasNotComputedChildren(Node node) {
 //		boolean hasChildrenToCompute = false;
 //		for (Iterator iterator = node.children.iterator(); iterator.hasNext();) {
 //			Node child = (Node) iterator.next();
 //			// either there is a child which data is not computed
 //			// or there is a child which children are not computed
-//			if(child.sparkNodeData == null || (child.sparkNodeData != null && hasNotComputedChildren(child))) {
+//			if (child.sparkNodeData == null || (child.sparkNodeData != null && hasNotComputedChildren(child))) {
 //				return true;
-//			} 
+//			}
 //		}
 //		return hasChildrenToCompute;
 //	}
-	
-//	public List<Node> findLeaves() {
-//		List<Node> leaves = new ArrayList<>();
-//		LinkedList<Node> toVisit = new LinkedList<>();
-//		toVisit.add(root);
-//		while (!toVisit.isEmpty()) {
-//			Node current = toVisit.poll();
-//			if (current.children.size() > 0) {
-//				toVisit.addAll(current.children);
-//			} else {
-//				leaves.add(current);
-//			}
-//			toVisit.remove(current);
-//		}
-//		return leaves;
-//	}
+
+	/**
+	 * Return a list containing the leaves of the tree.
+	 */
+	public List<Node> findLeaves() {
+		List<Node> leaves = new ArrayList<>();
+		LinkedList<Node> toVisit = new LinkedList<>();
+		toVisit.add(root);
+		while (!toVisit.isEmpty()) {
+			Node current = toVisit.poll();
+			if (current instanceof MVNode || current instanceof VpNode) {
+				// leaf
+				leaves.add(current);
+			} else {
+				// add its children for visitation
+				toVisit.add(((JoinNode) current).getLeftChild());
+				toVisit.add(((JoinNode) current).getRightChild());
+			}
+			toVisit.remove(current);
+		}
+		return leaves;
+	}
+
+	public Node getRoot() {
+		return root;
+	}
+
+	public void setDistinct(final boolean distinct) {
+		selectDistinct = distinct;
+	}
+
+	public void setProjectionList(final List<String> projections) {
+		projection = projections;
+	}
 
 	@Override
 	public String toString() {
 		return root.toString();
 	}
 
-	public void setDistinct(final boolean distinct) {
-		selectDistinct = distinct;
-	}
-	
-	public void setProjectionList(final List<String> projections) {
-		projection = projections;
-	}
 }

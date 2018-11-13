@@ -6,6 +6,17 @@ import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
 
+/**
+ * A node of a join tree that contains the result of a join between two other
+ * nodes. It has two children. Its child can be another join node, if it is not
+ * a leaf in the tree. Its list of triples is a union of its children's triples.
+ * 
+ * To compute the data in a join node, the data for its children is first
+ * computed. Then, a join between them is executed, based on a common variables.
+ * 
+ * @author Polina Koleva
+ *
+ */
 public class JoinNode extends MVNode {
 
 	private Node leftChild;
@@ -20,20 +31,20 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public void computeNodeData(SQLContext sqlContext) {
+		//compute children's data
 		if (getRightChild().sparkNodeData == null) {
 			getRightChild().computeNodeData(sqlContext);
 		}
 		if (getLeftChild().sparkNodeData == null) {
 			getLeftChild().computeNodeData(sqlContext);
 		}
-		// compute join between both children
+		// execute a join between the children
 		final List<String> joinVariables = Utils.commonVariables(getRightChild().sparkNodeData.columns(),
 				getLeftChild().sparkNodeData.columns());
 		this.sparkNodeData = getLeftChild().sparkNodeData.join(getRightChild().sparkNodeData,
 				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 	}
 
-	
 	public Node getLeftChild() {
 		return leftChild;
 	}
@@ -49,11 +60,29 @@ public class JoinNode extends MVNode {
 	public void setRightChild(Node rightChild) {
 		this.rightChild = rightChild;
 	}
-	
-	private List<TriplePattern> getTriples(){
+
+	/**
+	 * To compute the triples that a join node represents, union the triples each of
+	 * its children contains.
+	 * 
+	 * @return a list of triples
+	 */
+	private List<TriplePattern> getTriples() {
 		ArrayList<TriplePattern> triples = new ArrayList<>();
 		triples.addAll(leftChild.collectTriples());
 		triples.addAll(rightChild.collectTriples());
 		return triples;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder str = new StringBuilder("{");
+		str.append("Join node: " + tripleGroup.size());
+		str.append(" }");
+		str.append(" [");
+		str.append("\n Left child: " + leftChild.toString());
+		str.append("\n Right child: " + rightChild.toString());
+		str.append("\n]");
+		return str.toString();
 	}
 }

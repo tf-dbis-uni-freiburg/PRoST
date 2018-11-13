@@ -111,4 +111,15 @@ public class IptNode extends MVNode {
 
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder str = new StringBuilder("{");
+		str.append("IWPT node: ");
+		for (final TriplePattern tpGroup : tripleGroup) {
+			str.append(tpGroup.toString() + ", ");
+		}
+		str.append(" }");
+		return str.toString();
+	}
 }

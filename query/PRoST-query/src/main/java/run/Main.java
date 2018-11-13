@@ -175,7 +175,7 @@ public class Main {
 			if (outputFile != null) {
 				executor.setOutputFile(outputFile);
 			}
-			executor.executeBottomUp(translatedQuery);
+			executor.execute(translatedQuery);
 			
 			if (benchmarkMode) {
 				executor.saveResultsCsv(benchmark_file);
@@ -234,7 +234,7 @@ public class Main {
 			final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
 
 			// execution phase
-			executor.executeBottomUp(translatedQuery);
+			executor.execute(translatedQuery);
 		}
 	}
 
