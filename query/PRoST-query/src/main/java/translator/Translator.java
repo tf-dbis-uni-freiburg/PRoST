@@ -21,19 +21,20 @@ import joinTree.IptNode;
 import joinTree.JoinNode;
 import joinTree.JoinTree;
 import joinTree.JptNode;
-import joinTree.MVNode;
 import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
 
 /**
- * This class parses the SPARQL query, build the Tree and save its serialization in a
- * file.
+ * This class parses the SPARQL query, build a {@link JoinTree} and save its
+ * serialization in a file.
  *
  * @author Matteo Cossu
+ * @author Polina Koleva
  */
 public class Translator {
+
 	enum NODE_TYPE{
 		VP, WPT, IWPT, JWPT
 	}
@@ -55,8 +56,7 @@ public class Translator {
 	private boolean useVerticalPartitioning = false;
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
-	// when
-	// you are running the jar, its default value is -1.
+	// when you are running the jar, its default value is -1.
 	// TODO Move this logic to the translator
 	public Translator(final String input, final int treeWidth) {
 		inputFile = input;
@@ -118,32 +118,30 @@ public class Translator {
 	}
 
 	/*
-	 * buildTree constructs the JoinTree
+	 * Constructs the join tree.
 	 */
 	public Node buildTree(final List<Triple> triples) {
-		logger.info("Build priority queue!");
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
-
-		final Node tree = nodesQueue.poll();
+		Node currentNode = null;
 
 		// visit the hypergraph to build the tree
 		while (!nodesQueue.isEmpty()) {
-			// visit the hypergraph to build the tree
-			Node currentNode = tree;
+			currentNode = nodesQueue.poll();
 			Node relatedNode = findRelateNode(currentNode, nodesQueue);
-			// append join node to the queue 
-			JoinNode joinNode = new JoinNode(null, currentNode, relatedNode);
-			nodesQueue.add(joinNode);
-			//add join node as a parent
-			currentNode.parent = joinNode;
-			relatedNode.parent = joinNode;
-			
-			// remove consumed nodes
-			nodesQueue.remove(currentNode);
-			nodesQueue.remove(relatedNode);
-		}
+			if (relatedNode != null) {
+				// append join node to the queue
+				JoinNode joinNode = new JoinNode(null, currentNode, relatedNode);
+				nodesQueue.add(joinNode);
+				// add join node as a parent
+				currentNode.parent = joinNode;
+				relatedNode.parent = joinNode;
 
-		return tree;
+				// remove consumed nodes
+				nodesQueue.remove(currentNode);
+				nodesQueue.remove(relatedNode);
+			}
+		}
+		return currentNode;
 	}
 
 	/**
@@ -458,11 +456,15 @@ public class Translator {
 	}
 
 	/*
+<<<<<<< Upstream, based on origin/dev
 	 * findRelateNode, given a source node, finds another node with at least one variable in
 	 * common, if there isn't return null.
+=======
+	 * Given a source node, finds another node with at least one variable in common,
+	 * if there isn't return null.
+>>>>>>> e7deb72 Clean the code. Add comments. TODO optional node is not yet implemented TODO executeBottomUp method is not implemeted
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
-
 		for (final TriplePattern tripleSource : sourceNode.collectTriples()) {
 			for (final Node node : availableNodes) {
 				for (final TriplePattern tripleDest : node.collectTriples()) {
@@ -472,41 +474,6 @@ public class Translator {
 				}
 			}
 		}
-		//TODO check and remove
-//		if (sourceNode instanceof MVNode) {
-//			// sourceNode is a group node
-//			for (final TriplePattern tripleSource : ((MVNode) sourceNode).tripleGroup) {
-//				for (final Node node : availableNodes) {
-//					if (node instanceof MVNode) {
-//						for (final TriplePattern tripleDest : ((MVNode) node).tripleGroup) {
-//							if (existsVariableInCommon(tripleSource, tripleDest)) {
-//								return node;
-//							}
-//						}
-//					} else {
-//						if (existsVariableInCommon(tripleSource, ((VpNode) node).triplePattern)) {
-//							return node;
-//						}
-//					}
-//				}
-//			}
-//		} else {
-//			// source node is not a group
-//			for (final Node node : availableNodes) {
-//				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
-//					for (final TriplePattern tripleDest : ((MVNode) node).tripleGroup) {
-//						if (existsVariableInCommon(tripleDest, ((VpNode) sourceNode).triplePattern)) {
-//							return node;
-//						}
-//					}
-//				} else {
-//
-//					if (existsVariableInCommon(((VpNode) sourceNode).triplePattern, ((VpNode) node).triplePattern)) {
-//						return node;
-//					}
-//				}
-//			}
-//		}
 		return null;
 	}
 
@@ -527,6 +494,7 @@ public class Translator {
 		return false;
 	}
 
+	// TODO remove if we do not use width
 	/*
 	 * heuristicWidth decides a width based on the proportion between the number of elements
 	 * in a table and the unique subjects.
@@ -571,5 +539,13 @@ public class Translator {
 
 	public void setUseVerticalPartitioning(boolean useVerticalPartitioning){
 		this.useVerticalPartitioning = useVerticalPartitioning;
+	}
+
+	public boolean isGroupingDisabled() {
+		return groupingDisabled;
+	}
+
+	public void setGroupingDisabled(boolean groupingDisabled) {
+		this.groupingDisabled = groupingDisabled;
 	}
 }

@@ -15,12 +15,14 @@ import translator.Stats;
  * A node that uses a Joined Wide Property Table.
  *
  */
+
 public class JptNode extends MVNode  {
 	
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
 	private static final String IWPT_PREFIX = "s_";
+
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
@@ -142,6 +144,17 @@ public class JptNode extends MVNode  {
 		}
 
 		sparkNodeData = sqlContext.sql(query.toString());
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder str = new StringBuilder("{");
+		str.append("JWPT node: ");
+		for (final TriplePattern tpGroup : tripleGroup) {
+			str.append(tpGroup.toString() + ", ");
+		}
+		str.append(" }");
+		return str.toString();
 	}
 
 }
