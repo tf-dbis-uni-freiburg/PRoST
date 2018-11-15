@@ -2,6 +2,8 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
@@ -19,6 +21,8 @@ import executor.Utils;
  */
 public class JoinNode extends MVNode {
 
+	private static final Logger logger = Logger.getLogger("PRoST");
+	
 	private Node leftChild;
 	private Node rightChild;
 
@@ -31,7 +35,7 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public void computeNodeData(SQLContext sqlContext) {
-		//compute children's data
+		// compute children's data
 		if (getRightChild().sparkNodeData == null) {
 			getRightChild().computeNodeData(sqlContext);
 		}
@@ -72,6 +76,26 @@ public class JoinNode extends MVNode {
 		triples.addAll(leftChild.collectTriples());
 		triples.addAll(rightChild.collectTriples());
 		return triples;
+	}
+
+	/**
+	 * Calculate heuristically a score for a join node. It is a multiplication of
+	 * its children's scores. If a child's score is zero (when a constant is
+	 * involved), it is ignored from the multiplication.
+	 */
+	@Override
+	public float heuristicNodePriority() {
+		float priority = 0;
+		float leftChildPriority = this.leftChild.heuristicNodePriority();
+		float rightChildPriority = this.rightChild.heuristicNodePriority();
+		if (leftChildPriority == 0.0) {
+			return rightChildPriority;
+		} else if (rightChildPriority == 0.0) {
+			return leftChildPriority;
+		} else {
+			priority = rightChildPriority * leftChildPriority;
+		}
+		return priority;
 	}
 
 	@Override
