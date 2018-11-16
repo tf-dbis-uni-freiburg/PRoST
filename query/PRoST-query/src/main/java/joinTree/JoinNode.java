@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 
-import executor.Utils;
+import utils.Utils;
 
 /**
  * A node of a join tree that contains the result of a join between two other

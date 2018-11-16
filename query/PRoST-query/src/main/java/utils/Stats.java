@@ -1,4 +1,4 @@
-package translator;
+package utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+
 import joinTree.ProtobufStats;
-import utils.Utils;
 
 /**
- * This class is used to parse statistics from a Protobuf file and it exposes
- * methods to retrieve singular entries.
+ * This class is used to parse statistics from a Protobuf file and it exposes methods to
+ * retrieve singular entries.
  *
  * TODO: implement whole graph statistics
  *
@@ -31,7 +31,6 @@ public class Stats {
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
 	private HashMap<String, Boolean> iptPropertyComplexity;
-
 	private String[] tableNames;
 
 	protected Stats() {
@@ -121,13 +120,14 @@ public class Stats {
 	}
 
 	/*
-	 * This method returns the same name for the table (VP) or column (PT) that was
-	 * used in the loading phase. Returns the name from an exact match. Return null
-	 * if there is no match
+	 * This method returns the same name for the table (VP) or column (PT) that was used in
+	 * the loading phase. Returns the name from an exact match or from a partial one, if a
+	 * prefix was used in loading or in the query. Return null if there is no match
 	 */
 	public String findTableName(final String tableName) {
 		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
 		for (final String realTableName : tableNames) {
+
 			final boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
 			// if there is a match, return the correct table name
 			if (exactMatch) {
