@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<repositories>
 		<repository>
@@ -65,16 +66,21 @@
 			<artifactId>commons-csv</artifactId>
 			<version>1.5</version>
 		</dependency>
+		<dependency>
+			<groupId>org.mapdb</groupId>
+			<artifactId>mapdb</artifactId>
+			<version>3.0.7</version>
+		</dependency>
 	</dependencies>
 	<build>
-	<resources>
-       	<resource>
-            <directory>${basedir}/src/main/resources</directory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-        </resource>
-     </resources>
+		<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -95,10 +101,10 @@
 								</includes>
 							</artifactSet>
 							<relocations>
-									<relocation>
-										<pattern>com.google.protobuf</pattern>
-										<shadedPattern>shaded.com.google.protobuf</shadedPattern>
-									</relocation>
+								<relocation>
+									<pattern>com.google.protobuf</pattern>
+									<shadedPattern>shaded.com.google.protobuf</shadedPattern>
+								</relocation>
 							</relocations>
 						</configuration>
 					</execution>
