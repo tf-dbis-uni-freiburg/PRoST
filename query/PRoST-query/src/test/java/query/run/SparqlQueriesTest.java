@@ -16,7 +16,6 @@ import joinTree.JoinTree;
 import query.utilities.HiveDatabaseUtilities;
 import query.utilities.TestData;
 import query.utilities.TripleBean;
-import scala.tools.nsc.Main;
 import translator.Stats;
 import translator.Translator;
 
@@ -54,8 +53,8 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		translator.setUsePropertyTable(true);
 		translator.setMinimumGroupSize(-1);
 		JoinTree jt = translator.translateQuery();
-		Executor executor = new Executor(jt, "singleTripleDb");
+		Executor executor = new Executor("singleTripleDb");
 		executor.setOutputFile("F:\\works.txt");
-		executor.execute();
+		executor.execute(jt);
 	}
 }

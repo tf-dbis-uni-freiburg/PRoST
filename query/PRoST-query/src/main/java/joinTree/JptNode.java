@@ -15,7 +15,6 @@ import translator.Stats;
  * A node that uses a Joined Wide Property Table.
  *
  */
-
 public class JptNode extends MVNode  {
 	
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";

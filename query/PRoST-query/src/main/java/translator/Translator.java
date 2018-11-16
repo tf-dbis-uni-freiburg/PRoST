@@ -456,13 +456,8 @@ public class Translator {
 	}
 
 	/*
-<<<<<<< Upstream, based on origin/dev
-	 * findRelateNode, given a source node, finds another node with at least one variable in
-	 * common, if there isn't return null.
-=======
 	 * Given a source node, finds another node with at least one variable in common,
 	 * if there isn't return null.
->>>>>>> e7deb72 Clean the code. Add comments. TODO optional node is not yet implemented TODO executeBottomUp method is not implemeted
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
 		for (final TriplePattern tripleSource : sourceNode.collectTriples()) {
@@ -539,13 +534,5 @@ public class Translator {
 
 	public void setUseVerticalPartitioning(boolean useVerticalPartitioning){
 		this.useVerticalPartitioning = useVerticalPartitioning;
-	}
-
-	public boolean isGroupingDisabled() {
-		return groupingDisabled;
-	}
-
-	public void setGroupingDisabled(boolean groupingDisabled) {
-		this.groupingDisabled = groupingDisabled;
 	}
 }

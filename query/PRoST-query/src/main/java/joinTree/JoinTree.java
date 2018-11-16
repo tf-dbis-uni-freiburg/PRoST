@@ -94,7 +94,7 @@ public class JoinTree {
 		return results;
 	}
 
-	// TODO compute the tree in a bottom-up approach
+//	// TODO compute the tree in a bottom-up approach
 //	public Dataset<Row> computeBottomUp(final SQLContext sqlContext) {
 //		PriorityQueue<Node> visitableNodes = new PriorityQueue<Node>(new NodeComparator());
 //		visitableNodes.addAll(findLeaves());
@@ -104,26 +104,7 @@ public class JoinTree {
 //			if (current.sparkNodeData == null) {
 //				current.computeNodeData(sqlContext);
 //			}
-//			if (current.parent != null) {
-//				// computes parent node date
-//				if (current.parent.sparkNodeData == null) {
-//					current.parent.computeNodeData(sqlContext);
-//				}
-//				final List<String> joinVariables = Utils.commonVariables(current.sparkNodeData.columns(),
-//						current.parent.sparkNodeData.columns());
-//				Dataset<Row> intermediateResult = current.sparkNodeData.join(current.parent.sparkNodeData,
-//						scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
-//				// store join data into the parent node
-//				current.parent.sparkNodeData = intermediateResult;
-//
-//				// remove current from the queue
-//				visitableNodes.remove(current);
-//				if (!hasNotComputedChildren(current.parent)) {
-//					visitableNodes.add(current.parent);
-//				}
-//			} else {
-//				break;
-//			}
+//			
 //		}
 //
 //		Dataset<Row> results = root.sparkNodeData;

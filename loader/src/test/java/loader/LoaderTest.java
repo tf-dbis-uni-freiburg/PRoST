@@ -56,7 +56,7 @@ class LoaderTest {
 
 	@Test
 	void verticalPartitioningTest() {
-		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader("", "testingDB", spark, false);
+		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader("", "testingDB", spark);
 		vp_loader.load();
 		final Dataset<Row> tables_list = spark.sql("SHOW tables");
 
