@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.spark.sql.SQLContext;
 
-import executor.Utils;
+import utils.Utils;
 
 /*
  * A node of the JoinTree that refers to the Vertical Partitioning.

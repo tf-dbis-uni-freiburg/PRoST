@@ -7,9 +7,9 @@ import org.apache.spark.sql.SQLContext;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import executor.Utils;
 import translator.JoinedTriplesGroup;
-import translator.Stats;
+import utils.Stats;
+import utils.Utils;
 
 /**
  * A node that uses a Joined Wide Property Table.

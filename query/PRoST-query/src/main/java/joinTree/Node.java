@@ -7,7 +7,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
-import translator.Stats;
+import utils.Stats;
 
 /**
  * An abstract class that each node of the JoinTree has to extend. Each node has

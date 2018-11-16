@@ -9,8 +9,8 @@ import org.apache.spark.sql.SQLContext;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import executor.Utils;
-import translator.Stats;
+import utils.Stats;
+import utils.Utils;
 
 /*
  * A node of the JoinTree that refers to the Property Table.
@@ -18,6 +18,15 @@ import translator.Stats;
 public class PtNode extends MVNode {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
+
+	/**
+	 * The default value is "wide_property_table" when only one PT exists. If an
+	 * emergent schema is used, then there exist more than one property tables. Each
+	 * of them contains a specific set of predicates. In this case, the default
+	 * table name can be changes depending on the list of triples this node
+	 * contains.
+	 */
+	private String tableName = "wide_property_table";
 
 	public PtNode(Node parent, final List<TriplePattern> tripleGroup) {
 		this.parent = parent;
@@ -39,6 +48,20 @@ public class PtNode extends MVNode {
 
 	}
 
+	/**
+	 * If an emergent schema is used, then there exist more than one property
+	 * tables. In this case, the default table name can be changes depending on the
+	 * list of triples this node contains.
+	 */
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	/**
+	 * For each triple, set if it contains a complex predicate. A predicate is
+	 * complex when there exists at least one subject that has two or more triples
+	 * containing the predicate.
+	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
 			triplePattern.isComplex = Stats.getInstance().isTableComplex(triplePattern.predicate);
@@ -84,9 +107,7 @@ public class PtNode extends MVNode {
 
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
-
-		// TODO: parameterize the name of the table
-		query.append(" FROM wide_property_table ");
+		query.append(" FROM " + this.tableName + " ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);

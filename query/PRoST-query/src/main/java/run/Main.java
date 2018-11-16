@@ -21,8 +21,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 import executor.Executor;
 import joinTree.JoinTree;
-import translator.Stats;
 import translator.Translator;
+import utils.EmergentSchema;
+import utils.Stats;
 
 /**
  * The Main class parses the CLI arguments and calls the translator and the executor.
@@ -37,7 +38,10 @@ public class Main {
 	private static String outputFile;
 	private static String statsFileName = "";
 	private static String database_name;
+	
+	// TODO remove the tree width if not used
 	private static int treeWidth = -1;
+	
 	private static String lpStrategies;
 	private static boolean useVerticalPartitioning = false;
 	private static boolean usePropertyTable = false;
@@ -45,9 +49,10 @@ public class Main {
 	private static boolean useJoinedPropertyTable = false;
 	// if triples have to be grouped when using property table
 	private static boolean disablesGrouping = false;	
-	
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
+	private static String emergentSchemaFile = "";
+	
 	private static String loj4jFileName = "log4j.properties";
 
 	public static void main(final String[] args) throws IOException {
@@ -69,6 +74,8 @@ public class Main {
 		final Option statOpt = new Option("s", "stats", true, "File with statistics (required)");
 		options.addOption(statOpt);
 		statOpt.setRequired(true);
+		final Option emSchemaOpt = new Option("es", "emergentSchema", true, "File with emergent schema, if exists");
+		options.addOption(emSchemaOpt);
 		final Option databaseOpt = new Option("d", "DB", true, "Database containing the VP tables and the PT.");
 		databaseOpt.setRequired(true);
 		options.addOption(databaseOpt);
@@ -157,6 +164,14 @@ public class Main {
 			logger.info("Grouping of multiple triples is disabled.");
 		}
 
+		// if emergent schema has to be applied
+		if (cmd.hasOption("emergentSchema")) {
+			emergentSchemaFile = cmd.getOptionValue("emergentSchema");
+			EmergentSchema.getInstance().readSchema(emergentSchemaFile);
+			// TODO remove, this is only for checking
+			logger.info(EmergentSchema.getInstance().getTable("http___schema_org_telephone"));
+		}
+		
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
 

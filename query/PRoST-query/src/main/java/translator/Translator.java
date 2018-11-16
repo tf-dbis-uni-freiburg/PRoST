@@ -28,6 +28,7 @@ import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
+import utils.Stats;
 
 /**
  * This class parses the SPARQL query, build a {@link JoinTree} and save its

@@ -1,4 +1,4 @@
-package translator;
+package utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,7 +7,6 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import executor.Utils;
 import joinTree.ProtobufStats;
 
 /**
@@ -32,14 +31,6 @@ public class Stats {
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
 	private HashMap<String, Boolean> iptPropertyComplexity;
-
-	/**
-	 * Are prefixes used in the data set. The data will be stored as it comes, if it comes
-	 * with full URIs, it will be stored with full URIs. If it comes prefixed, prefixed
-	 * version of the data will be stored. NO substitution will be done. This property
-	 * indicates if the data is stored with full URIs or with its prefixed version.
-	 */
-	private boolean arePrefixesActive;
 	private String[] tableNames;
 
 	protected Stats() {
