@@ -204,7 +204,7 @@ public class Main {
 			logger.info("Minimum group size set to 1 when grouping is disabled");
 		}
 
-		if (!useVerticalPartitioning && minimumGroupSize != 1) {
+		if ((!useVerticalPartitioning && !useExtVP) && minimumGroupSize != 1) {
 			minimumGroupSize = 1;
 			logger.info("Minimum group size set to 1 when VP is disabled");
 		}
