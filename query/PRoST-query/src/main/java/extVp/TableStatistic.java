@@ -115,11 +115,11 @@ public class TableStatistic implements Serializable {
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
-								&& tableStatistic.getSelectivity() < currentTableScore) {
+								&& tableStatistic.getSelectivity() <= currentTableScore) {
 							selectedTableName = tableName;
 							currentTableScore = tableStatistic.getSelectivity();
 						} else if (tableStatistic.getTableExists() == false
-								&& tableStatistic.getSelectivity() < unindexeCurrentdTableScore) {
+								&& tableStatistic.getSelectivity() <= unindexeCurrentdTableScore) {
 							unidexedSelectedTableName = tableName;
 							unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 						}
@@ -134,11 +134,11 @@ public class TableStatistic implements Serializable {
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
-								&& tableStatistic.getSelectivity() < currentTableScore) {
+								&& tableStatistic.getSelectivity() <= currentTableScore) {
 							selectedTableName = tableName;
 							currentTableScore = tableStatistic.getSelectivity();
 						} else if (tableStatistic.getTableExists() == false
-								&& tableStatistic.getSelectivity() < unindexeCurrentdTableScore) {
+								&& tableStatistic.getSelectivity() <= unindexeCurrentdTableScore) {
 							unidexedSelectedTableName = tableName;
 							unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 						}
@@ -152,11 +152,11 @@ public class TableStatistic implements Serializable {
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
-								&& tableStatistic.getSelectivity() < currentTableScore) {
+								&& tableStatistic.getSelectivity() <= currentTableScore) {
 							selectedTableName = tableName;
 							currentTableScore = tableStatistic.getSelectivity();
 						} else if (tableStatistic.getTableExists() == false
-								&& tableStatistic.getSelectivity() < unindexeCurrentdTableScore) {
+								&& tableStatistic.getSelectivity() <= unindexeCurrentdTableScore) {
 							unidexedSelectedTableName = tableName;
 							unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 						}
@@ -170,11 +170,11 @@ public class TableStatistic implements Serializable {
 					final TableStatistic tableStatistic = statistics.get(tableName);
 					if (tableStatistic != null) {
 						if (tableStatistic.getTableExists() == true
-								&& tableStatistic.getSelectivity() < currentTableScore) {
+								&& tableStatistic.getSelectivity() <= currentTableScore) {
 							selectedTableName = tableName;
 							currentTableScore = tableStatistic.getSelectivity();
 						} else if (tableStatistic.getTableExists() == false
-								&& tableStatistic.getSelectivity() < unindexeCurrentdTableScore) {
+								&& tableStatistic.getSelectivity() <= unindexeCurrentdTableScore) {
 							unidexedSelectedTableName = tableName;
 							unindexeCurrentdTableScore = tableStatistic.getSelectivity();
 						}
