@@ -355,13 +355,13 @@ public class Translator {
 					subjectGroups.remove(largestSubjectGroupKey);
 				}
 			}
-		} else if (usePropertyTable) {
+		} else if (usePropertyTable && !useInversePropertyTable) {
 			logger.info("WPT model");
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
 				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 			}
-		} else if (useInversePropertyTable) {
+		} else if (useInversePropertyTable && !usePropertyTable) {
 			logger.info("IWPT model");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
