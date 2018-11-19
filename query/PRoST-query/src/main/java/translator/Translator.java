@@ -279,18 +279,24 @@ public class Translator {
 					final String largestGroupKey = getLargestGroupKey(joinedGroups);
 					final JoinedTriplesGroup largestJoinedTriplesGroup = joinedGroups.get(largestGroupKey);
 
+					createNodes(largestJoinedTriplesGroup, nodesQueue, unassignedTriples);
+
 					// remove triples from smaller groups
 					for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
 						final String object = triple.getObject().toString();
-						joinedGroups.get(object).getIwptGroup().remove(triple);
-						removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
+						if (joinedGroups.get(object)!= null){
+							joinedGroups.get(object).getIwptGroup().remove(triple);
+							removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
+						}
 					}
 					for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
 						final String subject = triple.getSubject().toString();
-						joinedGroups.get(subject).getWptGroup().remove(triple);
-						removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
+						if (joinedGroups.get(subject)!= null) {
+							joinedGroups.get(subject).getWptGroup().remove(triple);
+							removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
+						}
 					}
-					createNodes(largestJoinedTriplesGroup, nodesQueue, unassignedTriples);
+
 					joinedGroups.remove(largestGroupKey);
 				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
 					for (String key : joinedGroups.keySet()){
