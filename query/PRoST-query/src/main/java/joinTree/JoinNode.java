@@ -42,11 +42,9 @@ public class JoinNode extends MVNode {
 		if (getLeftChild().sparkNodeData == null) {
 			getLeftChild().computeNodeData(sqlContext);
 		}
-		//logger.info("Join node: " + this.toString());
 		// execute a join between the children
 		final List<String> joinVariables = Utils.commonVariables(getRightChild().sparkNodeData.columns(),
 				getLeftChild().sparkNodeData.columns());
-		//logger.info("Common variables: " + joinVariables.toString());
 		this.sparkNodeData = getLeftChild().sparkNodeData.join(getRightChild().sparkNodeData,
 				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 	}
