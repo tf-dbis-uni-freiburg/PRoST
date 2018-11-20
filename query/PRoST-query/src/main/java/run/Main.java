@@ -3,10 +3,11 @@ package run;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -26,9 +27,11 @@ import utils.EmergentSchema;
 import utils.Stats;
 
 /**
- * The Main class parses the CLI arguments and calls the translator and the executor.
+ * The Main class parses the CLI arguments and calls the translator and the
+ * executor.
  *
  * @author Matteo Cossu
+ * @author Polina Koleva
  */
 public class Main {
 
@@ -38,20 +41,20 @@ public class Main {
 	private static String outputFile;
 	private static String statsFileName = "";
 	private static String database_name;
-	
+
 	// TODO remove the tree width if not used
 	private static int treeWidth = -1;
-	
+
 	private static String lpStrategies;
 	private static boolean useVerticalPartitioning = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
 	// if triples have to be grouped when using property table
-	private static boolean disablesGrouping = false;	
-	private static boolean benchmarkMode = false;
-	private static String benchmark_file;
+	private static boolean disablesGrouping = false;
 	private static String emergentSchemaFile = "";
+	private static String benchmarkFile = "";
+	private static boolean randomQueryExecution = false;
 	
 	private static String loj4jFileName = "log4j.properties";
 
@@ -86,14 +89,16 @@ public class Main {
 		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
-		
-		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "If triples are not grouped by subject when WPT is used.");
+		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false,
+				"If triples are not grouped by subject when WPT is used.");
 		disableGroupingOpt.setRequired(false);
 		options.addOption(disableGroupingOpt);
-
+		final Option randomQueryExecutionOpt = new Option("r", "randomQueryExecution", false, "If queries have to be executed in a random order.");
+		randomQueryExecutionOpt.setRequired(false);
+		options.addOption(randomQueryExecutionOpt);
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-		
+
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
@@ -126,8 +131,7 @@ public class Main {
 			database_name = cmd.getOptionValue("DB");
 		}
 		if (cmd.hasOption("times")) {
-			benchmarkMode = true;
-			benchmark_file = cmd.getOptionValue("times");
+			benchmarkFile = cmd.getOptionValue("times");
 		}
 
 		// default if a logical partition is not specified is: WPT, and VP.
@@ -151,14 +155,14 @@ public class Main {
 			if (strategies.contains("IWPT")) {
 				useInversePropertyTable = true;
 				logger.info("Logical strategy used: IWPT");
-				
+
 			}
 			if (strategies.contains("JWPT")) {
 				useJoinedPropertyTable = true;
 				logger.info("Logical strategy used: JWPT");
 			}
 		}
-		
+
 		if (cmd.hasOption("disablesGrouping")) {
 			disablesGrouping = true;
 			logger.info("Grouping of multiple triples is disabled.");
@@ -171,46 +175,54 @@ public class Main {
 			// TODO remove, this is only for checking
 			logger.info(EmergentSchema.getInstance().getTable("http___schema_org_telephone"));
 		}
-		
+
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
 
 		final File file = new File(inputFile);
 
+		// create an executor
+		final Executor executor = new Executor(database_name);
+
 		// single file
 		if (file.isFile()) {
+
 			// translation phase
 			final JoinTree translatedQuery = translateSingleQuery(inputFile, treeWidth);
-			// System.out.println("****************************************************");
-			// System.out.println(translatedQuery);
-			// System.out.println("****************************************************");
 
-			// execution phase
-			final Executor executor = new Executor(database_name);
+			// set result file
 			if (outputFile != null) {
 				executor.setOutputFile(outputFile);
 			}
 			executor.execute(translatedQuery);
-			
-			if (benchmarkMode) {
-				executor.saveResultsCsv(benchmark_file);
+
+			// if benchmark file is presented, save results
+			if (!benchmarkFile.isEmpty()) {
+				executor.saveResultsCsv(benchmarkFile);
 			}
 		} else if (file.isDirectory()) {
-			// set of queries
-			// empty executor to initialize Spark
-			final Executor executor = new Executor(database_name);
+			List<String> queryFiles = Arrays.asList(file.list());
+			
+			// if random order applied, shuffle the queries
+			if(cmd.hasOption("randomQueryExecution")){
+				logger.info("Executing queries in a random order.");
+				Collections.shuffle(queryFiles);
+			}
+			
+			// if the path is a directory execute every files inside
+			for (final String fname : queryFiles) {
+				logger.info("Starting: " + fname);
 
-			if (benchmarkMode) {
-				// executor.cacheTables();
-				executeBatch(random_sample(file.list(), 3), executor);
-				executor.clearQueryTimes();
+				// translation phase
+				final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
+
+				// execution phase
+				executor.execute(translatedQuery);
 			}
 
-			// if the path is a directory execute every files inside
-			executeBatch(file.list(), executor);
-
-			if (benchmarkMode) {
-				executor.saveResultsCsv(benchmark_file);
+			// if benchmark file is presented, save results
+			if (!benchmarkFile.isEmpty()) {
+				executor.saveResultsCsv(benchmarkFile);
 			}
 
 		} else {
@@ -239,26 +251,5 @@ public class Main {
 			translator.setGroupingDisabled(true);
 		}
 		return translator.translateQuery();
-	}
-
-	private static void executeBatch(final String[] queries, final Executor executor) {
-		for (final String fname : queries) {
-			logger.info("Starting: " + fname);
-
-			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
-
-			// execution phase
-			executor.execute(translatedQuery);
-		}
-	}
-
-	private static String[] random_sample(final String[] queries, final int k) {
-		final String[] sample = new String[k];
-		for (int i = 0; i < sample.length; i++) {
-			final int randomIndex = ThreadLocalRandom.current().nextInt(0, queries.length);
-			sample[i] = queries[randomIndex];
-		}
-		return sample;
 	}
 }

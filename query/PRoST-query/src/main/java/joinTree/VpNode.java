@@ -3,14 +3,16 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.spark.sql.SQLContext;
+import org.apache.log4j.Logger;
 
 import utils.Utils;
-
 /*
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
 public class VpNode extends Node {
 
+	private static final Logger logger = Logger.getLogger("PRoST");
+	
 	private final String tableName;
 	public TriplePattern triplePattern;
 
@@ -40,7 +42,7 @@ public class VpNode extends Node {
 			return;
 		}
 
-		final StringBuilder query = new StringBuilder("SELECT DISTINCT ");
+		final StringBuilder query = new StringBuilder("SELECT ");
 
 		// SELECT
 		if (triplePattern.subjectType == ElementType.VARIABLE && triplePattern.objectType == ElementType.VARIABLE) {
@@ -67,7 +69,6 @@ public class VpNode extends Node {
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" s='" + triplePattern.subject + "' ");
 		}
-
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
