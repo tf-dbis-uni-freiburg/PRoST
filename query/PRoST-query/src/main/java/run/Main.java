@@ -3,10 +3,11 @@ package run;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -26,9 +27,11 @@ import utils.EmergentSchema;
 import utils.Stats;
 
 /**
- * The Main class parses the CLI arguments and calls the translator and the executor.
+ * The Main class parses the CLI arguments and calls the translator and the
+ * executor.
  *
  * @author Matteo Cossu
+ * @author Polina Koleva
  */
 public class Main {
 
@@ -38,7 +41,7 @@ public class Main {
 	private static String outputFile;
 	private static String statsFileName = "";
 	private static String database_name;
-	
+
 	// TODO remove the tree width if not used
 	private static int treeWidth = -1;
 	private static int minimumGroupSize = -1;
@@ -51,6 +54,8 @@ public class Main {
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
 	private static String emergentSchemaFile = "";
+	private static String benchmarkFile = "";
+	private static boolean randomQueryExecution = false;
 	
 	private static String loj4jFileName = "log4j.properties";
 
@@ -85,17 +90,16 @@ public class Main {
 		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
-
 		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "Disables grouping of triple patterns when using " + "WPT, IWPT, or JWPT models");
 		disableGroupingOpt.setRequired(false);
 		options.addOption(disableGroupingOpt);
-
+		final Option randomQueryExecutionOpt = new Option("r", "randomQueryExecution", false, "If queries have to be executed in a random order.");
+		randomQueryExecutionOpt.setRequired(false);
+		options.addOption(randomQueryExecutionOpt);
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-
 		final Option groupSizeOpt = new Option("g", "groupSize", true, "Minimum Group Size for Wide Property Table nodes");
 		options.addOption(groupSizeOpt);
-
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
 		try {
@@ -128,8 +132,7 @@ public class Main {
 			database_name = cmd.getOptionValue("DB");
 		}
 		if (cmd.hasOption("times")) {
-			benchmarkMode = true;
-			benchmark_file = cmd.getOptionValue("times");
+			benchmarkFile = cmd.getOptionValue("times");
 		}
 
 		if (cmd.hasOption("groupSize")) {
@@ -197,40 +200,48 @@ public class Main {
 
 		final File file = new File(inputFile);
 
+		// create an executor
+		final Executor executor = new Executor(database_name);
+
 		// single file
 		if (file.isFile()) {
+
 			// translation phase
 			final JoinTree translatedQuery = translateSingleQuery(inputFile, treeWidth);
-			// System.out.println("****************************************************");
-			// System.out.println(translatedQuery);
-			// System.out.println("****************************************************");
 
-			// execution phase
-			final Executor executor = new Executor(database_name);
+			// set result file
 			if (outputFile != null) {
 				executor.setOutputFile(outputFile);
 			}
 			executor.execute(translatedQuery);
-			
-			if (benchmarkMode) {
-				executor.saveResultsCsv(benchmark_file);
+
+			// if benchmark file is presented, save results
+			if (!benchmarkFile.isEmpty()) {
+				executor.saveResultsCsv(benchmarkFile);
 			}
 		} else if (file.isDirectory()) {
-			// set of queries
-			// empty executor to initialize Spark
-			final Executor executor = new Executor(database_name);
+			List<String> queryFiles = Arrays.asList(file.list());
+			
+			// if random order applied, shuffle the queries
+			if(cmd.hasOption("randomQueryExecution")){
+				logger.info("Executing queries in a random order.");
+				Collections.shuffle(queryFiles);
+			}
+			
+			// if the path is a directory execute every files inside
+			for (final String fname : queryFiles) {
+				logger.info("Starting: " + fname);
 
-			if (benchmarkMode) {
-				// executor.cacheTables();
-				executeBatch(random_sample(file.list(), 3), executor);
-				executor.clearQueryTimes();
+				// translation phase
+				final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
+
+				// execution phase
+				executor.execute(translatedQuery);
 			}
 
-			// if the path is a directory execute every files inside
-			executeBatch(file.list(), executor);
-
-			if (benchmarkMode) {
-				executor.saveResultsCsv(benchmark_file);
+			// if benchmark file is presented, save results
+			if (!benchmarkFile.isEmpty()) {
+				executor.saveResultsCsv(benchmarkFile);
 			}
 
 		}
@@ -248,26 +259,5 @@ public class Main {
 			translator.setMinimumGroupSize(minimumGroupSize);
 		}
 		return translator.translateQuery();
-	}
-
-	private static void executeBatch(final String[] queries, final Executor executor) {
-		for (final String fname : queries) {
-			logger.info("Starting: " + fname);
-
-			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
-
-			// execution phase
-			executor.execute(translatedQuery);
-		}
-	}
-
-	private static String[] random_sample(final String[] queries, final int k) {
-		final String[] sample = new String[k];
-		for (int i = 0; i < sample.length; i++) {
-			final int randomIndex = ThreadLocalRandom.current().nextInt(0, queries.length);
-			sample[i] = queries[randomIndex];
-		}
-		return sample;
 	}
 }

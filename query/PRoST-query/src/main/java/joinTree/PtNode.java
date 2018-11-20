@@ -117,7 +117,6 @@ public class PtNode extends MVNode  {
 			query.append(" WHERE ");
 			query.append(String.join(" AND ", whereConditions));
 		}
-
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
