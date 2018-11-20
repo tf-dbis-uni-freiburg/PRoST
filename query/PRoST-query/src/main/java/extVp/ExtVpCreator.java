@@ -54,7 +54,8 @@ public class ExtVpCreator {
 	 * @return The created table name. Blank if none created.
 	 */
 	public static String createExtVPTable(final String predicate1, final String predicate2, final ExtVPType extVPType,
-			final SparkSession spark, final DatabaseStatistics databaseStatistics, final String extVPDatabaseName) {
+			final SparkSession spark, final DatabaseStatistics databaseStatistics, final String extVPDatabaseName,
+										  final boolean partition) {
 		final String vp1TableName = "vp_" + Stats.getInstance().findTableName(predicate1);
 		final String vp2TableName = "vp_" + Stats.getInstance().findTableName(predicate2);
 		final String extVpTableName = getExtVPTableName(predicate1, predicate2, extVPType);
@@ -66,12 +67,38 @@ public class ExtVpCreator {
 
 		if (!databaseStatistics.getTables().containsKey(extVpTableName) ||
 				(databaseStatistics.getTables().containsKey(extVpTableName) && !databaseStatistics.getTables().get(extVpTableName).getTableExists())){
-
-		//if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
+			//if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
 			logger.info("table " + tableNameWithDatabaseIdentifier + " does not exist. Creating it.");
-			final String createTableQuery =
-					String.format("create table if not exists %1$s(s string, o string) stored as parquet",
-							tableNameWithDatabaseIdentifier);
+
+
+			final String createTableQuery;
+			if (partition){
+				switch (extVPType){
+					case SO:
+						createTableQuery = String.format("create table if not exists %1$s(o string) partitioned by (s string) stored as parquet",
+								tableNameWithDatabaseIdentifier);
+						break;
+					case OS:
+						createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
+										"as parquet",
+								tableNameWithDatabaseIdentifier);
+						break;
+					case OO:
+						createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
+										"as parquet",
+								tableNameWithDatabaseIdentifier);
+						break;
+					case SS:
+					default:
+						createTableQuery = String.format("create table if not exists %1$s(o string) partitioned by (s string) stored as parquet",
+								tableNameWithDatabaseIdentifier);
+						break;
+				}
+			} else {
+				createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", tableNameWithDatabaseIdentifier);
+			}
+
+			logger.info("createTableQuery: " + createTableQuery);
 
 			spark.sql(createTableQuery);
 
@@ -91,10 +118,46 @@ public class ExtVpCreator {
 				queryOnCommand = String.format("%1$s.s=%2$s.s", vp1TableName, vp2TableName);
 				break;
 			}
-			final String insertDataQuery = String.format(
-					"insert overwrite table %1$s select %2$s.s as "
-							+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
-					tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+
+
+			final String insertDataQuery;
+			if (partition){
+				switch (extVPType) {
+					case SO:
+						insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (s) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						break;
+					case OS:
+						insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (o) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						break;
+					case OO:
+						insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (o) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						break;
+					case SS:
+					default:
+						insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (s) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						break;
+				}
+			}
+			else {
+				insertDataQuery = String.format(
+						"insert overwrite table %1$s select %2$s.s as "
+								+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+						tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+			}
+
+			logger.info("insertDataQuery: " + insertDataQuery);
 			spark.sql(insertDataQuery);
 
 			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
@@ -121,7 +184,7 @@ public class ExtVpCreator {
 						new TableStatistic(extVpTableName, (float) extVPSize / (float) vpTableSize, extVPSize));
 				databaseStatistics.setSize(databaseStatistics.getSize() + extVPSize);
 
-				logger.info("CREATED statistics for table " + extVpTableName);
+				//logger.info("ADDED statistics for table " + extVpTableName);
 			}
 		}
 		createdTableName = extVpTableName;
@@ -151,7 +214,7 @@ public class ExtVpCreator {
 	// also check for variables, if
 	// the database only contains a partial join (check hash)
 	public String createExtVPTable(final TriplePattern pattern1, final TriplePattern pattern2, final SparkSession spark,
-			final DatabaseStatistics databaseStatistics, final String extVPDatabaseName, final PrefixMapping prefixes) {
+			final DatabaseStatistics databaseStatistics, final String extVPDatabaseName, final PrefixMapping prefixes, boolean isPartitioned) {
 		String extVpTableName = "";
 
 		// TODO check statistics if the ExtVP table was created before, and only creates it again
@@ -163,19 +226,19 @@ public class ExtVpCreator {
 			final ExtVPType vpType = ExtVPType.SS;
 			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
 					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
-					extVPDatabaseName);
+					extVPDatabaseName, isPartitioned);
 		} else if (pattern1.objectType == ElementType.VARIABLE && pattern2.objectType == ElementType.VARIABLE
 				&& pattern1.object.equals(pattern2.object)) {
 			final ExtVPType vpType = ExtVPType.OO;
 			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
 					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
-					extVPDatabaseName);
+					extVPDatabaseName, isPartitioned);
 		} else if (pattern1.objectType == ElementType.VARIABLE && pattern2.subjectType == ElementType.VARIABLE
 				&& pattern1.object.equals(pattern2.subject)) {
 			final ExtVPType vpType = ExtVPType.OS;
 			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
 					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
-					extVPDatabaseName);
+					extVPDatabaseName, isPartitioned);
 			// vpType = extVPType.SO;
 			// extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
 			// createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark,
@@ -186,7 +249,7 @@ public class ExtVpCreator {
 			final ExtVPType vpType = ExtVPType.SO;
 			extVpTableName = createExtVPTable(pattern1.triple.getPredicate().toString(prefixes),
 					pattern2.triple.getPredicate().toString(prefixes), vpType, spark, databaseStatistics,
-					extVPDatabaseName);
+					extVPDatabaseName, isPartitioned);
 			// vpType = extVPType.OS;
 			// extVpTableName = getExtVPTableName(pattern2.predicate, pattern1.predicate, vpType);
 			// createExtVPTable(pattern2.predicate, pattern1.predicate, vpType, spark,
@@ -216,7 +279,7 @@ public class ExtVpCreator {
 	 *            semi-joins database name
 	 */
 	public void createExtVPFromTriples(final List<Triple> triples, final PrefixMapping prefixes,
-			final SparkSession spark, final DatabaseStatistics databaseStatistic, final String extVPDatabaseName) {
+			final SparkSession spark, final DatabaseStatistics databaseStatistic, final String extVPDatabaseName, final boolean isPartitioned) {
 		for (final ListIterator<Triple> outerTriplesListIterator = triples.listIterator(); outerTriplesListIterator
 				.hasNext();) {
 			final Triple outerTriple = outerTriplesListIterator.next();
@@ -239,33 +302,33 @@ public class ExtVpCreator {
 						&& outerSubject.equals(innerSubject)) {
 					// SS
 					createExtVPTable(outerPredicate, innerPredicate, ExtVPType.SS, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 					createExtVPTable(innerPredicate, outerPredicate, ExtVPType.SS, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 				}
 				if (outerTriple.getObject().isVariable() && innerTriple.getObject().isVariable()
 						&& outerObject.equals(innerObject)) {
 					// OO
 					createExtVPTable(outerPredicate, innerPredicate, ExtVPType.OO, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 					createExtVPTable(innerPredicate, outerPredicate, ExtVPType.OO, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 				}
 				if (outerTriple.getObject().isVariable() && innerTriple.getSubject().isVariable()
 						&& outerObject.equals(innerSubject)) {
 					// OS
 					createExtVPTable(outerPredicate, innerPredicate, ExtVPType.OS, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 					createExtVPTable(innerPredicate, outerPredicate, ExtVPType.SO, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 				}
 				if (outerTriple.getSubject().isVariable() && innerTriple.getObject().isVariable()
 						&& outerSubject.equals(innerObject)) {
 					// SO
 					createExtVPTable(outerPredicate, innerPredicate, ExtVPType.SO, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 					createExtVPTable(innerPredicate, outerPredicate, ExtVPType.OS, spark, databaseStatistic,
-							extVPDatabaseName);
+							extVPDatabaseName, isPartitioned);
 				}
 			}
 

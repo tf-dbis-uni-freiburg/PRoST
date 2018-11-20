@@ -48,6 +48,7 @@ public class Main {
 	private static boolean useExtVP = false;
 	private static boolean useVpToExtVP = false;
 	private static long extVPMaximumSize = -1; // 25000=~5gb -1=never clear cache
+	private static boolean isExtVpPartitioned = false;
 	// if triples have to be grouped when using property table
 	private static boolean isGrouping = true;
 	
@@ -99,7 +100,11 @@ public class Main {
 
 		final Option extVPMaximumSizeOpt = new Option("extvpsize", "extVPSize", false, "Maximum size of ExtVP database");
 		options.addOption(extVPMaximumSizeOpt);
-		// TODO add option for minimum extvp selectivity
+
+		final Option isExtVpPartitionedOpt = new Option("partextvp", "partitionExtVp", false, "Partition semi-join tables");
+		options.addOption(isExtVpPartitionedOpt);
+
+		// TODO add option for max extvp selectivity
 
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -183,9 +188,17 @@ public class Main {
 			logger.info("ExtVP maximum size set to " + extVPMaximumSize);
 		}
 
+		if (cmd.hasOption("partextvp")){
+			isExtVpPartitioned = true;
+			logger.info("Partitioning semi join tables");
+		}
+
 		if (cmd.hasOption("DB")) {
 			database_name = cmd.getOptionValue("DB");
 			extVPDatabaseName = "extVP_" + database_name;
+			if (isExtVpPartitioned){
+				extVPDatabaseName = "part_" + extVPDatabaseName;
+			}
 		}
 
 		if (cmd.hasOption("disablesGrouping")) {
@@ -294,6 +307,7 @@ public class Main {
 		translator.setUseJoinedPropertyTable(useJoinedPropertyTable);
 		translator.setUseExtVP(useExtVP);
 		translator.setUseVpToExtVp(useVpToExtVP);
+		translator.setPartitionExtVP(isExtVpPartitioned);
 
 		if (minimumGroupSize != -1) {
 			translator.setMinimumGroupSize(minimumGroupSize);

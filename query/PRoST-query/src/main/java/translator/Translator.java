@@ -63,6 +63,7 @@ public class Translator {
 	private boolean useExtVP = false;
 	private boolean useVerticalPartitioning = false;
 	private boolean useVpToExtVp = false;
+	private boolean partitionExtVP = false;
 
 	private final String databaseName;
 	private final String extVPDatabaseName;
@@ -153,7 +154,7 @@ public class Translator {
 			if (child instanceof VpNode && node instanceof VpNode) {
 				final ExtVpCreator extVPcreator = new ExtVpCreator();
 				final String createdTable = extVPcreator.createExtVPTable(child.triplePattern, node.triplePattern,
-						spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes);
+						spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes, partitionExtVP);
 
 				if (createdTable != "") {
 					final ExtVpNode newNode = new ExtVpNode(child.triplePattern, createdTable, extVPDatabaseName);
@@ -264,7 +265,7 @@ public class Translator {
 		//Creating all possible extvp tables
 		if (useExtVP){
 			ExtVpCreator extVPcreator = new ExtVpCreator();
-			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName);
+			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName, partitionExtVP);
 			logger.info("ExtVP: all tables created!");
 
 			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
@@ -694,5 +695,9 @@ public class Translator {
 
 	public void setUseVerticalPartitioning(boolean useVerticalPartitioning){
 		this.useVerticalPartitioning = useVerticalPartitioning;
+	}
+
+	public void setPartitionExtVP(boolean isPartitioned){
+		this.partitionExtVP = isPartitioned;
 	}
 }
