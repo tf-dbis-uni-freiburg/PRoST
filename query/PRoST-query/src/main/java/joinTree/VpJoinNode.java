@@ -1,9 +1,11 @@
 package joinTree;
 
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import executor.Utils;
 import extVp.DatabaseStatistics;
 import extVp.ExtVpCreator;
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -13,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class VpJoinNode extends Node {
+	private static final Logger logger = Logger.getLogger("PRoST");
 	private final VpNode vpNode1;
 	private final VpNode vpNode2;
 
@@ -35,8 +38,34 @@ public class VpJoinNode extends Node {
 		//TODO remove literals from triplePatterns before creating creating VP Nodes. (literals are still kept in tripleGroup to be
 		// executed after saving the extVPTable
 		// literals might be the same, then must use the same var name in both vp nodes
-		vpNode1 = new VpNode(triplePattern1, tableName1);
-		vpNode2 = new VpNode(triplePattern2, tableName2);
+
+		TriplePattern tempPattern1 = new TriplePattern(triplePattern1.triple, prefixes);
+		TriplePattern tempPattern2 = new TriplePattern(triplePattern2.triple, prefixes);
+
+
+		//TODO make sure that temp var names are unique to the pattern
+		//convert constants to variables
+		if (tempPattern1.subjectType != ElementType.VARIABLE){
+			tempPattern1.subject = "?s1";
+			tempPattern1.subjectType = ElementType.VARIABLE;
+		}
+		if (tempPattern1.objectType != ElementType.VARIABLE){
+			tempPattern1.object = "?o1";
+			tempPattern1.objectType = ElementType.VARIABLE;
+		}
+
+		if (tempPattern2.subjectType != ElementType.VARIABLE){
+			tempPattern2.subject = "?s2";
+			tempPattern2.subjectType = ElementType.VARIABLE;
+		}
+		if (tempPattern2.objectType != ElementType.VARIABLE){
+			tempPattern2.object = "?o2";
+			tempPattern2.objectType = ElementType.VARIABLE;
+		}
+
+
+		vpNode1 = new VpNode(tempPattern1, tableName1);
+		vpNode2 = new VpNode(tempPattern2, tableName2);
 
 		this.spark = spark;
 		this.databaseStatistics = databaseStatistics;
@@ -59,9 +88,24 @@ public class VpJoinNode extends Node {
 		ExtVpCreator.createExtVpTablesFromJoinedVPs(sparkNodeData, spark, vpNode1.triplePattern.subject, vpNode1.triplePattern.object,
 				vpNode2.triplePattern.subject, vpNode2.triplePattern.object, vpNode1.triplePattern.triple.getPredicate().toString(prefixes),
 				vpNode2.triplePattern.triple.getPredicate().toString(prefixes), databaseStatistics, extVpDatabaseName, vp1Data.count(), vp2Data.count());
-
-		//TODO now would need to apply the literals to the data
-		// sparkNodeData=
+		
+		//Apply constants and remove temporary variables
+		if (tripleGroup.get(0).subjectType==ElementType.CONSTANT){
+			logger.info("applying constants s1");
+			sparkNodeData = sparkNodeData.where("s1 = '" + tripleGroup.get(0).subject + "'").drop("s1");
+		}
+		if (tripleGroup.get(0).objectType==ElementType.CONSTANT){
+			logger.info("applying constants o1");
+			sparkNodeData = sparkNodeData.where("o1 = '" + tripleGroup.get(0).object + "'").drop("o1");
+		}
+		if (tripleGroup.get(1).subjectType==ElementType.CONSTANT){
+			logger.info("applying constants s2");
+			sparkNodeData = sparkNodeData.where("s2 = '" + tripleGroup.get(1).subject + "'").drop("s2");
+		}
+		if (tripleGroup.get(1).objectType==ElementType.CONSTANT){
+			logger.info("applying constants o2");
+			sparkNodeData = sparkNodeData.where("o2 = '" + tripleGroup.get(1).object + "'").drop("o2");
+		}
 
 	}
 }
