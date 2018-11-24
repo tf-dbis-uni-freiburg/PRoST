@@ -2,12 +2,7 @@ package translator;
 
 import java.util.Comparator;
 
-import joinTree.ElementType;
-import joinTree.IptNode;
-import joinTree.JptNode;
-import joinTree.Node;
-import joinTree.PtNode;
-import joinTree.TriplePattern;
+import joinTree.*;
 
 public class NodeComparator implements Comparator<Node> {
 
@@ -15,7 +10,7 @@ public class NodeComparator implements Comparator<Node> {
 	public float heuristicNodePriority(final Node node) {
 		float priority = 0;
 
-		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode || node instanceof VpJoinNode) {
 			for (final TriplePattern t : node.tripleGroup) {
 				final boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
 				final boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;

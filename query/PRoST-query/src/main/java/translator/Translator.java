@@ -1,11 +1,9 @@
 package translator;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
+import javafx.geometry.VPos;
+import joinTree.*;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
@@ -21,15 +19,6 @@ import com.hp.hpl.jena.sparql.core.Var;
 
 import extVp.DatabaseStatistics;
 import extVp.ExtVpCreator;
-import joinTree.ElementType;
-import joinTree.ExtVpNode;
-import joinTree.IptNode;
-import joinTree.JoinTree;
-import joinTree.JptNode;
-import joinTree.Node;
-import joinTree.PtNode;
-import joinTree.TriplePattern;
-import joinTree.VpNode;
 import extVp.TableStatistic;
 
 /**
@@ -64,6 +53,7 @@ public class Translator {
 	private boolean useVerticalPartitioning = false;
 	private boolean useVpToExtVp = false;
 	private boolean partitionExtVP = false;
+	private boolean createJoinVpNodes = false;
 
 	private final String databaseName;
 	private final String extVPDatabaseName;
@@ -265,7 +255,9 @@ public class Translator {
 		//Creating all possible extvp tables
 		if (useExtVP){
 			ExtVpCreator extVPcreator = new ExtVpCreator();
-			extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName, partitionExtVP);
+
+			// TODO add option to force creation of EXTVP tables
+			//extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName, partitionExtVP);
 			logger.info("ExtVP: all tables created!");
 
 			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
@@ -396,6 +388,41 @@ public class Translator {
 			throw new RuntimeException("Triples without nodes");
 		}
 
+
+		// create VPJoinNodes from VP Nodes
+		if (createJoinVpNodes){
+			logger.info("Converting VP nodes into JoinVPNodes");
+			final PriorityQueue<VpNode> vpNodesList = new PriorityQueue<>(new NodeComparator());
+			for (Node node:nodesQueue){
+				if (node instanceof VpNode){
+					vpNodesList.add((VpNode) node);
+				}
+			}
+
+			while (!vpNodesList.isEmpty()){
+				logger.info("Remaining VP to check: " + vpNodesList.size());
+				VpNode bestVpNode = vpNodesList.poll();
+				VpNode vpNodeToJoin = null;
+
+				Iterator<VpNode> vpNodesListIterator = vpNodesList.iterator();
+				while (vpNodeToJoin == null && vpNodesListIterator.hasNext()){
+					VpNode element = vpNodesListIterator.next();
+					if ((element.triplePattern.subject.equals(bestVpNode.triplePattern.subject)) || (element.triplePattern.subject.equals(bestVpNode.triplePattern.object))||(element.triplePattern.object.equals(bestVpNode.triplePattern.subject)) || (element.triplePattern.object.equals(bestVpNode.triplePattern.object))){
+						vpNodeToJoin = element;
+					}
+				}
+				if (vpNodeToJoin!=null){
+					logger.info("Match found. Removing VP nodes and creating JoinVP node");
+					vpNodesList.remove(vpNodeToJoin);
+					nodesQueue.remove((vpNodeToJoin));
+					nodesQueue.remove(bestVpNode);
+					nodesQueue.add(new VpJoinNode(bestVpNode.triplePattern, vpNodeToJoin.triplePattern, bestVpNode.getTableName(),
+							vpNodeToJoin.getTableName(), spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes));
+				} else {
+					logger.info("No match found. Keeping VP node");
+				}
+			}
+		}
 		return nodesQueue;
 	}
 
@@ -590,11 +617,11 @@ public class Translator {
 	 * common, if there isn't return null
 	 */
 	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
-		if (sourceNode instanceof PtNode || sourceNode instanceof IptNode || sourceNode instanceof JptNode) {
+		if (sourceNode instanceof PtNode || sourceNode instanceof IptNode || sourceNode instanceof JptNode || sourceNode instanceof  VpJoinNode) {
 			// sourceNode is a group
 			for (final TriplePattern tripleSource : sourceNode.tripleGroup) {
 				for (final Node node : availableNodes) {
-					if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+					if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode || node instanceof VpJoinNode ) {
 						for (final TriplePattern tripleDest : node.tripleGroup) {
 							if (existsVariableInCommon(tripleSource, tripleDest)) {
 								return node;
@@ -610,7 +637,7 @@ public class Translator {
 		} else {
 			// source node is not a group
 			for (final Node node : availableNodes) {
-				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+				if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode || node instanceof VpJoinNode) {
 					for (final TriplePattern tripleDest : node.tripleGroup) {
 						if (existsVariableInCommon(tripleDest, sourceNode.triplePattern)) {
 							return node;
@@ -651,6 +678,23 @@ public class Translator {
 		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
 			return 5;
 		}
+
+		if (node instanceof  VpJoinNode){
+			final String predicate = node.tripleGroup.get(0).predicate;
+			final int tableSize = Stats.getInstance().getTableSize(predicate);
+			final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
+
+			final String predicate2 = node.tripleGroup.get(1).predicate;
+			final int tableSize2 = Stats.getInstance().getTableSize(predicate2);
+			final int numberUniqueSubjects2 = Stats.getInstance().getTableDistinctSubjects(predicate2);
+
+			final float proportion = (tableSize+tableSize2) / (numberUniqueSubjects + numberUniqueSubjects2);
+			if (proportion > 1) {
+				return 3;
+			}
+			return 2;
+		}
+
 		final String predicate = node.triplePattern.predicate;
 		final int tableSize = Stats.getInstance().getTableSize(predicate);
 		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
@@ -699,5 +743,9 @@ public class Translator {
 
 	public void setPartitionExtVP(boolean isPartitioned){
 		this.partitionExtVP = isPartitioned;
+	}
+
+	public void setCreateJoinVpNodes(boolean createJoinVpNodes){
+		this.createJoinVpNodes = createJoinVpNodes;
 	}
 }

@@ -27,6 +27,7 @@ public abstract class Node {
 
 	public Node() {
 		children = new ArrayList<>();
+		tripleGroup = new ArrayList<>();
 
 		// set the projections (if present)
 		projection = Collections.emptyList();
@@ -80,6 +81,11 @@ public abstract class Node {
 			for (final TriplePattern tpGroup : tripleGroup) {
 				str.append(tpGroup.toString() + ", ");
 			}
+		} else if (this instanceof  VpJoinNode){
+			str.append("JoinVP node: ");
+			str.append(tripleGroup.get(0).toString());
+			str.append(" join ");
+			str.append(tripleGroup.get(1).toString());
 		} else {
 			str.append("VP node: ");
 			str.append(triplePattern.toString());

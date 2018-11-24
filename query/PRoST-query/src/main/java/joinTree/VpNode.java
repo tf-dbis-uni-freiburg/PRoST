@@ -61,4 +61,8 @@ public class VpNode extends Node {
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
+	public String getTableName(){
+		return tableName;
+	}
+
 }

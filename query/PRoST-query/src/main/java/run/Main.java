@@ -49,6 +49,7 @@ public class Main {
 	private static boolean useVpToExtVP = false;
 	private static long extVPMaximumSize = -1; // 25000=~5gb -1=never clear cache
 	private static boolean isExtVpPartitioned = false;
+	private static boolean createJoinVpNode = false;
 	// if triples have to be grouped when using property table
 	private static boolean isGrouping = true;
 	
@@ -103,6 +104,7 @@ public class Main {
 
 		final Option isExtVpPartitionedOpt = new Option("partextvp", "partitionExtVp", false, "Partition semi-join tables");
 		options.addOption(isExtVpPartitionedOpt);
+
 
 		// TODO add option for max extvp selectivity
 
@@ -177,9 +179,14 @@ public class Main {
 				logger.info("Logical strategy used: ExtVP");
 			}
 
-			if (strategies.contains("VPtoEXTVP")) {
+			if (strategies.contains("VPTOEXTVP")) {
 				useVpToExtVP = true;
 				logger.info("Logical strategy used: VPtoExtVP");
+			}
+
+			if (strategies.contains("JVP")) {
+				createJoinVpNode = true;
+				logger.info("Enables creation of semi-join tables during execution of the JoinTree");
 			}
 		}
 
@@ -198,6 +205,9 @@ public class Main {
 			extVPDatabaseName = "extVP_" + database_name;
 			if (isExtVpPartitioned){
 				extVPDatabaseName = "part_" + extVPDatabaseName;
+			}
+			if (createJoinVpNode){
+				extVPDatabaseName = extVPDatabaseName + "_joinVP";
 			}
 		}
 
@@ -227,6 +237,11 @@ public class Main {
 		}
 
 		// initializes ExtVP database statistics
+		if (createJoinVpNode){
+			useExtVP = true;
+			useVerticalPartitioning = true;
+		}
+
 		if (useExtVP) {
 			extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
 			extVPDatabaseStatistics = DatabaseStatistics.loadStatisticsFile(extVPDatabaseName, extVPDatabaseStatistics);
@@ -308,6 +323,7 @@ public class Main {
 		translator.setUseExtVP(useExtVP);
 		translator.setUseVpToExtVp(useVpToExtVP);
 		translator.setPartitionExtVP(isExtVpPartitioned);
+		translator.setCreateJoinVpNodes(createJoinVpNode);
 
 		if (minimumGroupSize != -1) {
 			translator.setMinimumGroupSize(minimumGroupSize);

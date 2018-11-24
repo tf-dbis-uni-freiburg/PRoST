@@ -3,7 +3,9 @@ package extVp;
 import java.util.List;
 import java.util.ListIterator;
 
+import executor.Utils;
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.DataFrameWriter;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -79,14 +81,18 @@ public class ExtVpCreator {
 								tableNameWithDatabaseIdentifier);
 						break;
 					case OS:
-						createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
+						//TODO big literals over 255 characters break hive metastore
+						/*createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
 										"as parquet",
-								tableNameWithDatabaseIdentifier);
+								tableNameWithDatabaseIdentifier);*/
+						createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", tableNameWithDatabaseIdentifier);
 						break;
 					case OO:
-						createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
+						//TODO big literals over 255 characters break hive metastore
+						/*createTableQuery = String.format("create table if not exists %1$s(s string) partitioned by (o string) stored " +
 										"as parquet",
-								tableNameWithDatabaseIdentifier);
+								tableNameWithDatabaseIdentifier);*/
+						createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", tableNameWithDatabaseIdentifier);
 						break;
 					case SS:
 					default:
@@ -130,16 +136,26 @@ public class ExtVpCreator {
 								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
 						break;
 					case OS:
+						//TODO big literals over 255 characters break hive metastore
 						insertDataQuery = String.format(
-								"insert overwrite table %1$s partition (o) select %2$s.s as "
+								"insert overwrite table %1$s select %2$s.s as "
 										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
 								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						/*insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (o) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);*/
 						break;
 					case OO:
+						//TODO big literals over 255 characters break hive metastore
 						insertDataQuery = String.format(
-								"insert overwrite table %1$s partition (o) select %2$s.s as "
+								"insert overwrite table %1$s select %2$s.s as "
 										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
 								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
+						/*insertDataQuery = String.format(
+								"insert overwrite table %1$s partition (o) select %2$s.s as "
+										+ "s, %2$s.o as o from %2$s left semi join %3$s on %4$s",
+								tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);*/
 						break;
 					case SS:
 					default:
@@ -334,6 +350,95 @@ public class ExtVpCreator {
 
 		}
 	}
+
+	public static void createExtVpTablesFromJoinedVPs(final Dataset<Row> joinedData, final SparkSession spark,
+												String vp1SubjectVariableName,
+											   String vp1ObjectVariableName,
+											   String vp2SubjectVariableName, String vp2ObjectVariableName,
+											   String vp1Predicate,
+											   String vp2Predicate,
+											   final DatabaseStatistics databaseStatistic, final String extVPDatabaseName,
+											   final long vp1Size, final long vp2Size){
+
+		String extVp1TableName;
+		String extVp2TableName;
+
+		String extVp1TableNameWithDatabaseIdentifier;
+		String extVp2TableNameWithDatabaseIdentifier;
+
+		vp1SubjectVariableName = Utils.removeQuestionMark(vp1SubjectVariableName);
+		vp2SubjectVariableName = Utils.removeQuestionMark(vp2SubjectVariableName);
+
+		vp1ObjectVariableName = Utils.removeQuestionMark(vp1ObjectVariableName);
+		vp2ObjectVariableName = Utils.removeQuestionMark(vp2ObjectVariableName);
+
+
+		logger.info("Computing ExtVP tables from JoinVP node");
+
+		spark.sql("CREATE DATABASE IF NOT EXISTS " + extVPDatabaseName);
+
+		if (vp1SubjectVariableName.equals(vp2SubjectVariableName)){
+			//SS
+			extVp1TableName = getExtVPTableName(vp1Predicate, vp2Predicate, ExtVPType.SS);
+			extVp2TableName = getExtVPTableName(vp2Predicate, vp1Predicate, ExtVPType.SS);
+		} else if (vp1SubjectVariableName.equals(vp2ObjectVariableName)){
+			//SO
+			extVp1TableName = getExtVPTableName(vp1Predicate, vp2Predicate, ExtVPType.SO);
+			extVp2TableName = getExtVPTableName(vp2Predicate, vp1Predicate, ExtVPType.OS);
+		} else if (vp1ObjectVariableName.equals(vp2SubjectVariableName)){
+			//OS
+			extVp1TableName = getExtVPTableName(vp1Predicate, vp2Predicate, ExtVPType.OS);
+			extVp2TableName = getExtVPTableName(vp2Predicate, vp1Predicate, ExtVPType.SO);
+		} else if (vp1ObjectVariableName.equals(vp2ObjectVariableName)){
+			//OO
+			extVp1TableName = getExtVPTableName(vp1Predicate, vp2Predicate, ExtVPType.OO);
+			extVp2TableName = getExtVPTableName(vp2Predicate, vp1Predicate, ExtVPType.OO);
+		} else {
+			throw new RuntimeException("Cannot create ExtVp tables for joined data without variables in common");
+		}
+
+		extVp1TableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVp1TableName;
+		extVp2TableNameWithDatabaseIdentifier = extVPDatabaseName + "." + extVp2TableName;
+
+		//VP1
+		String createTable1Query = String.format("create table if not exists %1$s(s string, o string) stored as parquet",
+				extVp1TableNameWithDatabaseIdentifier);
+		spark.sql(createTable1Query);
+
+		//VP2
+		String createTable2Query = String.format("create table if not exists %1$s(s string, o string) stored as parquet",
+				extVp2TableNameWithDatabaseIdentifier);
+		spark.sql(createTable2Query);
+
+		//TODO make sure table does not exist before inserting data
+
+		//split data
+		Dataset<Row> extVp1data =
+				joinedData.select(vp1SubjectVariableName, vp1ObjectVariableName).distinct().withColumnRenamed(vp1SubjectVariableName,
+						"s").withColumnRenamed(vp1ObjectVariableName, "o");
+		extVp1data.write().insertInto(extVp1TableNameWithDatabaseIdentifier);
+		logger.info("Created table "+extVp1TableName);
+
+		Dataset<Row> extVp2data =
+				joinedData.select(vp2SubjectVariableName, vp2ObjectVariableName).distinct().withColumnRenamed(vp2SubjectVariableName,
+						"s").withColumnRenamed(vp2ObjectVariableName, "o");
+		extVp2data.write().insertInto(extVp2TableNameWithDatabaseIdentifier);
+
+		logger.info("Created table "+extVp2TableName);
+
+
+		//Statistics
+		final Long extVP1Size = extVp1data.count();
+		databaseStatistic.getTables().put(extVp1TableName,
+				new TableStatistic(extVp1TableName, (float) extVP1Size / (float) vp1Size, extVP1Size));
+
+		final Long extVP2Size = extVp2data.count();
+		databaseStatistic.getTables().put(extVp2TableName,
+				new TableStatistic(extVp2TableName, (float) extVP2Size / (float) vp2Size, extVP2Size));
+
+		databaseStatistic.setSize(databaseStatistic.getSize() + extVP1Size + extVP2Size);
+	}
+
 
 	public static String getValidHiveName(final String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
