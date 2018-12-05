@@ -45,9 +45,17 @@ public class PtNode extends MVNode  {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		setIsComplex();
-
 	}
 
+	/*
+	 * Alternative constructor, used to instantiate a Node directly with a list of
+	 * jena triple patterns.
+	 */
+	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, String tableName) {
+		this(jenaTriples, prefixes);
+		this.tableName = tableName;
+	}
+	
 	/**
 	 * If an emergent schema is used, then there exist more than one property
 	 * tables. In this case, the default table name can be changes depending on the

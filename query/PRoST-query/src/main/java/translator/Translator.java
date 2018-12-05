@@ -25,6 +25,7 @@ import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
+import utils.EmergentSchema;
 import utils.Stats;
 
 /**
@@ -36,7 +37,7 @@ import utils.Stats;
  */
 public class Translator {
 
-	enum NODE_TYPE{
+	enum NODE_TYPE {
 		VP, WPT, IWPT, JWPT
 	}
 
@@ -80,7 +81,6 @@ public class Translator {
 		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
 
 		// build main tree
-		logger.info("Build the tree...");
 		final Node rootNode = buildTree(mainTree.getTriples());
 
 		// TODO fix the optional
@@ -114,7 +114,6 @@ public class Translator {
 		tree.setDistinct(query.isDistinct());
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
-
 		return tree;
 	}
 
@@ -146,12 +145,14 @@ public class Translator {
 	}
 
 	/**
-	 * Removes an entry with the given key from <code>joinedGroups</code> if its element size is 0.
+	 * Removes an entry with the given key from <code>joinedGroups</code> if its
+	 * element size is 0.
+	 * 
 	 * @param joinedGroups a mapping of <code>JoinedTriplesGroup</code>
-	 * @param key a key from <code>joinedGroups</code>
+	 * @param key          a key from <code>joinedGroups</code>
 	 */
-	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups, String key){
-		if (joinedGroups.containsKey(key)){
+	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups, String key) {
+		if (joinedGroups.containsKey(key)) {
 			if (joinedGroups.get(key).size() == 0) {
 				joinedGroups.remove(key);
 			}
@@ -184,14 +185,16 @@ public class Translator {
 					}
 					createNodes(largestJoinedTriplesGroup, nodesQueue);
 					joinedGroups.remove(largestGroupKey);
-				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
-					for (String key : joinedGroups.keySet()){
+				} else {// if grouping is disabled, there will be no repeated triples. Works as a normal
+						// WPT.
+					for (String key : joinedGroups.keySet()) {
 						createNodes(joinedGroups.get(key), nodesQueue);
 						// joinedGroups.remove(key);
 					}
-					joinedGroups.clear(); //avoid concurrent modifications
+					joinedGroups.clear(); // avoid concurrent modifications
 				}
 			}
+
 			return nodesQueue;
 		}
 		if (usePropertyTable && useInversePropertyTable && isGrouping) {
@@ -216,11 +219,11 @@ public class Translator {
 					createNodes(largestObjectGroupTriples, nodesQueue, NODE_TYPE.IWPT);
 
 					// remove triples from subject group
-					for (Triple triple : largestObjectGroupTriples){
+					for (Triple triple : largestObjectGroupTriples) {
 						String key = triple.getObject().toString();
-						if (subjectGroups.containsKey(key)){
+						if (subjectGroups.containsKey(key)) {
 							subjectGroups.get(key).remove(triple);
-							if (subjectGroups.get(key).size()==0){
+							if (subjectGroups.get(key).size() == 0) {
 								subjectGroups.remove(key);
 							}
 						}
@@ -231,11 +234,11 @@ public class Translator {
 					List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
 					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT);
 					// remove triples from object group
-					for (Triple triple : largestSubjectGroupTriples){
+					for (Triple triple : largestSubjectGroupTriples) {
 						String key = triple.getSubject().toString();
-						if (objectGroups.containsKey(key)){
+						if (objectGroups.containsKey(key)) {
 							objectGroups.get(key).remove(triple);
-							if (objectGroups.get(key).size()==0){
+							if (objectGroups.get(key).size() == 0) {
 								objectGroups.remove(key);
 							}
 						}
@@ -247,9 +250,22 @@ public class Translator {
 		}
 		if (usePropertyTable) {
 			logger.info("WPT and VP models only");
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
+			// group by subject, check if emergent schema option is set
+			if (EmergentSchema.isUsed()) {
+				logger.info("Emergent schema is used, group triples based on subject and emergent schema.");
+				HashMap<String, HashMap<String, List<Triple>>>  emergentSchemaSubjectGroups = getEmergentSchemaSubjectGroups(triples);
+				for (final String tableName : emergentSchemaSubjectGroups.keySet()) {
+					HashMap<String, List<Triple>> emergentSubjectGroups = emergentSchemaSubjectGroups.get(tableName);
+					for (final String subject : emergentSubjectGroups.keySet()) {
+						List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
+						nodesQueue.add(new PtNode(subjectTriples, prefixes, tableName));
+					}
+				}
+			} else {
+				final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
+				for (final List<Triple> triplesGroup : subjectGroups.values()) {
+					createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
+				}
 			}
 			return nodesQueue;
 		}
@@ -261,7 +277,7 @@ public class Translator {
 			}
 			return nodesQueue;
 		}
-		if (useVerticalPartitioning){
+		if (useVerticalPartitioning) {
 			// VP only
 			logger.info("VP model only");
 			createVpNodes(triples, nodesQueue);
@@ -271,47 +287,52 @@ public class Translator {
 	}
 
 	/**
-	 * Creates nodes for the given triples and add them to the <code>nodesQueue</code>.
+	 * Creates nodes for the given triples and add them to the
+	 * <code>nodesQueue</code>.
 	 *
-	 * @param triples Triples for which nodes are to be created
+	 * @param triples    Triples for which nodes are to be created
 	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
-	 * @param nodeType Type of the node to be created. Defaults to a VP nodes if not possible create the given node type.
+	 * @param nodeType   Type of the node to be created. Defaults to a VP nodes if
+	 *                   not possible create the given node type.
 	 */
-	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue, final NODE_TYPE nodeType){
-		if (triples.size()>=minimumGroupSize){
-			switch (nodeType){
-				case WPT:
-					nodesQueue.add(new PtNode(triples, prefixes));
-					break;
-				case IWPT:
-					nodesQueue.add(new IptNode(triples, prefixes));
-					break;
-				case JWPT:
-					throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
-				default:
-					createVpNodes(triples,nodesQueue);
+	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue,
+			final NODE_TYPE nodeType) {
+		if (triples.size() >= minimumGroupSize) {
+			switch (nodeType) {
+			case WPT:
+				nodesQueue.add(new PtNode(triples, prefixes));
+				break;
+			case IWPT:
+				nodesQueue.add(new IptNode(triples, prefixes));
+				break;
+			case JWPT:
+				throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
+			default:
+				createVpNodes(triples, nodesQueue);
 			}
-		}
-		else if (useVerticalPartitioning) {
+		} else if (useVerticalPartitioning) {
 			createVpNodes(triples, nodesQueue);
-		} else{
+		} else {
 			throw new RuntimeException("Cannot create node. No valid partitioning enabled");
 		}
 	}
 
 	/**
-	 * Creates JWPT nodes for the given <code>JoinedTriplesGroup</code> and add them to the <code>nodesQueue</code>. If not possible to
-	 * create a JWPT node, creates VP nodes instead.
+	 * Creates JWPT nodes for the given <code>JoinedTriplesGroup</code> and add them
+	 * to the <code>nodesQueue</code>. If not possible to create a JWPT node,
+	 * creates VP nodes instead.
 	 *
-	 * @param joinedGroup <code>JoinedTriplesGroup</code> for which nodes are to be created
-	 * @param nodesQueue <Code>PriorityQueue</code> to add created nodes to.
+	 * @param joinedGroup <code>JoinedTriplesGroup</code> for which nodes are to be
+	 *                    created
+	 * @param nodesQueue  <Code>PriorityQueue</code> to add created nodes to.
 	 */
-	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue){
-		if (joinedGroup.size()>=minimumGroupSize){
+	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
+		if (joinedGroup.size() >= minimumGroupSize) {
 			nodesQueue.add(new JptNode(joinedGroup, prefixes));
 		} else {
 			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
-			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v fof ?v.
+			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v
+			// fof ?v.
 			joinedGroup.getIwptGroup().removeAll(joinedGroup.getWptGroup());
 			createVpNodes(new ArrayList<>(joinedGroup.getIwptGroup()), nodesQueue);
 		}
@@ -320,10 +341,8 @@ public class Translator {
 	/**
 	 * Creates VP nodes from a list of triples.
 	 *
-	 * @param triples
-	 *            Triples for which VP nodes will be created
-	 * @param nodesQueue
-	 *            PriorityQueue where created nodes are added to
+	 * @param triples    Triples for which VP nodes will be created
+	 * @param nodesQueue PriorityQueue where created nodes are added to
 	 */
 	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
@@ -334,15 +353,16 @@ public class Translator {
 	}
 
 	/**
-	 * Groups the input triples by subject. If grouping is disabled, create one list with one element for each triple.
+	 * Groups the input triples by subject. If grouping is disabled, create one list
+	 * with one element for each triple.
 	 *
-	 * @param triples
-	 *            triples to be grouped
+	 * @param triples triples to be grouped
 	 * @return HashMap of triples grouped by the subject
 	 */
 	private HashMap<String, List<Triple>> getSubjectGroups(final List<Triple> triples) {
 		final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
-		int key = 0; //creates a unique key to be used when grouping is disabled, to avoid overwriting values
+		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
+						// overwriting values
 		for (final Triple triple : triples) {
 			if (isGrouping) {
 				final String subject = triple.getSubject().toString(prefixes);
@@ -364,15 +384,55 @@ public class Translator {
 	}
 
 	/**
+	 * Groups the input triples by subject considering the emergent schema. If two
+	 * triples have the same subject, but they are not part of the same property
+	 * table, they won't be grouped.
+	 *
+	 * @param triples triples to be grouped
+	 * @return hash map of triples grouped by the subject considering the emergent
+	 *         schema
+	 */
+	private HashMap<String, HashMap<String, List<Triple>>> getEmergentSchemaSubjectGroups(final List<Triple> triples) {
+		// key - table names, (subject, triples)
+		final HashMap<String, HashMap<String, List<Triple>>> subjectGroups = new HashMap<String, HashMap<String, List<Triple>>>();
+		for (final Triple triple : triples) {
+			final String subject = triple.getSubject().toString(prefixes);
+			// find in which table this triple is stored, based on the predicate
+			String subjectTableName = EmergentSchema.getInstance()
+					.getTable(Stats.getInstance().findTableName(triple.getPredicate().toString()));
+			// if we already have a triple for the table
+			if (subjectGroups.containsKey(subjectTableName)) {
+				HashMap<String, List<Triple>> subjects = subjectGroups.get(subjectTableName);
+				// if we have a triple with the same subject
+				if (subjects.containsKey(subject)) {
+					subjectGroups.get(subjectTableName).get(subject).add(triple);
+				} else {
+					final List<Triple> subjTriples = new ArrayList<>();
+					subjTriples.add(triple);
+					subjectGroups.get(subjectTableName).put(triple.getSubject().toString(prefixes), subjTriples);
+				}
+			} else {
+				// add new table and a new subject to it
+				HashMap<String, List<Triple>> subjectGroup = new HashMap<>();
+				final List<Triple> subjTriples = new ArrayList<>();
+				subjTriples.add(triple);
+				subjectGroup.put(triple.getSubject().toString(prefixes), subjTriples);
+				subjectGroups.put(subjectTableName, subjectGroup);
+			}
+		}
+		return subjectGroups;
+	}
+
+	/**
 	 * Groups the input triples by object.
 	 *
-	 * @param triples
-	 *            triples to be grouped
+	 * @param triples triples to be grouped
 	 * @return HashMap of triples grouped by the object
 	 */
 	private HashMap<String, List<Triple>> getObjectGroups(final List<Triple> triples) {
 		final HashMap<String, List<Triple>> objectGroups = new HashMap<>();
-		int key = 0; //creates a unique key to be used when grouping is disabled, to avoid overwriting values
+		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
+						// overwriting values
 		for (final Triple triple : triples) {
 			if (isGrouping) {
 				final String object = triple.getObject().toString(prefixes);
@@ -395,9 +455,10 @@ public class Translator {
 
 	private HashMap<String, JoinedTriplesGroup> getJoinedGroups(final List<Triple> triples) {
 		final HashMap<String, JoinedTriplesGroup> joinedGroups = new HashMap<>();
-		int key = 0; //creates a unique key to be used when grouping is disabled, to avoid overwriting values
+		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
+						// overwriting values
 		for (final Triple triple : triples) {
-			if (isGrouping){
+			if (isGrouping) {
 				final String subject = triple.getSubject().toString(prefixes);
 				final String object = triple.getObject().toString(prefixes);
 
@@ -433,7 +494,8 @@ public class Translator {
 	 * Given a Map with groups, return the key of the largest group.
 	 *
 	 * @param groupsMapping Map with the groups whose size are to be checked.
-	 * @param <T> Type of the groups. <code>JoinedTriplesGroup</code> or a list of <code>Triple</code>
+	 * @param               <T> Type of the groups. <code>JoinedTriplesGroup</code>
+	 *                      or a list of <code>Triple</code>
 	 * @return Returns the key of the biggest group
 	 */
 	private <T> String getLargestGroupKey(final HashMap<String, T> groupsMapping) {
@@ -445,8 +507,8 @@ public class Translator {
 			final int groupSize;
 			if (group instanceof JoinedTriplesGroup) {
 				groupSize = ((JoinedTriplesGroup) group).size();
-			} else{
-				groupSize = ((List<Triple>)group).size();
+			} else {
+				groupSize = ((List<Triple>) group).size();
 			}
 			if (groupSize >= biggestGroupSize) {
 				biggestGroupKey = key;
@@ -492,8 +554,8 @@ public class Translator {
 
 	// TODO remove if we do not use width
 	/*
-	 * heuristicWidth decides a width based on the proportion between the number of elements
-	 * in a table and the unique subjects.
+	 * heuristicWidth decides a width based on the proportion between the number of
+	 * elements in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
 		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
@@ -529,11 +591,11 @@ public class Translator {
 		}
 	}
 
-	public void setIsGrouping(boolean isGrouping){
+	public void setIsGrouping(boolean isGrouping) {
 		this.isGrouping = isGrouping;
 	}
 
-	public void setUseVerticalPartitioning(boolean useVerticalPartitioning){
+	public void setUseVerticalPartitioning(boolean useVerticalPartitioning) {
 		this.useVerticalPartitioning = useVerticalPartitioning;
 	}
 }
