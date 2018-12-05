@@ -4,15 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
-
-import translator.NodeComparator;
-import utils.Utils;
 
 /**
  * JoinTree definition. It represents a binary tree. The leaves are of type
@@ -58,7 +54,7 @@ public class JoinTree {
 		// compute all the joins
 		root.computeNodeData(sqlContext);
 		Dataset<Row> results = root.sparkNodeData;
-
+		
 		// select only the requested result
 		final Column[] selectedColumns = new Column[this.projection.size()];
 		for (int i = 0; i < selectedColumns.length; i++) {

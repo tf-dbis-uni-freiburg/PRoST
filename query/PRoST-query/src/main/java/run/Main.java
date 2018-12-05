@@ -3,7 +3,6 @@ package run;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +53,6 @@ public class Main {
 	private static boolean disablesGrouping = false;
 	private static String emergentSchemaFile = "";
 	private static String benchmarkFile = "";
-	private static boolean randomQueryExecution = false;
 	
 	private static String loj4jFileName = "log4j.properties";
 
@@ -170,15 +168,14 @@ public class Main {
 
 		// if emergent schema has to be applied
 		if (cmd.hasOption("emergentSchema")) {
+			logger.info("Emergent schema is used.");
 			emergentSchemaFile = cmd.getOptionValue("emergentSchema");
 			EmergentSchema.getInstance().readSchema(emergentSchemaFile);
-			// TODO remove, this is only for checking
-			logger.info(EmergentSchema.getInstance().getTable("http___schema_org_telephone"));
 		}
 
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
-
+		
 		final File file = new File(inputFile);
 
 		// create an executor
@@ -207,8 +204,9 @@ public class Main {
 			if(cmd.hasOption("randomQueryExecution")){
 				logger.info("Executing queries in a random order.");
 				Collections.shuffle(queryFiles);
+			} else {
+				Collections.sort(queryFiles);
 			}
-			
 			// if the path is a directory execute every files inside
 			for (final String fname : queryFiles) {
 				logger.info("Starting: " + fname);

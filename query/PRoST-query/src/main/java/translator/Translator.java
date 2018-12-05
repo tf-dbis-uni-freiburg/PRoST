@@ -28,6 +28,7 @@ import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
 import joinTree.VpNode;
+import utils.EmergentSchema;
 import utils.Stats;
 
 /**
@@ -38,7 +39,7 @@ import utils.Stats;
  * @author Polina Koleva
  */
 public class Translator {
-	
+
 	private static final Logger logger = Logger.getLogger("PRoST");
 
 	// minimum number of triple patterns with the same subject to form a group
@@ -80,7 +81,6 @@ public class Translator {
 		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
 
 		// build main tree
-		logger.info("Build the tree...");
 		final Node rootNode = buildTree(mainTree.getTriples());
 
 		// TODO fix the optional
@@ -114,7 +114,6 @@ public class Translator {
 		tree.setDistinct(query.isDistinct());
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
-
 		return tree;
 	}
 
@@ -198,29 +197,44 @@ public class Translator {
 		} else if (usePropertyTable && !useInversePropertyTable) {
 			// IWPT disabled
 			logger.info("WPT model is used. IWPRT disabled.");
-			// group by subject
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			for (final String subject : subjectGroups.keySet()) {
-				List<Triple> subjectTriples = subjectGroups.get(subject);
-				// if the number of grouped triples is less that the minimum and VP is enables
-				// create VP nodes; otherwise create a WPT node
-				if (useVerticalPartitioning && subjectTriples.size() < DEFAULT_MIN_GROUP_SIZE) {
-					for (final Triple t : subjectTriples) {
-						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
-						nodesQueue.add(newNode);
+			HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
+			HashMap<String, HashMap<String, List<Triple>>> emergentSchemaSubjectGroups = new HashMap<>();
+			// group by subject, check if emergent schema option is set
+			if (EmergentSchema.isUsed()) {
+				logger.info("Emergent schema is used, group triples based on subject and emergent schema.");
+				emergentSchemaSubjectGroups = getEmergentSchemaSubjectGroups(triples);
+				for (final String tableName : emergentSchemaSubjectGroups.keySet()) {
+					HashMap<String, List<Triple>> emergentSubjectGroups = emergentSchemaSubjectGroups.get(tableName);
+					for (final String subject : emergentSubjectGroups.keySet()) {
+						List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
+						nodesQueue.add(new PtNode(subjectTriples, prefixes, tableName));
 					}
-				} else {
-					// create WPT nodes
-					if (groupingDisabled) {
-						// for each triple, create an individual WPT node, no grouping by subject is
-						// done
+				}
+			} else {
+				logger.info("Group triples based on subject, emergent schema is not considered.");
+				subjectGroups = getSubjectGroups(triples);
+				for (final String subject : subjectGroups.keySet()) {
+					List<Triple> subjectTriples = subjectGroups.get(subject);
+					// if the number of grouped triples is less that the minimum and VP is enables
+					// create VP nodes; otherwise create a WPT node
+					if (useVerticalPartitioning && subjectTriples.size() < DEFAULT_MIN_GROUP_SIZE) {
 						for (final Triple t : subjectTriples) {
-							nodesQueue.add(new PtNode(Arrays.asList(t), prefixes));
+							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							nodesQueue.add(newNode);
 						}
 					} else {
-						// create a WPT node for each group which contains triples with the same subject
-						nodesQueue.add(new PtNode(subjectTriples, prefixes));
+						// create WPT nodes
+						if (groupingDisabled) {
+							// for each triple, create an individual WPT node, no grouping by subject is
+							// done
+							for (final Triple t : subjectTriples) {
+								nodesQueue.add(new PtNode(Arrays.asList(t), prefixes));
+							}
+						} else {
+							// create a WPT node for each group which contains triples with the same subject
+							nodesQueue.add(new PtNode(subjectTriples, prefixes));
+						}
 					}
 				}
 			}
@@ -361,6 +375,46 @@ public class Translator {
 				final List<Triple> subjTriples = new ArrayList<>();
 				subjTriples.add(triple);
 				subjectGroups.put(subject, subjTriples);
+			}
+		}
+		return subjectGroups;
+	}
+
+	/**
+	 * Groups the input triples by subject considering the emergent schema. If two
+	 * triples have the same subject, but they are not part of the same property
+	 * table, they won't be grouped.
+	 *
+	 * @param triples triples to be grouped
+	 * @return hash map of triples grouped by the subject considering the emergent
+	 *         schema
+	 */
+	private HashMap<String, HashMap<String, List<Triple>>> getEmergentSchemaSubjectGroups(final List<Triple> triples) {
+		// key - table names, (subject, triples)
+		final HashMap<String, HashMap<String, List<Triple>>> subjectGroups = new HashMap<String, HashMap<String, List<Triple>>>();
+		for (final Triple triple : triples) {
+			final String subject = triple.getSubject().toString(prefixes);
+			// find in which table this triple is stored, based on the predicate
+			String subjectTableName = EmergentSchema.getInstance()
+					.getTable(Stats.getInstance().findTableName(triple.getPredicate().toString()));
+			// if we already have a triple for the table
+			if (subjectGroups.containsKey(subjectTableName)) {
+				HashMap<String, List<Triple>> subjects = subjectGroups.get(subjectTableName);
+				// if we have a triple with the same subject
+				if (subjects.containsKey(subject)) {
+					subjectGroups.get(subjectTableName).get(subject).add(triple);
+				} else {
+					final List<Triple> subjTriples = new ArrayList<>();
+					subjTriples.add(triple);
+					subjectGroups.get(subjectTableName).put(triple.getSubject().toString(prefixes), subjTriples);
+				}
+			} else {
+				// add new table and a new subject to it
+				HashMap<String, List<Triple>> subjectGroup = new HashMap<>();
+				final List<Triple> subjTriples = new ArrayList<>();
+				subjTriples.add(triple);
+				subjectGroup.put(triple.getSubject().toString(prefixes), subjTriples);
+				subjectGroups.put(subjectTableName, subjectGroup);
 			}
 		}
 		return subjectGroups;

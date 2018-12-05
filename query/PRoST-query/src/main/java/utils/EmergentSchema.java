@@ -34,14 +34,20 @@ public class EmergentSchema {
 	}
 
 	public ConcurrentMap<String, String> readSchema(String filePath) {
+		isSchemaParsed = true;
 		// We load the map from the persisted file and use it
 		DB db = DBMaker.fileDB(filePath).make();
 		this.map = db.hashMap("map", Serializer.STRING, Serializer.STRING).make();
-		db.close();
-		return map;
+		//TODO close before quitting the program
+		//db.close();
+		return this.map;
 	}
 	
 	public String getTable(String predicate) {
 		return this.map.get(predicate);
+	}
+	
+	public static boolean isUsed() {
+		return isSchemaParsed;
 	}
 }

@@ -71,6 +71,18 @@
 			<artifactId>mapdb</artifactId>
 			<version>3.0.7</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-runtime</artifactId>
+			<version>1.1.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-stdlib</artifactId>
+			<version>1.1.3</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -93,11 +105,24 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
 							<artifactSet>
 								<includes>
 									<include>*google*</include>
 									<include>*jena*</include>
 									<include>org.apache.commons*</include>
+									<include>org.mapdb*</include>
+									<include>org.eclipse.collections*</include>
+									<include>org.jetbrains.kotlin*</include>
 								</includes>
 							</artifactSet>
 							<relocations>
