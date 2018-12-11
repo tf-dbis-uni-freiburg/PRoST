@@ -288,7 +288,8 @@ public class Main {
 	public static void computeTableStatistics(SparkSession spark) {
 		Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
 		for (int i = 0; i < tables.length; i++) {
-			if (tables[i].getString(0).equals("tripletable_ext")) {
+			// skip the external table
+			if (!tables[i].getString(0).equals("tripletable_ext")) {
 				spark.sql("ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS");
 			}
 		}
