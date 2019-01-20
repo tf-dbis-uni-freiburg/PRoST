@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
+import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.log4j.Logger;
 
 import executor.Utils;
@@ -157,6 +158,42 @@ public class Stats {
 		}
 		// not found
 		return null;
+	}
+
+
+	public String findCorrectTableName(String tableName, PrefixMapping prefixes) {
+
+
+		logger.info("tablename: " + tableName);
+
+		tableName = prefixes.shortForm(tableName);
+
+		logger.info("shortened tablename: " + tableName);
+		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
+
+		logger.info("cleaned tablename: " + tableName);
+
+		return cleanedTableName;
+
+		/*if (cleanedTableName.contains("_")) {
+			final int lstIdx = cleanedTableName.lastIndexOf("_");
+			cleanedTableName = cleanedTableName.substring(lstIdx);
+		}
+
+		for (final String realTableName : tableNames) {
+
+			final boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
+			// one of the two is prefixed the other not
+			final boolean partialMatch1 = realTableName.toLowerCase().endsWith(cleanedTableName);
+			final boolean partialMatch2 = cleanedTableName.endsWith(realTableName.toLowerCase());
+
+			// if there is a match, return the correct table name
+			if (exactMatch || partialMatch1 || partialMatch2) {
+				return realTableName;
+			}
+		}*/
+		// not found
+		//return null;
 	}
 
 	/*

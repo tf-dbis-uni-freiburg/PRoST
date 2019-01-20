@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.hp.hpl.jena.shared.PrefixMapping;
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -23,6 +25,7 @@ public abstract class Node {
 	public Dataset<Row> sparkNodeData;
 	public String filter;
 
+	public static final Logger logger = Logger.getLogger("PRoST");
 	// private static final Logger logger = Logger.getLogger("PRoST");
 
 	public Node() {
@@ -59,7 +62,14 @@ public abstract class Node {
 		for (final Node child : children) {
 			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
+
+			for(String joinvar:joinVariables){
+				logger.info("join vars: " + joinvar);
+			}
+			logger.info("currentResult " + currentResult.count());
+			logger.info("childResult " + childResult.count());
 			currentResult = currentResult.join(childResult, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
+			logger.info("join " + currentResult.count());
 		}
 		return currentResult;
 	}
@@ -68,6 +78,7 @@ public abstract class Node {
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
 		if (this instanceof PtNode) {
+			str.append("WPT node: ");
 			for (final TriplePattern tp_group : tripleGroup) {
 				str.append(tp_group.toString() + ", ");
 			}

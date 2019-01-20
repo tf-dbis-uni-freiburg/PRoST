@@ -17,6 +17,7 @@ import translator.Stats;
  */
 public class PtNode extends Node {
 	private static final String COLUMN_NAME_SUBJECT = "s";
+	private PrefixMapping prefixes;
 
 	public PtNode(final List<TriplePattern> tripleGroup) {
 		super();
@@ -37,7 +38,7 @@ public class PtNode extends Node {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		setIsComplex();
-
+		this.prefixes = prefixes;
 	}
 
 	private void setIsComplex() {
@@ -60,19 +61,27 @@ public class PtNode extends Node {
 
 		// objects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+
+
+
+
+			final String columnName = Stats.getInstance().findCorrectTableName(t.predicate.toString(), prefixes);
+
+
+			//logger.info("short: " + prefixes.shortForm(t.predicate.toString()));
+
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.subject + "'");
+				whereConditions.add("s='<" + t.subject + ">'");
 			}
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.object + "')");
+					whereConditions.add("array_contains(" + columnName + ", '<" + t.object + ">')");
 				} else {
-					whereConditions.add(columnName + "='" + t.object + "'");
+					whereConditions.add(columnName + "='<" + t.object + ">'");
 				}
 			} else if (t.isComplex) {
 				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
@@ -98,6 +107,7 @@ public class PtNode extends Node {
 			query.append(String.join(" AND ", whereConditions));
 		}
 
+		logger.info("wpt query: " + query.toString());
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 }

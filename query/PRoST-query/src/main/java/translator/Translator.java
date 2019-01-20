@@ -483,7 +483,7 @@ public class Translator {
 	 */
 	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
-			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+			final String tableName = Stats.getInstance().findCorrectTableName(t.getPredicate().toString(), prefixes);
 			final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
 			nodesQueue.add(newNode);
 		}

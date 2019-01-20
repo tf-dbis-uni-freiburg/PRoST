@@ -15,6 +15,7 @@ import translator.Stats;
 public class IptNode extends Node {
 	private static final String COLUMN_NAME_OBJECT = "o";
 	private static final String TABLE_NAME = "inverse_wide_property_table";
+	private PrefixMapping prefixes;
 
 	/**
 	 * The node contains a list of triple patterns with the same object.
@@ -46,6 +47,8 @@ public class IptNode extends Node {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		setIsComplex();
+
+		this.prefixes = prefixes;
 	}
 
 	/**
@@ -76,17 +79,17 @@ public class IptNode extends Node {
 
 		// subjects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+			final String columnName = Stats.getInstance().findCorrectTableName(t.predicate.toString(), prefixes);
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add(COLUMN_NAME_OBJECT + "='" + t.object + "'");
+				whereConditions.add(COLUMN_NAME_OBJECT + "='<" + t.object + ">'");
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.subject + "')");
+					whereConditions.add("array_contains(" + columnName + ", '<" + t.subject + ">')");
 				} else {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}

@@ -51,12 +51,14 @@ public class VpNode extends Node {
 			query.append(" WHERE ");
 		}
 		if (triplePattern.objectType == ElementType.CONSTANT) {
-			query.append(" o='" + triplePattern.object + "' ");
+			query.append(" o='<" + triplePattern.object + ">' ");
 		}
 
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" s='" + triplePattern.subject + "' ");
+			query.append(" s='<" + triplePattern.subject + ">' ");
 		}
+
+		logger.info("vp query: " + query.toString());
 
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
