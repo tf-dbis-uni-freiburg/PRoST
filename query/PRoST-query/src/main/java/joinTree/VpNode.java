@@ -58,7 +58,7 @@ public class VpNode extends Node {
 			query.append(" s='<" + triplePattern.subject + ">' ");
 		}
 
-		logger.info("vp query: " + query.toString());
+		//logger.info("vp query: " + query.toString());
 
 		sparkNodeData = sqlContext.sql(query.toString());
 	}

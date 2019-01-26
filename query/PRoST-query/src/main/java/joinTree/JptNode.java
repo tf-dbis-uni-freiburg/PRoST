@@ -24,6 +24,7 @@ public class JptNode extends Node {
 	private static final String IWPT_PREFIX = "s_";
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
+	private PrefixMapping prefixes;
 
 	public JptNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
@@ -47,6 +48,7 @@ public class JptNode extends Node {
 			triplePatterns.add(tp);
 		}
 		setIsComplex();
+		this.prefixes = prefixes;
 	}
 
 	/**
@@ -83,19 +85,19 @@ public class JptNode extends Node {
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
-			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findCorrectTableName(t.predicate.toString(), prefixes));
 			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
-				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.subject + "'");
+				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='<" + t.subject + ">'");
 			}
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.object + "')");
+					whereConditions.add("array_contains(" + columnName + ", '<" + t.object + ">')");
 				} else {
-					whereConditions.add(columnName + "='" + t.object + "'");
+					whereConditions.add(columnName + "='<" + t.object + ">'");
 				}
 			} else if (t.isComplex) {
 				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
@@ -108,19 +110,19 @@ public class JptNode extends Node {
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findCorrectTableName(t.predicate.toString(), prefixes));
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
 			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.object + "'");
+				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='<" + t.object + ">'");
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.subject + "')");
+					whereConditions.add("array_contains(" + columnName + ", '<" + t.subject + ">')");
 				} else {
-					whereConditions.add(columnName + "='" + t.subject + "'");
+					whereConditions.add(columnName + "='<" + t.subject + ">'");
 				}
 			} else if (t.isComplex) {
 				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");

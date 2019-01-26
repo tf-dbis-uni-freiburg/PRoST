@@ -61,12 +61,7 @@ public class PtNode extends Node {
 
 		// objects
 		for (final TriplePattern t : tripleGroup) {
-
-
-
-
 			final String columnName = Stats.getInstance().findCorrectTableName(t.predicate.toString(), prefixes);
-
 
 			//logger.info("short: " + prefixes.shortForm(t.predicate.toString()));
 
@@ -107,7 +102,7 @@ public class PtNode extends Node {
 			query.append(String.join(" AND ", whereConditions));
 		}
 
-		logger.info("wpt query: " + query.toString());
+		//logger.info("wpt query: " + query.toString());
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 }

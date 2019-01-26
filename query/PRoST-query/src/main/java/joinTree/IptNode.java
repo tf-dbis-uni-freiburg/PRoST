@@ -91,7 +91,7 @@ public class IptNode extends Node {
 				if (t.isComplex) {
 					whereConditions.add("array_contains(" + columnName + ", '<" + t.subject + ">')");
 				} else {
-					whereConditions.add(columnName + "='" + t.subject + "'");
+					whereConditions.add(columnName + "='<" + t.subject + ">'");
 				}
 			} else if (t.isComplex) {
 				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");
