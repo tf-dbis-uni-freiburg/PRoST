@@ -17,7 +17,7 @@ import translator.Stats;
  */
 public class PtNode extends Node {
 	private static final String COLUMN_NAME_SUBJECT = "s";
-	private PrefixMapping prefixes;
+	public PrefixMapping prefixes;
 
 	public PtNode(final List<TriplePattern> tripleGroup) {
 		super();

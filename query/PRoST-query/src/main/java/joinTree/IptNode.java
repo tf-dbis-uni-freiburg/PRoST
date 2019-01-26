@@ -15,7 +15,7 @@ import translator.Stats;
 public class IptNode extends Node {
 	private static final String COLUMN_NAME_OBJECT = "o";
 	private static final String TABLE_NAME = "inverse_wide_property_table";
-	private PrefixMapping prefixes;
+	public PrefixMapping prefixes;
 
 	/**
 	 * The node contains a list of triple patterns with the same object.

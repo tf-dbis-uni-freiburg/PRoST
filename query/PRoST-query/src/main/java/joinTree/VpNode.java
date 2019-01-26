@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.Collections;
 
+import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.spark.sql.SQLContext;
 
 import executor.Utils;
@@ -11,6 +12,7 @@ import executor.Utils;
  */
 public class VpNode extends Node {
 	private final String tableName;
+	public PrefixMapping prefixes;
 
 	/*
 	 * The node contains a single triple pattern.
@@ -20,6 +22,14 @@ public class VpNode extends Node {
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 		tripleGroup = Collections.emptyList();
+	}
+
+	public VpNode(final TriplePattern triplePattern, final String tableName, PrefixMapping prefixes) {
+		super();
+		this.tableName = tableName;
+		this.triplePattern = triplePattern;
+		tripleGroup = Collections.emptyList();
+		this.prefixes = prefixes;
 	}
 
 	@Override

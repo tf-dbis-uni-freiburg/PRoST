@@ -24,7 +24,7 @@ public class JptNode extends Node {
 	private static final String IWPT_PREFIX = "s_";
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
-	private PrefixMapping prefixes;
+	public PrefixMapping prefixes;
 
 	public JptNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();

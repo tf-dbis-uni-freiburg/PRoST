@@ -63,13 +63,13 @@ public abstract class Node {
 			final Dataset<Row> childResult = child.computeJoinWithChildren(sqlContext);
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 
-			for(String joinvar:joinVariables){
-				logger.info("join vars: " + joinvar);
-			}
-			logger.info("currentResult " + currentResult.count());
-			logger.info("childResult " + childResult.count());
+			//for(String joinvar:joinVariables){
+			//	logger.info("join vars: " + joinvar);
+			//}
+			//logger.info("currentResult " + currentResult.count());
+			//logger.info("childResult " + childResult.count());
 			currentResult = currentResult.join(childResult, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
-			logger.info("join " + currentResult.count());
+			//logger.info("join " + currentResult.count());
 		}
 		return currentResult;
 	}

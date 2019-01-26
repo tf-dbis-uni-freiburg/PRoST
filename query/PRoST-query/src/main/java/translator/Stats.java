@@ -94,14 +94,35 @@ public class Stats {
 			iptPropertyComplexity.put(tableNames[i], table.getIsInverseComplex());
 			i++;
 		}
+
 		logger.info("Statistics correctly parsed");
 	}
 
 	public int getTableSize(String table) {
+
+		//logger.info("size table: " + table);
+
 		table = findTableName(table);
 		if (table == null) {
 			return -1;
 		}
+
+		return tableSize.get(table);
+	}
+
+	public int getTableSize(String table, PrefixMapping prefixes) {
+
+		//logger.info("size table prefix: " + table);
+
+		table = findCorrectTableName(table, prefixes);
+		if (table == null) {
+			return -1;
+		}
+
+		//logger.info("size table found prefix: " + table);
+		//for (String k:tableSize.keySet()){
+		//	logger.info("key: " + k);
+		//}
 		return tableSize.get(table);
 	}
 
@@ -169,9 +190,10 @@ public class Stats {
 		tableName = prefixes.shortForm(tableName);
 
 		//logger.info("shortened tablename: " + tableName);
-		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
+		String cleanedTableName = Utils.toMetastoreName(tableName);
+		//String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
 
-		//logger.info("cleaned tablename: " + tableName);
+		//logger.info("cleaned tablename: " + cleanedTableName);
 
 		return cleanedTableName;
 	}

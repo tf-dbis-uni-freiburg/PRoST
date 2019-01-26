@@ -19,7 +19,18 @@ public class NodeComparator implements Comparator<Node> {
 					break;
 				}
 				final String predicate = t.predicate;
-				final int size = Stats.getInstance().getTableSize(predicate);
+				final int size;
+				if (node instanceof PtNode) {
+					size = Stats.getInstance().getTableSize(predicate, ((PtNode) node).prefixes);
+				}
+				else if (node instanceof IptNode){
+						size = Stats.getInstance().getTableSize(predicate,((IptNode) node).prefixes);
+				}
+				else if (node instanceof JptNode){
+						size = Stats.getInstance().getTableSize(predicate,((JptNode) node).prefixes);
+				} else {
+					size = Stats.getInstance().getTableSize(predicate);
+				}
 				priority += size;
 			}
 		} else { // Vertical Partitioning NODE
@@ -29,7 +40,12 @@ public class NodeComparator implements Comparator<Node> {
 			if (!isObjectVariable || !isSubjectVariable) {
 				priority = 0;
 			} else {
-				final int size = Stats.getInstance().getTableSize(predicate);
+				final int size;
+				if (node instanceof VpNode){
+					size = Stats.getInstance().getTableSize(predicate,((VpNode) node).prefixes);
+				} else {
+					size = Stats.getInstance().getTableSize(predicate);
+				}
 				priority = size;
 			}
 		}
