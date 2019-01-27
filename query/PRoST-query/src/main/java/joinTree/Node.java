@@ -64,7 +64,7 @@ public abstract class Node {
 			final List<String> joinVariables = Utils.commonVariables(currentResult.columns(), childResult.columns());
 
 			//for(String joinvar:joinVariables){
-			//	logger.info("join vars: " + joinvar);
+				//logger.info("join vars: " + joinvar);
 			//}
 			//logger.info("currentResult " + currentResult.count());
 			//logger.info("childResult " + childResult.count());

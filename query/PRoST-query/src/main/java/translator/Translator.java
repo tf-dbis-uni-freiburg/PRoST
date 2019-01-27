@@ -2,6 +2,7 @@ package translator;
 
 import java.util.*;
 
+import executor.Utils;
 import javafx.geometry.VPos;
 import joinTree.*;
 import org.apache.log4j.Logger;
@@ -276,16 +277,53 @@ public class Translator {
 
 					// remove triples from smaller groups
 					for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
-						final String object = triple.getObject().toString();
+						String object = triple.getObject().toString(prefixes);
+
+						/*if (!triple.getObject().isVariable()) {
+							logger.info("is literal");
+							object = prefixes.shortForm(object);
+							//object = Utils.toMetastoreName(object);
+						}*/
+						/*logger.info("resource to remove from iwpts: " + object);
+						logger.info("keys");
+						logger.info(joinedGroups.keySet().toString());*/
+
 						if (joinedGroups.get(object)!= null){
+							//logger.info("found group");
+
+							/*for (Triple t:joinedGroups.get(object).getIwptGroup()){
+								logger.info(t.toString());
+							}
+							logger.info("t to remove: " + triple.toString());*/
+
 							joinedGroups.get(object).getIwptGroup().remove(triple);
+							//Boolean b = joinedGroups.get(object).getIwptGroup().remove(triple);
+							/*if (b){
+								logger.info("removed");
+							} else{ logger.info("not removed");}*/
 							removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
 						}
 					}
 					for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
-						final String subject = triple.getSubject().toString();
+						String subject = triple.getSubject().toString(prefixes);
+						/*if (!triple.getSubject().isVariable()) {
+							//logger.info("is literal");
+							subject = prefixes.shortForm(subject);
+							//subject = Utils.toMetastoreName(subject);
+						}*/
+						//logger.info("resource to remove from wpts: " + subject);
 						if (joinedGroups.get(subject)!= null) {
+							//logger.info("found group");
+							/*for (Triple t:joinedGroups.get(subject).getWptGroup()){
+								logger.info(t.toString());
+							}*/
+							//logger.info("t to remove: " + triple.toString());
+
 							joinedGroups.get(subject).getWptGroup().remove(triple);
+							//Boolean b = joinedGroups.get(subject).getWptGroup().remove(triple);
+							/*if (b){
+								logger.info("removed");
+							} else{ logger.info("not removed");}*/
 							removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
 						}
 					}
@@ -322,8 +360,12 @@ public class Translator {
 
 					// remove triples from subject group
 					for (Triple triple : largestObjectGroupTriples){
-						String key = triple.getObject().toString();
+						String key = triple.getSubject().toString(prefixes);
+						//logger.info("key to find s group: " + key);
+						//logger.info("keys:");
+						//logger.info(subjectGroups.keySet().toString());
 						if (subjectGroups.containsKey(key)){
+							//logger.info("found");
 							subjectGroups.get(key).remove(triple);
 							if (subjectGroups.get(key).size()==0){
 								subjectGroups.remove(key);
@@ -337,8 +379,13 @@ public class Translator {
 					createNodes(largestSubjectGroupTriples, nodesQueue, NODE_TYPE.WPT, unassignedTriples);
 					// remove triples from object group
 					for (Triple triple : largestSubjectGroupTriples){
-						String key = triple.getSubject().toString();
+						String key = triple.getObject().toString(prefixes);
+						//logger.info("key to find o group: " + key);
+						//logger.info("keys:");
+						//logger.info(objectGroups.keySet().toString());
+
 						if (objectGroups.containsKey(key)){
+							//logger.info("found");
 							objectGroups.get(key).remove(triple);
 							if (objectGroups.get(key).size()==0){
 								objectGroups.remove(key);
