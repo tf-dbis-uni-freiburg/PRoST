@@ -70,7 +70,7 @@ public class ExtVpCreator {
 		if (!databaseStatistics.getTables().containsKey(extVpTableName) ||
 				(databaseStatistics.getTables().containsKey(extVpTableName) && !databaseStatistics.getTables().get(extVpTableName).getTableExists())){
 			//if (!spark.catalog().tableExists(tableNameWithDatabaseIdentifier)) {
-			logger.info("table " + tableNameWithDatabaseIdentifier + " does not exist. Creating it.");
+			//logger.info("table " + tableNameWithDatabaseIdentifier + " does not exist. Creating it.");
 
 
 			final String createTableQuery;
@@ -104,7 +104,7 @@ public class ExtVpCreator {
 				createTableQuery = String.format("create table if not exists %1$s(s string, o string) stored as parquet", tableNameWithDatabaseIdentifier);
 			}
 
-			logger.info("createTableQuery: " + createTableQuery);
+			//logger.info("createTableQuery: " + createTableQuery);
 
 			spark.sql(createTableQuery);
 
@@ -173,7 +173,7 @@ public class ExtVpCreator {
 						tableNameWithDatabaseIdentifier, vp1TableName, vp2TableName, queryOnCommand);
 			}
 
-			logger.info("insertDataQuery: " + insertDataQuery);
+			//logger.info("insertDataQuery: " + insertDataQuery);
 			spark.sql(insertDataQuery);
 
 			logger.info("ExtVP: " + tableNameWithDatabaseIdentifier + " created.");
@@ -181,7 +181,7 @@ public class ExtVpCreator {
 			final TableStatistic tableStatistic = databaseStatistics.getTables().get(extVpTableName);
 			if (tableStatistic != null) {
 				tableStatistic.setTableExists(true);
-				logger.info("UPDATED statistics for table " + extVpTableName);
+				//logger.info("UPDATED statistics for table " + extVpTableName);
 			} else {
 				// Protobuff stats for VP tables size are not correctly saved, therefore we check the size
 				// directly from

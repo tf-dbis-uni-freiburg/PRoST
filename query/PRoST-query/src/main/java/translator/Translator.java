@@ -148,7 +148,7 @@ public class Translator {
 						spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes, partitionExtVP);
 
 				if (createdTable != "") {
-					final ExtVpNode newNode = new ExtVpNode(child.triplePattern, createdTable, extVPDatabaseName);
+					final ExtVpNode newNode = new ExtVpNode(child.triplePattern, createdTable, extVPDatabaseName, extVPDatabaseStatistic);
 					newNode.children = child.children;
 
 					nodesToAdd.add(newNode);
@@ -255,13 +255,13 @@ public class Translator {
 		//TODO only creates one, if none available, when looking for a table at the later stage
 		//Creating all possible extvp tables
 		if (useExtVP){
-			ExtVpCreator extVPcreator = new ExtVpCreator();
+			//ExtVpCreator extVPcreator = new ExtVpCreator();
 
 			// TODO add option to force creation of EXTVP tables
 			//extVPcreator.createExtVPFromTriples(triples, prefixes, spark, extVPDatabaseStatistic, extVPDatabaseName, partitionExtVP);
-			logger.info("ExtVP: all tables created!");
+			//logger.info("ExtVP: all tables created!");
 
-			logger.info("Database size: " + extVPDatabaseStatistic.getSize());
+			logger.info("ExtVp Database size: " + extVPDatabaseStatistic.getSize());
 		}
 
 		if (useJoinedPropertyTable) {
@@ -414,12 +414,12 @@ public class Translator {
 			for (Triple currentTriple : unassignedTriples) {
 				String tableName = TableStatistic.selectExtVPTable(currentTriple, triples, extVPDatabaseStatistic.getTables(), prefixes);
 				if (!tableName.equals("")){
-					Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName);
+					Node newNode = new ExtVpNode(new TriplePattern(currentTriple, prefixes), tableName, extVPDatabaseName, extVPDatabaseStatistic);
 					nodesQueue.add(newNode);
-					logger.info("added ExtVpNode for triple " + currentTriple.toString());
+					//logger.info("added ExtVpNode for triple " + currentTriple.toString());
 					triplesToRemove.add(currentTriple);
 				} else {
-					logger.info("no suitable ExtVP table found for triple " + currentTriple.toString());
+					//logger.info("no suitable ExtVP table found for triple " + currentTriple.toString());
 				}
 			}
 			unassignedTriples.removeAll(triplesToRemove);
@@ -447,7 +447,7 @@ public class Translator {
 			}
 
 			while (!vpNodesList.isEmpty()){
-				logger.info("Remaining VP to check: " + vpNodesList.size());
+				//logger.info("Remaining VP to check: " + vpNodesList.size());
 				VpNode bestVpNode = vpNodesList.poll();
 				VpNode vpNodeToJoin = null;
 
@@ -459,14 +459,14 @@ public class Translator {
 					}
 				}
 				if (vpNodeToJoin!=null){
-					logger.info("Match found. Removing VP nodes and creating JoinVP node");
+					//logger.info("Match found. Removing VP nodes and creating JoinVP node");
 					vpNodesList.remove(vpNodeToJoin);
 					nodesQueue.remove((vpNodeToJoin));
 					nodesQueue.remove(bestVpNode);
 					nodesQueue.add(new VpJoinNode(bestVpNode.triplePattern, vpNodeToJoin.triplePattern, bestVpNode.getTableName(),
 							vpNodeToJoin.getTableName(), spark, extVPDatabaseStatistic, extVPDatabaseName, prefixes));
 				} else {
-					logger.info("No match found. Keeping VP node");
+					//logger.info("No match found. Keeping VP node");
 				}
 			}
 		}

@@ -35,7 +35,7 @@ public class VpJoinNode extends Node {
 		tripleGroup.add(triplePattern1);
 		tripleGroup.add(triplePattern2);
 
-		//TODO remove literals from triplePatterns before creating creating VP Nodes. (literals are still kept in tripleGroup to be
+		//TODO remove constants from triplePatterns before creating creating VP Nodes. (literals are still kept in tripleGroup to be
 		// executed after saving the extVPTable
 		// literals might be the same, then must use the same var name in both vp nodes
 
@@ -67,6 +67,8 @@ public class VpJoinNode extends Node {
 		vpNode1 = new VpNode(tempPattern1, tableName1);
 		vpNode2 = new VpNode(tempPattern2, tableName2);
 
+		//logger.info("created VPJoinNode with patterns: " + tempPattern1.toString() + " " + tempPattern2.toString());
+
 		this.spark = spark;
 		this.databaseStatistics = databaseStatistics;
 		this.extVpDatabaseName = extVpDatabaseName;
@@ -85,25 +87,28 @@ public class VpJoinNode extends Node {
 		final List<String> joinVariables = Utils.commonVariables(vp1Data.columns(), vp2Data.columns());
 		sparkNodeData = vp1Data.join(vp2Data, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
 
+
+		//logger.info("computed vpjoin node: " + vpNode1.toString() + " " + vpNode2.toString());
+
 		ExtVpCreator.createExtVpTablesFromJoinedVPs(sparkNodeData, spark, vpNode1.triplePattern.subject, vpNode1.triplePattern.object,
 				vpNode2.triplePattern.subject, vpNode2.triplePattern.object, vpNode1.triplePattern.triple.getPredicate().toString(prefixes),
 				vpNode2.triplePattern.triple.getPredicate().toString(prefixes), databaseStatistics, extVpDatabaseName, vp1Data.count(), vp2Data.count());
 		
 		//Apply constants and remove temporary variables
 		if (tripleGroup.get(0).subjectType==ElementType.CONSTANT){
-			logger.info("applying constants s1");
+			//logger.info("applying constant s1:" + tripleGroup.get(0).subject);
 			sparkNodeData = sparkNodeData.where("s1 = '" + tripleGroup.get(0).subject + "'").drop("s1");
 		}
 		if (tripleGroup.get(0).objectType==ElementType.CONSTANT){
-			logger.info("applying constants o1");
+			//logger.info("applying constant o1" + tripleGroup.get(0).object);
 			sparkNodeData = sparkNodeData.where("o1 = '" + tripleGroup.get(0).object + "'").drop("o1");
 		}
 		if (tripleGroup.get(1).subjectType==ElementType.CONSTANT){
-			logger.info("applying constants s2");
+			//logger.info("applying constant s2" + tripleGroup.get(1).subject);
 			sparkNodeData = sparkNodeData.where("s2 = '" + tripleGroup.get(1).subject + "'").drop("s2");
 		}
 		if (tripleGroup.get(1).objectType==ElementType.CONSTANT){
-			logger.info("applying constants o2");
+			//logger.info("applying constant o2" + tripleGroup.get(1).object);
 			sparkNodeData = sparkNodeData.where("o2 = '" + tripleGroup.get(1).object + "'").drop("o2");
 		}
 

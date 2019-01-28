@@ -44,7 +44,7 @@ public class NodeComparator implements Comparator<Node> {
 				if (node instanceof VpNode){
 					size = Stats.getInstance().getTableSize(predicate,((VpNode) node).prefixes);
 				} else {
-					size = Stats.getInstance().getTableSize(predicate);
+					size = (int)((ExtVpNode)node).extVPDatabaseStatistic.getTables().get(((ExtVpNode) node).getTableName()).getSize();
 				}
 				priority = size;
 			}
