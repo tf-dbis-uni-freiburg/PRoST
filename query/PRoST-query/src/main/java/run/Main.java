@@ -203,12 +203,12 @@ public class Main {
 		if (cmd.hasOption("DB")) {
 			database_name = cmd.getOptionValue("DB");
 			extVPDatabaseName = "extVP_" + database_name;
-			if (isExtVpPartitioned){
+			/*if (isExtVpPartitioned){
 				extVPDatabaseName = "part_" + extVPDatabaseName;
 			}
 			if (createJoinVpNode){
 				extVPDatabaseName = extVPDatabaseName + "_joinVP";
-			}
+			}*/
 		}
 
 		if (cmd.hasOption("disablesGrouping")) {
@@ -288,11 +288,11 @@ public class Main {
 			// empty executor to initialize Spark
 			final Executor executor = new Executor(null, database_name);
 
-			if (benchmarkMode) {
+			/*if (benchmarkMode) {
 				// executor.cacheTables();
 				executeBatch(random_sample(file.list(), 3), executor, spark);
 				executor.clearQueryTimes();
-			}
+			}*/
 
 			// if the path is a directory execute every files inside
 			executeBatch(file.list(), executor, spark);
