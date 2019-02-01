@@ -17,14 +17,15 @@ import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 
 import joinTree.ElementType;
-import joinTree.IptNode;
+import joinTree.IPTNode;
 import joinTree.JoinNode;
 import joinTree.JoinTree;
-import joinTree.JptNode;
+import joinTree.JPTNode;
 import joinTree.Node;
-import joinTree.PtNode;
+import joinTree.PTNode;
+import joinTree.TTNode;
 import joinTree.TriplePattern;
-import joinTree.VpNode;
+import joinTree.VPNode;
 import utils.EmergentSchema;
 import utils.Stats;
 
@@ -51,7 +52,7 @@ public class Translator {
 	private int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
 	private PrefixMapping prefixes;
 
-	// if false, only virtual partitioning tables will be queried
+	private boolean useTripleTablePartitioning = false;
 	private boolean usePropertyTable = false;
 	private boolean useInversePropertyTable = false;
 	private boolean useJoinedPropertyTable = false;
@@ -258,10 +259,11 @@ public class Translator {
 					HashMap<String, List<Triple>> emergentSubjectGroups = emergentSchemaSubjectGroups.get(tableName);
 					for (final String subject : emergentSubjectGroups.keySet()) {
 						List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
-						nodesQueue.add(new PtNode(subjectTriples, prefixes, tableName));
+						nodesQueue.add(new PTNode(subjectTriples, prefixes, tableName));
 					}
 				}
 			} else {
+
 				final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 				for (final List<Triple> triplesGroup : subjectGroups.values()) {
 					createNodes(triplesGroup, nodesQueue, NODE_TYPE.WPT);
@@ -300,10 +302,10 @@ public class Translator {
 		if (triples.size() >= minimumGroupSize) {
 			switch (nodeType) {
 			case WPT:
-				nodesQueue.add(new PtNode(triples, prefixes));
+				nodesQueue.add(new PTNode(triples, prefixes));
 				break;
 			case IWPT:
-				nodesQueue.add(new IptNode(triples, prefixes));
+				nodesQueue.add(new IPTNode(triples, prefixes));
 				break;
 			case JWPT:
 				throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
@@ -328,7 +330,7 @@ public class Translator {
 	 */
 	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
 		if (joinedGroup.size() >= minimumGroupSize) {
-			nodesQueue.add(new JptNode(joinedGroup, prefixes));
+			nodesQueue.add(new JPTNode(joinedGroup, prefixes));
 		} else {
 			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
 			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v
@@ -347,7 +349,7 @@ public class Translator {
 	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
 			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-			final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+			final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 			nodesQueue.add(newNode);
 		}
 	}
@@ -558,10 +560,10 @@ public class Translator {
 	 * elements in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
-		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+		if (node instanceof PTNode || node instanceof IPTNode || node instanceof JPTNode) {
 			return 5;
 		}
-		final String predicate = ((VpNode) node).triplePattern.predicate;
+		final String predicate = ((VPNode) node).triplePattern.predicate;
 		final int tableSize = Stats.getInstance().getTableSize(predicate);
 		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
 		final float proportion = tableSize / numberUniqueSubjects;

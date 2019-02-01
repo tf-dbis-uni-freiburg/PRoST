@@ -1,6 +1,4 @@
 package joinTree;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +10,7 @@ import org.apache.spark.sql.SQLContext;
 
 /**
  * JoinTree definition. It represents a binary tree. The leaves are of type
- * either {@link VpNode} or {@link MVNode}. Inner nodes are of type
+ * either {@link VPNode} or {@link MVNode}. Inner nodes are of type
  * {@link JoinNode}.
  *
  * @author Matteo Cossu
@@ -33,10 +31,16 @@ public class JoinTree {
 
 	// identifier for the query, useful for debugging
 	public String query_name;
+	// number of VpNodes and MVNodes
+	private int vpLeavesCount = 0;
+	private int wptLeavesCount = 0;
 
 	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String query_name) {
 		this.query_name = query_name;
 		this.root = root;
+		
+		// calculate number of vp and wpt nodes for the tree
+		// findLeaves();
 
 		// TODO fix optional tree
 		// this.optionalTreeRoots = optionalTreeRoots;
@@ -54,7 +58,7 @@ public class JoinTree {
 		// compute all the joins
 		root.computeNodeData(sqlContext);
 		Dataset<Row> results = root.sparkNodeData;
-		
+
 		// select only the requested result
 		final Column[] selectedColumns = new Column[this.projection.size()];
 		for (int i = 0; i < selectedColumns.length; i++) {
@@ -151,30 +155,37 @@ public class JoinTree {
 //		return hasChildrenToCompute;
 //	}
 
-	/**
-	 * Return a list containing the leaves of the tree.
-	 */
-	public List<Node> findLeaves() {
-		List<Node> leaves = new ArrayList<>();
-		LinkedList<Node> toVisit = new LinkedList<>();
-		toVisit.add(root);
-		while (!toVisit.isEmpty()) {
-			Node current = toVisit.poll();
-			if (current instanceof MVNode || current instanceof VpNode) {
-				// leaf
-				leaves.add(current);
-			} else {
-				// add its children for visitation
-				toVisit.add(((JoinNode) current).getLeftChild());
-				toVisit.add(((JoinNode) current).getRightChild());
-			}
-			toVisit.remove(current);
-		}
-		return leaves;
-	}
+//	/**
+//	 * Return a list containing the leaves of the tree.
+//	 */
+//	private void findLeaves() {
+//		LinkedList<Node> toVisit = new LinkedList<>();
+//		toVisit.add(root);
+//		while (!toVisit.isEmpty()) {
+//			Node current = toVisit.poll();
+//			if (current instanceof MVNode) {
+//				this.wptLeavesCount++;
+//			} else if (current instanceof VPNode) {
+//				this.vpLeavesCount++;
+//			} else {
+//				// add its children for visitation
+//				toVisit.add(((JoinNode) current).getLeftChild());
+//				toVisit.add(((JoinNode) current).getRightChild());
+//			}
+//			toVisit.remove(current);
+//		}
+//	}
 
 	public Node getRoot() {
 		return root;
+	}
+
+	public int getVpLeavesCount() {
+		return vpLeavesCount;
+	}
+
+	public int getWptLeavesCount() {
+		return wptLeavesCount;
 	}
 
 	public void setDistinct(final boolean distinct) {
@@ -189,5 +200,4 @@ public class JoinTree {
 	public String toString() {
 		return root.toString();
 	}
-
 }

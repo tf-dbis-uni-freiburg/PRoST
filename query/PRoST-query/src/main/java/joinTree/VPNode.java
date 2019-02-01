@@ -6,20 +6,21 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.log4j.Logger;
 
 import utils.Utils;
+
 /*
  * A node of the JoinTree that refers to the Vertical Partitioning.
  */
-public class VpNode extends Node {
+public class VPNode extends Node {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
-	
+
 	private final String tableName;
 	public TriplePattern triplePattern;
 
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public VpNode(final TriplePattern triplePattern, final String tableName) {
+	public VPNode(final TriplePattern triplePattern, final String tableName) {
 		super();
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
@@ -28,7 +29,7 @@ public class VpNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public VpNode(Node parent, final TriplePattern triplePattern, final String tableName) {
+	public VPNode(Node parent, final TriplePattern triplePattern, final String tableName) {
 		super(parent);
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
@@ -36,11 +37,10 @@ public class VpNode extends Node {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-
-		if (tableName == null) {
-			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
-			return;
-		}
+//		if (tableName == null) {
+//			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
+//			return;
+//		}
 
 		final StringBuilder query = new StringBuilder("SELECT ");
 
@@ -56,6 +56,8 @@ public class VpNode extends Node {
 
 		// FROM
 		query.append(" FROM ");
+		// when partition by subject
+		// query.append("par_vp_" + tableName);
 		query.append("vp_" + tableName);
 
 		// WHERE

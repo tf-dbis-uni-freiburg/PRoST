@@ -6,22 +6,21 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.log4j.Logger;
 
 import utils.Utils;
+
 /*
- * A node of the JoinTree that refers to the Vertical Partitioning.
+ * A node of the JoinTree that refers to the Triple Table.
  */
 public class TTNode extends Node {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
-	
-	private final String tableName;
+
 	public TriplePattern triplePattern;
 
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public TTNode(final TriplePattern triplePattern, final String tableName) {
+	public TTNode(final TriplePattern triplePattern) {
 		super();
-		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 	}
 
@@ -30,16 +29,11 @@ public class TTNode extends Node {
 	 */
 	public TTNode(Node parent, final TriplePattern triplePattern, final String tableName) {
 		super(parent);
-		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 	}
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-//		if (tableName == null) {
-//			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
-//			return;
-//		}
 
 		final StringBuilder query = new StringBuilder("SELECT ");
 
@@ -56,8 +50,6 @@ public class TTNode extends Node {
 		// FROM
 		query.append(" FROM ");
 		query.append("tripletable");
-		//query.append("vp_" + tableName);
-
 		query.append(" WHERE ");
 		query.append(" p='<" + triplePattern.predicate + ">' ");
 		// WHERE
@@ -71,13 +63,13 @@ public class TTNode extends Node {
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" s='" + triplePattern.subject + "' ");
 		}
-		sparkNodeData = sqlContext.sql(query.toString());	
+		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
-		str.append("VP node: ");
+		str.append("TT node: ");
 		str.append(triplePattern.toString());
 		str.append(" }");
 		return str.toString();

@@ -45,6 +45,7 @@ public class Main {
 	private static int treeWidth = -1;
 	private static int minimumGroupSize = -1;
 	private static boolean useVerticalPartitioning = false;
+	private static boolean useTripleTablePartitioning = false;
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
@@ -144,7 +145,10 @@ public class Main {
 		} else {
 			final String lpStrategies = cmd.getOptionValue("logicalPartitionStrategies");
 			final List<String> strategies = Arrays.asList(lpStrategies.toUpperCase().split(","));
-
+			if (strategies.contains("TT")) {
+				useTripleTablePartitioning = true;
+				logger.info("Logical strategy used: TT");
+			}
 			if (strategies.contains("VP")) {
 				useVerticalPartitioning = true;
 				logger.info("Logical strategy used: VP");
@@ -223,9 +227,8 @@ public class Main {
 			if(cmd.hasOption("randomQueryExecution")){
 				logger.info("Executing queries in a random order.");
 				Collections.shuffle(queryFiles);
-			} else {
-				Collections.sort(queryFiles);
 			}
+			
 			// if the path is a directory execute every files inside
 			for (final String fname : queryFiles) {
 				logger.info("Starting: " + fname);
@@ -248,6 +251,7 @@ public class Main {
 
 	private static JoinTree translateSingleQuery(final String query, final int width) {
 		final Translator translator = new Translator(query, width);
+
 		translator.setUseVerticalPartitioning(useVerticalPartitioning);
 		translator.setUsePropertyTable(usePropertyTable);
 		translator.setUseInversePropertyTable(useInversePropertyTable);
