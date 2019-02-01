@@ -11,7 +11,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import utils.Stats;
 import utils.Utils;
 
-public class IptNode extends MVNode {
+public class IPTNode extends MVNode {
 
 	protected static final String inversePropertyTableName = "inverse_wide_property_table";
 
@@ -22,7 +22,7 @@ public class IptNode extends MVNode {
 	 *
 	 * @param tripleGroup List of TriplePattern referring to the same object
 	 */
-	public IptNode(final List<TriplePattern> tripleGroup) {
+	public IPTNode(final List<TriplePattern> tripleGroup) {
 		super();
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
@@ -35,7 +35,7 @@ public class IptNode extends MVNode {
 	 * @param jenaTriples list of Triples referring to the same object.
 	 * @param prefixes    prefix mapping of the properties.
 	 */
-	public IptNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
+	public IPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));

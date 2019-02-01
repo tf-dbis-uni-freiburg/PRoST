@@ -39,7 +39,7 @@ public abstract class Node {
 
 	/**
 	 * Get a list of triples that each node contains. For example, {@link VpNode}
-	 * represents only one triple. On the other side, {@link PtNode} contains a list
+	 * represents only one triple. On the other side, {@link PTNode} contains a list
 	 * of triples with the same subject.
 	 */
 	public abstract List<TriplePattern> collectTriples();

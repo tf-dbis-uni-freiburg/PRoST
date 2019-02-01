@@ -15,7 +15,7 @@ import utils.Utils;
 /*
  * A node of the JoinTree that refers to the Property Table.
  */
-public class PtNode extends MVNode {
+public class PTNode extends MVNode {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
 
@@ -26,9 +26,10 @@ public class PtNode extends MVNode {
 	 * table name can be changes depending on the list of triples this node
 	 * contains.
 	 */
+	// private String tableName = "par_wide_property_table";
 	private String tableName = "wide_property_table";
 
-	public PtNode(Node parent, final List<TriplePattern> tripleGroup) {
+	public PTNode(Node parent, final List<TriplePattern> tripleGroup) {
 		this.parent = parent;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
@@ -38,7 +39,7 @@ public class PtNode extends MVNode {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		tripleGroup = triplePatterns;
 		for (final Triple t : jenaTriples) {
@@ -51,7 +52,7 @@ public class PtNode extends MVNode {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PtNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, String tableName) {
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, String tableName) {
 		this(jenaTriples, prefixes);
 		this.tableName = tableName;
 	}
@@ -125,7 +126,6 @@ public class PtNode extends MVNode {
 			query.append(" WHERE ");
 			query.append(String.join(" AND ", whereConditions));
 		}
-		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
 	@Override

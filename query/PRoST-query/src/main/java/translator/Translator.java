@@ -20,14 +20,15 @@ import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 
 import joinTree.ElementType;
-import joinTree.IptNode;
+import joinTree.IPTNode;
 import joinTree.JoinNode;
 import joinTree.JoinTree;
-import joinTree.JptNode;
+import joinTree.JPTNode;
 import joinTree.Node;
-import joinTree.PtNode;
+import joinTree.PTNode;
+import joinTree.TTNode;
 import joinTree.TriplePattern;
-import joinTree.VpNode;
+import joinTree.VPNode;
 import utils.EmergentSchema;
 import utils.Stats;
 
@@ -50,6 +51,7 @@ public class Translator {
 
 	PrefixMapping prefixes;
 	private boolean useVerticalPartitioning = false;
+	private boolean useTripleTablePartitioning = false;
 	private boolean usePropertyTable = false;
 	private boolean useInversePropertyTable = false;
 	private boolean useJoinedPropertyTable = false;
@@ -181,16 +183,16 @@ public class Translator {
 				if (useVerticalPartitioning && joinedTriplesCount < DEFAULT_MIN_GROUP_SIZE) {
 					for (final Triple t : joinedGroups.get(biggestGroupKey).getIwptGroup()) {
 						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+						final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 					for (final Triple t : joinedGroups.get(biggestGroupKey).getWptGroup()) {
 						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+						final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 				} else {
-					nodesQueue.add(new JptNode(joinedGroups.get(biggestGroupKey), prefixes));
+					nodesQueue.add(new JPTNode(joinedGroups.get(biggestGroupKey), prefixes));
 				}
 				joinedGroups.remove(biggestGroupKey);
 			}
@@ -207,7 +209,7 @@ public class Translator {
 					HashMap<String, List<Triple>> emergentSubjectGroups = emergentSchemaSubjectGroups.get(tableName);
 					for (final String subject : emergentSubjectGroups.keySet()) {
 						List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
-						nodesQueue.add(new PtNode(subjectTriples, prefixes, tableName));
+						nodesQueue.add(new PTNode(subjectTriples, prefixes, tableName));
 					}
 				}
 			} else {
@@ -220,7 +222,7 @@ public class Translator {
 					if (useVerticalPartitioning && subjectTriples.size() < DEFAULT_MIN_GROUP_SIZE) {
 						for (final Triple t : subjectTriples) {
 							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 							nodesQueue.add(newNode);
 						}
 					} else {
@@ -229,11 +231,11 @@ public class Translator {
 							// for each triple, create an individual WPT node, no grouping by subject is
 							// done
 							for (final Triple t : subjectTriples) {
-								nodesQueue.add(new PtNode(Arrays.asList(t), prefixes));
+								nodesQueue.add(new PTNode(Arrays.asList(t), prefixes));
 							}
 						} else {
 							// create a WPT node for each group which contains triples with the same subject
-							nodesQueue.add(new PtNode(subjectTriples, prefixes));
+							nodesQueue.add(new PTNode(subjectTriples, prefixes));
 						}
 					}
 				}
@@ -253,11 +255,11 @@ public class Translator {
 				if (useVerticalPartitioning && objectTriples.size() < DEFAULT_MIN_GROUP_SIZE) {
 					for (final Triple t : objectTriples) {
 						final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-						final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+						final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 						nodesQueue.add(newNode);
 					}
 				} else {
-					nodesQueue.add(new IptNode(objectTriples, prefixes));
+					nodesQueue.add(new IPTNode(objectTriples, prefixes));
 				}
 			}
 		} else if (usePropertyTable && useInversePropertyTable) {
@@ -301,11 +303,11 @@ public class Translator {
 						// create VP nodes
 						for (final Triple t : biggestObjectGroupTriples) {
 							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 							nodesQueue.add(newNode);
 						}
 					} else {
-						nodesQueue.add(new IptNode(biggestObjectGroupTriples, prefixes));
+						nodesQueue.add(new IPTNode(biggestObjectGroupTriples, prefixes));
 					}
 					removeTriplesFromGroups(biggestObjectGroupTriples, subjectGroups); // remove empty groups
 					objectGroups.remove(biggestObjectGroupIndex); // remove group of created node
@@ -315,11 +317,11 @@ public class Translator {
 						// create VP nodes
 						for (final Triple t : biggestSubjectGroupTriples) {
 							final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-							final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+							final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 							nodesQueue.add(newNode);
 						}
 					} else {
-						nodesQueue.add(new PtNode(biggestSubjectGroupTriples, prefixes));
+						nodesQueue.add(new PTNode(biggestSubjectGroupTriples, prefixes));
 					}
 					removeTriplesFromGroups(biggestSubjectGroupTriples, objectGroups); // remove empty groups
 					subjectGroups.remove(biggestSubjectGroupIndex); // remove group of created node
@@ -330,7 +332,15 @@ public class Translator {
 			logger.info("VP model only");
 			for (final Triple t : triples) {
 				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-				final Node newNode = new VpNode(new TriplePattern(t, prefixes), tableName);
+				final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
+				nodesQueue.add(newNode);
+			}
+		} else if (useTripleTablePartitioning) {
+			// TT only
+			logger.info("TT model only");
+			for (final Triple t : triples) {
+				final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
+				final Node newNode = new TTNode(new TriplePattern(t, prefixes));
 				nodesQueue.add(newNode);
 			}
 		}
@@ -525,10 +535,10 @@ public class Translator {
 	 * elements in a table and the unique subjects.
 	 */
 	private int heuristicWidth(final Node node) {
-		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+		if (node instanceof PTNode || node instanceof IPTNode || node instanceof JPTNode) {
 			return 5;
 		}
-		final String predicate = ((VpNode) node).triplePattern.predicate;
+		final String predicate = ((VPNode) node).triplePattern.predicate;
 		final int tableSize = Stats.getInstance().getTableSize(predicate);
 		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
 		final float proportion = tableSize / numberUniqueSubjects;
@@ -564,5 +574,9 @@ public class Translator {
 
 	public void setGroupingDisabled(boolean groupingDisabled) {
 		this.groupingDisabled = groupingDisabled;
+	}
+
+	public void setUseTripleTablePartitioning(boolean useTripleTablePartitioning) {
+		this.useTripleTablePartitioning = useTripleTablePartitioning;
 	}
 }

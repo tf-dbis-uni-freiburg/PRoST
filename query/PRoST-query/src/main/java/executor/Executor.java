@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.log4j.Logger;
@@ -16,7 +15,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
-
 import joinTree.JoinTree;
 
 /**
@@ -31,7 +29,8 @@ public class Executor {
 
 	private String outputFile;
 	private final String databaseName;
-	private final List<String[]> query_time_results;
+	private final List<String[]> queryTimeResults;
+	private final List<String[]> queryStatistics;
 
 	SparkSession spark;
 	SQLContext sqlContext;
@@ -39,7 +38,8 @@ public class Executor {
 	public Executor(final String databaseName) {
 
 		this.databaseName = databaseName;
-		this.query_time_results = new ArrayList<>();
+		this.queryTimeResults = new ArrayList<>();
+		this.queryStatistics = new ArrayList<>();
 
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
@@ -48,6 +48,9 @@ public class Executor {
 		// use the selected database
 		this.sqlContext.sql("USE " + databaseName);
 		logger.info("USE " + databaseName);
+
+		// only if partition by subject
+		// partitionBySubject();
 	}
 
 	public void setOutputFile(final String outputFile) {
@@ -66,22 +69,40 @@ public class Executor {
 		final Dataset<Row> results = queryTree.compute(this.sqlContext);
 
 		startTime = System.currentTimeMillis();
-		long number_results = -1;
+		long resultCount = -1;
 		// if specified, save the results in HDFS, just count otherwise
 		if (outputFile != null) {
 			results.write().parquet(outputFile);
 		} else {
-			number_results = results.count();
+			resultCount = results.count();
 		}
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Execution time JOINS: " + String.valueOf(executionTime));
 
 		// save the results in the list
-		query_time_results.add(
-				new String[] { queryTree.query_name, String.valueOf(executionTime), String.valueOf(number_results) });
+		queryTimeResults
+				.add(new String[] { queryTree.query_name, String.valueOf(executionTime), String.valueOf(resultCount) });
+		// get information from the query and add it to overall statistics
+		computeStatistics(queryTree, results);
 
 		final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
 		logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
+	}
+
+	// TODO add comment
+	private void computeStatistics(JoinTree queryTree, Dataset<Row> queryResult) {
+		// get the join type
+		String queryPlan = queryResult.queryExecution().executedPlan().toString();
+		// count number of joins overall
+		int joinsCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join");
+		// count number of broadcast joins for a query
+		int broadcastJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "BroadcastHashJoin");
+		// count number of sort merge joins
+		int sortMergeJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "SortMergeJoin");
+		// save the statistics
+		queryStatistics.add(new String[] { queryTree.query_name, String.valueOf(joinsCount),
+				String.valueOf(broadcastJoinCount), String.valueOf(sortMergeJoinCount),
+				String.valueOf(queryTree.getVpLeavesCount()), String.valueOf(queryTree.getWptLeavesCount()) });
 	}
 
 	/*
@@ -102,6 +123,22 @@ public class Executor {
 		}
 	}
 
+	public void partitionBySubject() {
+		final List<Row> tablesNamesRows = sqlContext.sql("SHOW TABLES").collectAsList();
+		for (final Row row : tablesNamesRows) {
+			String tableName = row.getString(1);
+			if (tableName.equals("properties") || tableName.equals("tripletable_ext")) {
+				continue;
+			}
+			Dataset tableData = this.spark.sql("SELECT * FROM " + tableName + " DISTRIBUTE BY s");
+			tableData.registerTempTable("par_" + tableName);
+			// cache tables
+			// sqlContext.sql("CACHE TABLE par_" + tableName);
+			// force partitioning
+			tableData.count();
+		}
+	}
+
 	/*
 	 * Save the results <query name, execution time, number of results> in a csv
 	 * file.
@@ -111,8 +148,12 @@ public class Executor {
 				StandardOpenOption.APPEND);
 				CSVPrinter csvPrinter = new CSVPrinter(writer,
 						CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"));) {
-			for (final String[] res : query_time_results) {
+			for (final String[] res : this.queryTimeResults) {
 				csvPrinter.printRecord(res[0], res[1], res[2]);
+			}
+			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join", "VP Nodes", "WPT Nodes");
+			for (final String[] res : this.queryStatistics) {
+				csvPrinter.printRecord(res[0], res[1], res[2], res[3], res[4], res[5]);
 			}
 			csvPrinter.flush();
 
@@ -121,7 +162,7 @@ public class Executor {
 		}
 	}
 
-	public void clearQueryTimes() {
-		query_time_results.clear();
+	public void clearHistory() {
+		queryTimeResults.clear();
 	}
 }
