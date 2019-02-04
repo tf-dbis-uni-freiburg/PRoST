@@ -117,6 +117,7 @@ public class PTNode extends MVNode {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 		query.append(" FROM " + this.tableName + " ");
+		//query.append(" FROM " + "par_" + this.tableName + " ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);
@@ -126,6 +127,7 @@ public class PTNode extends MVNode {
 			query.append(" WHERE ");
 			query.append(String.join(" AND ", whereConditions));
 		}
+		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
 	@Override

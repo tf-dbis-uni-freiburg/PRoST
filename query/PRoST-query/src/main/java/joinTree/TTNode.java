@@ -50,6 +50,7 @@ public class TTNode extends Node {
 		// FROM
 		query.append(" FROM ");
 		query.append("tripletable");
+		//query.append("par_tripletable");
 		query.append(" WHERE ");
 		query.append(" p='<" + triplePattern.predicate + ">' ");
 		// WHERE
