@@ -50,7 +50,7 @@ public class Executor {
 		logger.info("USE " + databaseName);
 
 		// only if partition by subject
-		// partitionBySubject();
+		//partitionBySubject();
 	}
 
 	public void setOutputFile(final String outputFile) {
@@ -124,6 +124,7 @@ public class Executor {
 	}
 
 	public void partitionBySubject() {
+		final long startTime = System.currentTimeMillis();
 		final List<Row> tablesNamesRows = sqlContext.sql("SHOW TABLES").collectAsList();
 		for (final Row row : tablesNamesRows) {
 			String tableName = row.getString(1);
@@ -137,6 +138,8 @@ public class Executor {
 			// force partitioning
 			tableData.count();
 		}
+		final long  executionTime = System.currentTimeMillis() - startTime;
+		logger.info("Execution time for hashing by subject: " + String.valueOf(executionTime));
 	}
 
 	/*
@@ -160,7 +163,25 @@ public class Executor {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-	}
+}
+//	/*
+//	 * Save the results <query name, execution time, number of results> in a csv
+//	 * file.
+//	 */
+//	public void saveResultsCsv(final String fileName, String[] timeResult, String[] joinResults) {
+//		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
+//				StandardOpenOption.APPEND);
+//				CSVPrinter csvPrinter = new CSVPrinter(writer,
+//						CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"));) {
+//			csvPrinter.printRecord(timeResult[0], timeResult[1], timeResult[2]);
+//			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join");
+//			csvPrinter.printRecord(joinResults[0], joinResults[1], joinResults[2], joinResults[3]);
+//			csvPrinter.flush();
+//
+//		} catch (final IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	public void clearHistory() {
 		queryTimeResults.clear();

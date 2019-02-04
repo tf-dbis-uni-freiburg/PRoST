@@ -37,10 +37,10 @@ public class VPNode extends Node {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-//		if (tableName == null) {
-//			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
-//			return;
-//		}
+		if (tableName == null) {
+			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
+			return;
+		}
 
 		final StringBuilder query = new StringBuilder("SELECT ");
 
@@ -57,7 +57,7 @@ public class VPNode extends Node {
 		// FROM
 		query.append(" FROM ");
 		// when partition by subject
-		// query.append("par_vp_" + tableName);
+		//query.append("par_vp_" + tableName);
 		query.append("vp_" + tableName);
 
 		// WHERE
