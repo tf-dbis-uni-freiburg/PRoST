@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.protobuf.StringValue;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.log4j.Logger;
@@ -94,6 +95,65 @@ public class Executor {
 		logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
 	}
 
+	public void execute(int k) {
+		// use the selected database
+		sqlContext.sql("USE " + databaseName);
+		logger.info("USE " + databaseName);
+
+		long bestTime = Long.MAX_VALUE;
+		long worseTime = 0;
+		long totalTime = 0;
+		long numberResults = -1;
+
+		final long totalStartTime = System.currentTimeMillis();
+		// compute the singular nodes data
+		queryTree.computeSingularNodeData(sqlContext);
+		logger.info("COMPUTED nodes data");
+
+
+		for (int i=0; i<k;i++) {
+			long startTime;
+			long executionTime;
+
+			// compute the joins
+			final Dataset<Row> results = queryTree.computeJoins(sqlContext);
+			startTime = System.currentTimeMillis();
+
+			// if specified, save the results in HDFS, just count otherwise
+			if (outputFile != null) {
+				results.write().parquet(outputFile);
+			} else {
+				numberResults = results.count();
+				logger.info("Number of Results: " + String.valueOf(numberResults));
+			}
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Execution time JOINS: " + String.valueOf(executionTime));
+
+			final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
+			logger.info("Total execution time: " + String.valueOf(totalExecutionTime));
+
+			totalTime = totalTime + executionTime;
+			if (executionTime>worseTime){
+				worseTime = executionTime;
+			}
+			if(executionTime<bestTime){
+				bestTime=executionTime;
+			}
+
+		}
+		final long averageTime = totalTime/k;
+		// save the results in the list
+		queryTimeTesults.add(
+				new String[]{
+						queryTree.queryName,
+						String.valueOf(averageTime),
+						String.valueOf(numberResults),
+						String.valueOf(bestTime),
+						String.valueOf(worseTime),
+						String.valueOf(totalTime)
+				});
+	}
+
 	/*
 	 * When called, it loads tables into memory before execution. This method is suggested
 	 * only for batch execution of queries and in general it doesn't produce benefit (only
@@ -123,6 +183,21 @@ public class Executor {
 						CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"));) {
 			for (final String[] res : queryTimeTesults) {
 				csvPrinter.printRecord(res[0], res[1], res[2]);
+			}
+			csvPrinter.flush();
+
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void saveResultsCsv(final String fileName, int k) {
+		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName));
+
+			 CSVPrinter csvPrinter = new CSVPrinter(writer,
+					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Best", "Worse", "Total"))) {
+			for (final String[] res : queryTimeTesults) {
+				csvPrinter.printRecord(res[0], res[1], res[2], res[3], res[4], res[5]);
 			}
 			csvPrinter.flush();
 

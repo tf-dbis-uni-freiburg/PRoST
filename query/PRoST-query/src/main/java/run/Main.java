@@ -60,6 +60,8 @@ public class Main {
 	private static DatabaseStatistics extVPDatabaseStatistics;
 	private static String extVPDatabaseName;
 
+	private static int k = 1;
+
 	public static void main(final String[] args) throws IOException {
 		final InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
 		final Properties props = new Properties();
@@ -89,6 +91,10 @@ public class Main {
 		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
+
+		final Option kTimes = new Option("k", "kTimes", true, "Number of times each query is executed");
+		kTimes.setRequired(false);
+		options.addOption(kTimes);
 
 		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "Disables grouping of triple patterns when using " + "WPT, IWPT, or JWPT models");
 		disableGroupingOpt.setRequired(false);
@@ -142,6 +148,12 @@ public class Main {
 		if (cmd.hasOption("times")) {
 			benchmarkMode = true;
 			benchmark_file = cmd.getOptionValue("times");
+		}
+
+		if (cmd.hasOption("kTimes")) {
+			benchmarkMode = true;
+			k = Integer.valueOf(cmd.getOptionValue("kTimes"));
+			logger.info("kTimes: " + k);
 		}
 
 		if (cmd.hasOption("groupSize")) {
@@ -295,10 +307,10 @@ public class Main {
 			}*/
 
 			// if the path is a directory execute every files inside
-			executeBatch(file.list(), executor, spark);
+			executeBatch(file.list(), executor, spark, k);
 
 			if (benchmarkMode) {
-				executor.saveResultsCsv(benchmark_file);
+				executor.saveResultsCsv(benchmark_file, k);
 			}
 
 			if (useExtVP || useVpToExtVP) {
@@ -343,6 +355,24 @@ public class Main {
 			// execution phase
 			executor.setQueryTree(translatedQuery);
 			executor.execute();
+
+			//uncomment to save after each file
+			/*if (extVPMaximumSize>0) {
+				extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);
+			}*/
+		}
+	}
+
+	private static void executeBatch(final String[] queries, final Executor executor, final SparkSession spark, int k) {
+		for (final String fname : queries) {
+			logger.info("Starting: " + fname);
+
+			// translation phase
+			final JoinTree translatedQuery = translateSingleQuery(inputFile + "/" + fname, treeWidth);
+
+			// execution phase
+			executor.setQueryTree(translatedQuery);
+			executor.execute(k);
 
 			//uncomment to save after each file
 			/*if (extVPMaximumSize>0) {
