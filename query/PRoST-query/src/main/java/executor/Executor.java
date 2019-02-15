@@ -110,6 +110,7 @@ public class Executor {
 		queryTree.computeSingularNodeData(sqlContext);
 		logger.info("COMPUTED nodes data");
 
+		long[] timeArray = new long[k];
 
 		for (int i=0; i<k;i++) {
 			long startTime;
@@ -140,8 +141,15 @@ public class Executor {
 				bestTime=executionTime;
 			}
 
+			timeArray[i] = executionTime;
 		}
 		final long averageTime = totalTime/k;
+		long standardDeviation = 0;
+		for(double t: timeArray) {
+			standardDeviation += Math.pow(t - averageTime, 2);
+		}
+		standardDeviation = (long)Math.sqrt(standardDeviation/k);
+
 		// save the results in the list
 		queryTimeTesults.add(
 				new String[]{
@@ -150,7 +158,8 @@ public class Executor {
 						String.valueOf(numberResults),
 						String.valueOf(bestTime),
 						String.valueOf(worseTime),
-						String.valueOf(totalTime)
+						String.valueOf(totalTime),
+						String.valueOf(standardDeviation)
 				});
 	}
 
@@ -195,9 +204,9 @@ public class Executor {
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName));
 
 			 CSVPrinter csvPrinter = new CSVPrinter(writer,
-					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Best", "Worse", "Total"))) {
+					 CSVFormat.DEFAULT.withHeader("Query", "Average (ms)", "Number of results", "Best", "Worse", "Total", "Standard Deviation"))) {
 			for (final String[] res : queryTimeTesults) {
-				csvPrinter.printRecord(res[0], res[1], res[2], res[3], res[4], res[5]);
+				csvPrinter.printRecord(res[0], res[1], res[2], res[3], res[4], res[5], res[6]);
 			}
 			csvPrinter.flush();
 
