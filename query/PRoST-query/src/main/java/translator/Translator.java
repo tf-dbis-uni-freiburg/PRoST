@@ -278,52 +278,15 @@ public class Translator {
 					// remove triples from smaller groups
 					for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
 						String object = triple.getObject().toString(prefixes);
-
-						/*if (!triple.getObject().isVariable()) {
-							logger.info("is literal");
-							object = prefixes.shortForm(object);
-							//object = Utils.toMetastoreName(object);
-						}*/
-						/*logger.info("resource to remove from iwpts: " + object);
-						logger.info("keys");
-						logger.info(joinedGroups.keySet().toString());*/
-
 						if (joinedGroups.get(object)!= null){
-							//logger.info("found group");
-
-							/*for (Triple t:joinedGroups.get(object).getIwptGroup()){
-								logger.info(t.toString());
-							}
-							logger.info("t to remove: " + triple.toString());*/
-
 							joinedGroups.get(object).getIwptGroup().remove(triple);
-							//Boolean b = joinedGroups.get(object).getIwptGroup().remove(triple);
-							/*if (b){
-								logger.info("removed");
-							} else{ logger.info("not removed");}*/
 							removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
 						}
 					}
 					for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
 						String subject = triple.getSubject().toString(prefixes);
-						/*if (!triple.getSubject().isVariable()) {
-							//logger.info("is literal");
-							subject = prefixes.shortForm(subject);
-							//subject = Utils.toMetastoreName(subject);
-						}*/
-						//logger.info("resource to remove from wpts: " + subject);
 						if (joinedGroups.get(subject)!= null) {
-							//logger.info("found group");
-							/*for (Triple t:joinedGroups.get(subject).getWptGroup()){
-								logger.info(t.toString());
-							}*/
-							//logger.info("t to remove: " + triple.toString());
-
 							joinedGroups.get(subject).getWptGroup().remove(triple);
-							//Boolean b = joinedGroups.get(subject).getWptGroup().remove(triple);
-							/*if (b){
-								logger.info("removed");
-							} else{ logger.info("not removed");}*/
 							removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
 						}
 					}
@@ -332,7 +295,6 @@ public class Translator {
 				} else {//if grouping is disabled, there will be no repeated triples. Works as a normal WPT.
 					for (String key : joinedGroups.keySet()){
 						createNodes(joinedGroups.get(key), nodesQueue, unassignedTriples);
-						// joinedGroups.remove(key);
 					}
 					joinedGroups.clear(); //avoid concurrent modifications
 				}
@@ -512,9 +474,15 @@ public class Translator {
 	 */
 	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue, List<Triple> unassignedTriples){
 		if (joinedGroup.size()>=minimumGroupSize){
-			nodesQueue.add(new JptNode(joinedGroup, prefixes));
-			unassignedTriples.removeAll(joinedGroup.getWptGroup());
-			unassignedTriples.removeAll(joinedGroup.getIwptGroup());
+			if (usePropertyTable && joinedGroup.getIwptGroup().size()==0){
+				createNodes( new ArrayList<Triple>(joinedGroup.getWptGroup()),nodesQueue,NODE_TYPE.WPT,unassignedTriples);
+			} else if (useInversePropertyTable && joinedGroup.getWptGroup().size()==0){
+				createNodes( new ArrayList<Triple>(joinedGroup.getIwptGroup()),nodesQueue,NODE_TYPE.IWPT,unassignedTriples);
+			}else {
+				nodesQueue.add(new JptNode(joinedGroup, prefixes));
+				unassignedTriples.removeAll(joinedGroup.getWptGroup());
+				unassignedTriples.removeAll(joinedGroup.getIwptGroup());
+			}
 		} else {
 			logger.info("Group too small. Node not created");
 		}
