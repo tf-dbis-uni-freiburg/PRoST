@@ -478,7 +478,7 @@ public class Translator {
 				createNodes( new ArrayList<Triple>(joinedGroup.getWptGroup()),nodesQueue,NODE_TYPE.WPT,unassignedTriples);
 			} else if (useInversePropertyTable && joinedGroup.getWptGroup().size()==0){
 				createNodes( new ArrayList<Triple>(joinedGroup.getIwptGroup()),nodesQueue,NODE_TYPE.IWPT,unassignedTriples);
-			}else {
+			} else {
 				nodesQueue.add(new JptNode(joinedGroup, prefixes));
 				unassignedTriples.removeAll(joinedGroup.getWptGroup());
 				unassignedTriples.removeAll(joinedGroup.getIwptGroup());
@@ -742,10 +742,6 @@ public class Translator {
 
 	public void setUseJoinedPropertyTable(final boolean useJoinedPropertyTable) {
 		this.useJoinedPropertyTable = useJoinedPropertyTable;
-		if (this.useJoinedPropertyTable) {
-			setUsePropertyTable(false);
-			setUseInversePropertyTable(false);
-		}
 	}
 
 	public void setIsGrouping(boolean isGrouping){

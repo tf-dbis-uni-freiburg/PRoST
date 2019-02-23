@@ -215,6 +215,10 @@ public class Main {
 		if (cmd.hasOption("DB")) {
 			database_name = cmd.getOptionValue("DB");
 			extVPDatabaseName = "extVP_" + database_name;
+			if (isExtVpPartitioned){
+				extVPDatabaseName = extVPDatabaseName + "_part";
+			}
+
 			/*if (isExtVpPartitioned){
 				extVPDatabaseName = "part_" + extVPDatabaseName;
 			}
@@ -229,11 +233,6 @@ public class Main {
 		}
 
 		//Validate Input Parameters
-		if (useJoinedPropertyTable && (useInversePropertyTable || usePropertyTable)) {
-			useInversePropertyTable = false;
-			usePropertyTable = false;
-			logger.info("WPT and IWPT disabled. WPT and IWPT are not used when JWPT is enabled");
-		}
 		if (!isGrouping && minimumGroupSize != 1) {
 			minimumGroupSize = 1;
 			logger.info("Minimum group size set to 1 when grouping is disabled");
