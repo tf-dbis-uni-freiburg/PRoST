@@ -143,6 +143,9 @@ public class Executor {
 
 			timeArray[i] = executionTime;
 		}
+
+
+
 		final long averageTime = totalTime/k;
 		long standardDeviation = 0;
 		for(double t: timeArray) {

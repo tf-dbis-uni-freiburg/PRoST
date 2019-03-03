@@ -18,6 +18,8 @@ public class JoinedWidePropertyTable extends PropertyTableLoader {
 	}
 
 	Dataset<Row> loadDataset(){
+
+		long startTime = System.currentTimeMillis();
 		InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(hdfs_input_directory,database_name,spark,
 				isPartitioned);
 		Dataset<Row> iwptDataset = iwptLoader.loadDataset();
@@ -30,6 +32,8 @@ public class JoinedWidePropertyTable extends PropertyTableLoader {
 		for (final String property : wptLoader.properties_names) {
 			wptDataset = wptDataset.withColumnRenamed(property, WPT_PREFIX.concat(property));
 		}
+
+		logger.info("time to create pts " + String.valueOf(System.currentTimeMillis()- startTime));
 
 		wptDataset = wptDataset.withColumnRenamed(column_name_subject, COLUMN_NAME_COMMON_RESOURCE);
 		iwptDataset = iwptDataset.withColumnRenamed(column_name_object, COLUMN_NAME_COMMON_RESOURCE);

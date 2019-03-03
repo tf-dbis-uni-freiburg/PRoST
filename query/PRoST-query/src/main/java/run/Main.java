@@ -373,6 +373,11 @@ public class Main {
 			executor.setQueryTree(translatedQuery);
 			executor.execute(k);
 
+
+			//clear statistics and database for evaluation of creation time
+			spark.sql("drop database if exists "+ extVPDatabaseName + " cascade");
+			extVPDatabaseStatistics = new DatabaseStatistics(extVPDatabaseName);
+
 			//uncomment to save after each file
 			/*if (extVPMaximumSize>0) {
 				extVPDatabaseStatistics.clearCache(extVPMaximumSize / 2, extVPMaximumSize, spark);

@@ -423,18 +423,27 @@ public class ExtVpCreator {
 		/*String createTable1Query = String.format("create table if not exists %1$s(o string) partitioned by (" + part1 +" string) stored as parquet",
 				extVp1TableNameWithDatabaseIdentifier);*/
 
-		String createTable1Query = String.format("create table if not exists %1$s(s string, o string) using parquet clustered by (" + part1 + ") sorted by (" + part1 + ") into 256 buckets",
-				extVp1TableNameWithDatabaseIdentifier);
+		//String createTable1Query = String.format("create table if not exists %1$s(s string, o string) using parquet clustered by (" + part1 + ") sorted by (" + part1 + ") into 256 buckets",
+		//		extVp1TableNameWithDatabaseIdentifier);
 
 
 		//logger.info(createTable1Query);
-		spark.sql(createTable1Query);
+		//spark.sql(createTable1Query);
 
 		//VP2
 		/*String createTable2Query = String.format("create table if not exists %1$s(o string) partitioned by (" + part2 +" string)  stored as parquet",
 				extVp2TableNameWithDatabaseIdentifier);*/
 
-		String createTable2Query = String.format("create table if not exists %1$s(s string, o string) using parquet clustered by (" + part2 + ") sorted by (" + part2 + ") into 256 buckets",
+		//String createTable2Query = String.format("create table if not exists %1$s(s string, o string) using parquet clustered by (" + part2 + ") sorted by (" + part2 + ") into 256 buckets",
+		//		extVp2TableNameWithDatabaseIdentifier);
+
+		//VP1
+		String createTable1Query = String.format("create table if not exists %1$s(s string, o string) stored as parquet",
+				extVp1TableNameWithDatabaseIdentifier);
+		spark.sql(createTable1Query);
+
+		//VP2
+		String createTable2Query = String.format("create table if not exists %1$s(s string, o string) stored as parquet",
 				extVp2TableNameWithDatabaseIdentifier);
 
 		//logger.info(createTable2Query);
