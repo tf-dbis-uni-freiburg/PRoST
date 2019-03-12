@@ -51,7 +51,6 @@ public class WidePropertyTableLoader extends Loader {
 	public String column_name_subject = super.column_name_subject;
 	public String column_name_object = super.column_name_object;
 
-	protected String hdfs_input_directory;
 	protected String output_db_name;
 	protected String output_tablename = "wide_property_table";
 	protected boolean wptPartitionedBySub = false;
@@ -64,15 +63,15 @@ public class WidePropertyTableLoader extends Loader {
 	 * Constructor for a Wide Property Table loader with the default
 	 * <code>propertyTableType</code> value.
 	 */
-	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
+	public WidePropertyTableLoader(final String database_name,
 			final SparkSession spark, final boolean wptPartitionedBySub) {
-		super(hdfs_input_directory, database_name, spark);
+		super(database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
 	}
 
-	public WidePropertyTableLoader(final String hdfs_input_directory, final String database_name,
+	public WidePropertyTableLoader(final String database_name,
 			final SparkSession spark, final boolean wptPartitionedBySub, final PropertyTableType propertyTableType) {
-		super(hdfs_input_directory, database_name, spark);
+		super(database_name, spark);
 		this.wptPartitionedBySub = wptPartitionedBySub;
 		this.propertyTableType = propertyTableType;
 

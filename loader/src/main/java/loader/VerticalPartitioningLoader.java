@@ -28,9 +28,9 @@ import loader.ProtobufStats.TableStats;
 public class VerticalPartitioningLoader extends Loader {
 	private final boolean computeStatistics;
 
-	public VerticalPartitioningLoader(final String hdfs_input_directory, final String database_name,
+	public VerticalPartitioningLoader(final String database_name,
 			final SparkSession spark, final boolean computeStatistics) {
-		super(hdfs_input_directory, database_name, spark);
+		super(database_name, spark);
 		this.computeStatistics = computeStatistics;
 	}
 
@@ -47,7 +47,7 @@ public class VerticalPartitioningLoader extends Loader {
 		for (int i = 0; i < properties_names.length; i++) {
 			final String property = properties_names[i];
 			final String createVPTableFixed =
-					String.format("CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
+					String.format("CREATE TABLE IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
 							"vp_" + getValidHiveName(property), column_name_subject, column_name_object);
 			// Commented code is partitioning by subject
 			/*

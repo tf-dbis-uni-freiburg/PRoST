@@ -230,9 +230,9 @@ public class Main {
 
 		if (generateTT) {
 			startTime = System.currentTimeMillis();
-			final TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark,
+			 final TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark,
 					ttPartitionedBySub, ttPartitionedByPred, dropDuplicates);
-			tt_loader.load();
+			 tt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
 		}
@@ -240,7 +240,7 @@ public class Main {
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader pt_loader =
-					new WidePropertyTableLoader(input_location, outputDB, spark, wptPartitionedBySub);
+					new WidePropertyTableLoader(outputDB, spark, wptPartitionedBySub);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
@@ -248,7 +248,7 @@ public class Main {
 
 		if (generateIWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader ipt_loader = new WidePropertyTableLoader(input_location, outputDB, spark,
+			final WidePropertyTableLoader ipt_loader = new WidePropertyTableLoader(outputDB, spark,
 					wptPartitionedBySub, PropertyTableType.IWPT);
 			ipt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
@@ -257,7 +257,7 @@ public class Main {
 
 		if (generateJWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader joinedWpt_loader = new WidePropertyTableLoader(input_location, outputDB,
+			final WidePropertyTableLoader joinedWpt_loader = new WidePropertyTableLoader(outputDB,
 					spark, wptPartitionedBySub, PropertyTableType.JWPT);
 			joinedWpt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
@@ -267,7 +267,7 @@ public class Main {
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
 			final VerticalPartitioningLoader vp_loader =
-					new VerticalPartitioningLoader(input_location, outputDB, spark, useStatistics);
+					new VerticalPartitioningLoader(outputDB, spark, useStatistics);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
