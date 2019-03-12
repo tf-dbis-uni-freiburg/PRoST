@@ -22,10 +22,12 @@ public class TripleTableLoader extends Loader {
 	protected boolean ttPartitionedBySub = false;
 	protected boolean ttPartitionedByPred = false;
 	protected boolean dropDuplicates = true;
+	protected String hdfs_input_directory;
 
 	public TripleTableLoader(final String hdfs_input_directory, final String database_name, final SparkSession spark,
 			final boolean ttPartitionedBySub, final boolean ttPartitionedByPred, final boolean dropDuplicates) {
-		super(hdfs_input_directory, database_name, spark);
+		super(database_name, spark);
+		this.hdfs_input_directory = hdfs_input_directory;
 		this.ttPartitionedBySub = ttPartitionedBySub;
 		this.ttPartitionedByPred = ttPartitionedByPred;
 		this.dropDuplicates = dropDuplicates;

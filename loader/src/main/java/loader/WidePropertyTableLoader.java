@@ -11,9 +11,9 @@ public class WidePropertyTableLoader extends PropertyTableLoader {
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "properties";
 	private static final String WPT_TABLE_NAME = "wide_property_table";
 
-	public WidePropertyTableLoader(final String hdfsInputDirectory, final String databaseName,
+	public WidePropertyTableLoader(final String databaseName,
 								   final SparkSession spark, boolean isPartitioned){
-		super(hdfsInputDirectory, databaseName, spark, isPartitioned, WPT_TABLE_NAME);
+		super(databaseName, spark, isPartitioned, WPT_TABLE_NAME);
 	}
 
 	@Override
@@ -24,5 +24,5 @@ public class WidePropertyTableLoader extends PropertyTableLoader {
 		properties_names = propertiesCardinalitiesMap.keySet().toArray(new String[0]);
 		return createPropertyTableDataset(propertiesCardinalitiesMap, column_name_subject,
 				column_name_object);
-	}
+}
 }

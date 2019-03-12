@@ -13,7 +13,6 @@ public abstract class Loader {
 
 	protected SparkSession spark;
 	protected String database_name;
-	protected String hdfs_input_directory;
 	protected static final Logger logger = Logger.getLogger("PRoST");
 	public boolean keep_temporary_tables = false;
 	public static final String table_format = "parquet";
@@ -29,10 +28,9 @@ public abstract class Loader {
 	protected String[] properties_names;
 	public String stats_file_suffix = ".stats";
 
-	public Loader(final String hdfs_input_directory, final String database_name, final SparkSession spark) {
+	public Loader(final String database_name, final SparkSession spark) {
 		this.database_name = database_name;
 		this.spark = spark;
-		this.hdfs_input_directory = hdfs_input_directory;
 		// Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
 		// spark.sql("SET hive.exec.dynamic.partition = true");
 		// spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");

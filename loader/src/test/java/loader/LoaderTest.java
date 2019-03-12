@@ -19,7 +19,6 @@ class LoaderTest {
 	 * of hive support.
 	 */
 	static void loadTripleTable() {
-
 		Dataset<Row> tripleTable = spark.read().option("delimiter", "\t").csv(INPUT_TEST_GRAPH);
 		tripleTable = tripleTable.selectExpr("_c0 AS s", "_c1 AS p", "_c2 AS o");
 		tripleTable.write().mode("overwrite").saveAsTable("tripletable");
@@ -41,7 +40,7 @@ class LoaderTest {
 
 	@Test
 	void propertyTableTest() {
-		final WidePropertyTableLoader pt_loader = new WidePropertyTableLoader("", "testingDB", spark, false);
+		final WidePropertyTableLoader pt_loader = new WidePropertyTableLoader("testingDB", spark, false);
 		pt_loader.load();
 		final Dataset<Row> propertyTable = spark.sql("SELECT * FROM property_table");
 
@@ -56,7 +55,7 @@ class LoaderTest {
 
 	@Test
 	void verticalPartitioningTest() {
-		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader("", "testingDB", spark);
+		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader("testingDB", spark, false);
 		vp_loader.load();
 		final Dataset<Row> tables_list = spark.sql("SHOW tables");
 
