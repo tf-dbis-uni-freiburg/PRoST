@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
+import joinTree.*;
 import org.apache.log4j.Logger;
 
 import com.hp.hpl.jena.graph.Triple;
@@ -48,6 +49,7 @@ public class Translator {
 	private boolean usePropertyTable = false;
 	private boolean useInversePropertyTable = false;
 	private boolean useJoinedPropertyTable = false;
+	private boolean useWptPathsNode = false;
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when
@@ -166,7 +168,16 @@ public class Translator {
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 
-		if (useJoinedPropertyTable) {
+		if (useWptPathsNode){
+			for (Triple triple:triples){
+				if(triple.getSubject().isVariable()||triple.getObject().isConcrete()||triple.getObject().isConcrete()){
+					logger.info("Triple format is wrong");
+				} else {
+					WptPathsNode node = new WptPathsNode(triple,prefixes);
+					nodesQueue.add(node);
+				}
+			}
+		}else if (useJoinedPropertyTable) {
 			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
 			logger.info("JWPT and VP models only");
 
@@ -554,6 +565,13 @@ public class Translator {
 			setUsePropertyTable(false);
 			setUseInversePropertyTable(false);
 		}
+	}
+
+	public void setUseWptPathsNode(final boolean useWptPathsNode){
+		this.useWptPathsNode = useWptPathsNode;
+		setUseInversePropertyTable(false);
+		setUsePropertyTable(false);
+		setUseJoinedPropertyTable(false);
 	}
 
 }

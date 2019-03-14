@@ -80,6 +80,11 @@ public abstract class Node {
 			for (final TriplePattern tpGroup : tripleGroup) {
 				str.append(tpGroup.toString() + ", ");
 			}
+		}else if (this instanceof WptPathsNode){
+			str.append("Wpt path node: ");
+			for (final TriplePattern tpGroup : tripleGroup) {
+				str.append(tpGroup.toString() + ", ");
+			}
 		} else {
 			str.append("VP node: ");
 			str.append(triplePattern.toString());

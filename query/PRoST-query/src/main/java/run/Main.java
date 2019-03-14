@@ -40,6 +40,7 @@ public class Main {
 	private static boolean usePropertyTable = false;
 	private static boolean useInversePropertyTable = false;
 	private static boolean useJoinedPropertyTable = false;
+	private static boolean useWptPathsNode = false;
 	private static int setGroupSize = -1;
 	private static boolean benchmarkMode = false;
 	private static String benchmark_file;
@@ -79,6 +80,10 @@ public class Main {
 		final Option joinedPropertyTable =
 				new Option("jwpt", "joined_property_table", false, "Use Joined Wide Property Table");
 		options.addOption(joinedPropertyTable);
+
+		final Option wptPaths =
+				new Option("paths", "wpt_paths", false, "Use Wide Property Table to get paths");
+
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
 		final Option groupsizeOpt =
@@ -132,6 +137,15 @@ public class Main {
 			useJoinedPropertyTable = true;
 			logger.info("Using Joined Wide Property Table.");
 		}
+
+		if (cmd.hasOption("wpt_paths")){
+			useWptPathsNode = true;
+			useInversePropertyTable = false;
+			usePropertyTable = false;
+			useJoinedPropertyTable = false;
+			logger.info("Using Wide Property Table to calculate paths.");
+		}
+
 		if (cmd.hasOption("groupsize")) {
 			setGroupSize = Integer.valueOf(cmd.getOptionValue("groupsize"));
 			logger.info("Minimum Group Size set to " + String.valueOf(setGroupSize));
@@ -200,6 +214,13 @@ public class Main {
 			translator.setUseInversePropertyTable(false);
 			translator.setUsePropertyTable(false);
 		}
+		if (useWptPathsNode){
+			translator.setUseJoinedPropertyTable(false);
+			translator.setUseInversePropertyTable(false);
+			translator.setUsePropertyTable(false);
+			translator.setUseWptPathsNode(true);
+		}
+
 		if (setGroupSize != -1) {
 			translator.setMinimumGroupSize(setGroupSize);
 		}

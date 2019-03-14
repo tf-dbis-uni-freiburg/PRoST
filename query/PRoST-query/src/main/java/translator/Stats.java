@@ -158,6 +158,10 @@ public class Stats {
 		return null;
 	}
 
+	public String[] getTableNames(){
+		return tableNames;
+	}
+
 	/*
 	 * Return true if prefixes are used in the data set.
 	 */

@@ -15,7 +15,7 @@ public class NodeComparator implements Comparator<Node> {
 	public float heuristicNodePriority(final Node node) {
 		float priority = 0;
 
-		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode) {
+		if (node instanceof PtNode || node instanceof IptNode || node instanceof JptNode || node instanceof WptPathsNode) {
 			for (final TriplePattern t : node.tripleGroup) {
 				final boolean isObjectVariable = t.objectType == ElementType.VARIABLE;
 				final boolean isSubjectVariable = t.subjectType == ElementType.VARIABLE;

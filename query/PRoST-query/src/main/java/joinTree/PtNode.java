@@ -36,7 +36,6 @@ public class PtNode extends Node {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		setIsComplex();
-
 	}
 
 	private void setIsComplex() {
