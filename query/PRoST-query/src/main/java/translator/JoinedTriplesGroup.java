@@ -10,9 +10,7 @@ import javax.annotation.Nullable;
  * A group of triples that have their common variable at either their subject or object.
  */
 public class JoinedTriplesGroup {
-	@Nullable
 	private final HashSet<Triple> wptGroup;
-	@Nullable
 	private final HashSet<Triple> iwptGroup;
 
 	JoinedTriplesGroup() {
@@ -23,7 +21,6 @@ public class JoinedTriplesGroup {
 	/**
 	 * @return returns the triples whose common variable is a subject
 	 */
-	@Nullable
 	public HashSet<Triple> getWptGroup() {
 		return wptGroup;
 	}
@@ -32,7 +29,6 @@ public class JoinedTriplesGroup {
 	 *
 	 * @return returns the triples whose common variable is an object
 	 */
-	@Nullable
 	public HashSet<Triple> getIwptGroup() {
 		return iwptGroup;
 	}
