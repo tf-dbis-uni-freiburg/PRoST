@@ -6,10 +6,12 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import stats.StatisticsWriter;
+
 /**
  * Class that constructs a triples table. First, the loader creates an external
  * table ("raw"). The data is read using SerDe capabilities and by means of a
- * regular expresion. An additional table ("fixed") is created to make sure that
+ * regular expression. An additional table ("fixed") is created to make sure that
  * only valid triples are passed to the next stages in which other models e.g.
  * Property Table, or Vertical Partitioning are built.
  *
@@ -33,12 +35,10 @@ public class TripleTableLoader extends Loader {
 	public void load() throws Exception {
 		logger.info("PHASE 1: loading all triples to a generic table...");
 		final String queryDropTripleTable = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
-		final String queryDropTripleTableFixed = String.format("DROP TABLE IF EXISTS %s", name_tripletable);
 		String createTripleTableFixed = null;
 		String repairTripleTableFixed = null;
 
 		spark.sql(queryDropTripleTable);
-		spark.sql(queryDropTripleTableFixed);
 
 		final String createTripleTableRaw = String.format(
 				"CREATE EXTERNAL TABLE IF NOT EXISTS %1$s(%2$s STRING, %3$s STRING, %4$s STRING) ROW FORMAT SERDE "
@@ -122,7 +122,9 @@ public class TripleTableLoader extends Loader {
 		} else {
 			logger.info("Total number of triples loaded: " + allTriples.count());
 		}
-
+		
+		// save statistics about characteristic sets
+		StatisticsWriter.getInstance().computeCharacteristicSets(allTriples);
 		// The following part just outputs to the log in case there have been
 		// problems parsing the files.
 		if (rawTriples.count() != allTriples.count()) {

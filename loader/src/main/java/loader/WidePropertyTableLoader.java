@@ -7,6 +7,7 @@ import org.apache.spark.sql.SparkSession;
 import java.util.Map;
 
 public class WidePropertyTableLoader extends PropertyTableLoader {
+	
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "properties";
 	private static final String WPT_TABLE_NAME = "wide_property_table";
 

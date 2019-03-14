@@ -10,6 +10,8 @@ import loader.JoinedWidePropertyTable;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
 import loader.WidePropertyTableLoader;
+import stats.StatisticsWriter;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -190,6 +192,8 @@ public class Main {
 			logger.info("Statistics active!");
 		}
 
+		// create a statistics writer with statistics enabled
+		StatisticsWriter.getInstance().setUseStatistics(true);
 		//Validate parameters
 		if (useStatistics && !generateVP){
 			logger.info("Logical strategy activated: VP. Mandatory to generate statistics.");
@@ -251,13 +255,16 @@ public class Main {
 
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
-			final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
-					useStatistics);
+			final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB,
+					spark);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
 		}
-
+		
+		// save statistics if needed
+		StatisticsWriter.getInstance().saveStatistics(outputDB);
+		
 		// compute statistics for each table
 		computeTableStatistics(spark);
 	}
