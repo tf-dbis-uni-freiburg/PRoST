@@ -20,13 +20,15 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 /**
  * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options: -h, --help prints the usage help message. -i, --input <file> HDFS input path
- * of the RDF graph. -o, --output <DBname> output database name. -s, compute statistics
+ * Options: -h, --help prints the usage help message. -i, --input <file> HDFS
+ * input path of the RDF graph. -o, --output <DBname> output database name. -s,
+ * compute statistics
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
@@ -88,8 +90,8 @@ public class Main {
 		ttpPartPredOpt.setRequired(false);
 		options.addOption(ttpPartPredOpt);
 
-		final Option ttpPartSubOpt =
-				new Option("tts", "ttPartitionedBySub", false, "To physically partition the Triple Table by subject.");
+		final Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false,
+				"To physically partition the Triple Table by subject.");
 		ttpPartSubOpt.setRequired(false);
 		options.addOption(ttpPartSubOpt);
 
@@ -222,7 +224,8 @@ public class Main {
 
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(input_location,outputDB, spark, wptPartitionedBySub);
+			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			wptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
@@ -230,7 +233,8 @@ public class Main {
 
 		if (generateIWPT) {
 			startTime = System.currentTimeMillis();
-			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(input_location,outputDB, spark, wptPartitionedBySub);
+			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(input_location, outputDB, spark,
+					wptPartitionedBySub);
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
@@ -238,7 +242,7 @@ public class Main {
 
 		if (generateJWPT) {
 			startTime = System.currentTimeMillis();
-			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(input_location,outputDB, spark,
+			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(input_location, outputDB, spark,
 					wptPartitionedBySub);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
@@ -247,11 +251,30 @@ public class Main {
 
 		if (generateVP) {
 			startTime = System.currentTimeMillis();
-			final VerticalPartitioningLoader vp_loader =
-					new VerticalPartitioningLoader(input_location, outputDB, spark, useStatistics);
+			final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(input_location, outputDB, spark,
+					useStatistics);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+		}
+
+		// compute statistics for each table
+		computeTableStatistics(spark);
+	}
+
+	/**
+	 * Calculate statistics for each table in the database except the external ones.
+	 * Broadcast join is used only when statistics are already computed.
+	 * 
+	 * @param spark
+	 */
+	public static void computeTableStatistics(SparkSession spark) {
+		Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
+		for (int i = 0; i < tables.length; i++) {
+			// skip the external table
+			if (!tables[i].getString(0).equals("tripletable_ext")) {
+				spark.sql("ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS");
+			}
 		}
 	}
 }
