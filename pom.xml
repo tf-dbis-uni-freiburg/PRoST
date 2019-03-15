@@ -9,7 +9,7 @@
 	</repositories>
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.uni.freiburg.dbis</groupId>
+	<groupId>uni.freiburg.dbis.prost</groupId>
 	<artifactId>prost-parent</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0</version>
