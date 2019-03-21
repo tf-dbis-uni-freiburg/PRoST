@@ -8,6 +8,7 @@ import joinTree.JptNode;
 import joinTree.Node;
 import joinTree.PtNode;
 import joinTree.TriplePattern;
+import joinTree.WptPathsNode;
 
 public class NodeComparator implements Comparator<Node> {
 
