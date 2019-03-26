@@ -2079,54 +2079,19 @@ public final class ProtobufStats {
 
     /**
      * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    java.util.List<java.lang.String>
-        getPredicatesList();
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    int getPredicatesCount();
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    java.lang.String getPredicates(int index);
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    com.google.protobuf.ByteString
-        getPredicatesBytes(int index);
-
-    /**
-     * <pre>
      * count of all subjects part of this char set
      * </pre>
      *
-     * <code>optional int32 subjectsCount = 2;</code>
+     * <code>optional int32 distinctSubjectsCount = 1;</code>
      */
-    int getSubjectsCount();
+    int getDistinctSubjectsCount();
 
     /**
      * <pre>
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
     int getTriplesPerPredicateCount();
     /**
@@ -2134,7 +2099,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
     boolean containsTriplesPerPredicate(
         java.lang.String key);
@@ -2149,7 +2114,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
     java.util.Map<java.lang.String, java.lang.Integer>
     getTriplesPerPredicateMap();
@@ -2158,7 +2123,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     int getTriplesPerPredicateOrDefault(
@@ -2169,7 +2134,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     int getTriplesPerPredicateOrThrow(
@@ -2187,8 +2152,7 @@ public final class ProtobufStats {
       super(builder);
     }
     private CharacteristicSet() {
-      predicates_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      subjectsCount_ = 0;
+      distinctSubjectsCount_ = 0;
     }
 
     @java.lang.Override
@@ -2216,25 +2180,16 @@ public final class ProtobufStats {
               }
               break;
             }
-            case 10: {
-              java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                predicates_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              predicates_.add(s);
-              break;
-            }
-            case 16: {
+            case 8: {
 
-              subjectsCount_ = input.readInt32();
+              distinctSubjectsCount_ = input.readInt32();
               break;
             }
-            case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
                 triplesPerPredicate_ = com.google.protobuf.MapField.newMapField(
                     TriplesPerPredicateDefaultEntryHolder.defaultEntry);
-                mutable_bitField0_ |= 0x00000004;
+                mutable_bitField0_ |= 0x00000002;
               }
               com.google.protobuf.MapEntry<java.lang.String, java.lang.Integer>
               triplesPerPredicate = input.readMessage(
@@ -2250,9 +2205,6 @@ public final class ProtobufStats {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          predicates_ = predicates_.getUnmodifiableView();
-        }
         makeExtensionsImmutable();
       }
     }
@@ -2265,7 +2217,7 @@ public final class ProtobufStats {
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 3:
+        case 2:
           return internalGetTriplesPerPredicate();
         default:
           throw new RuntimeException(
@@ -2280,65 +2232,20 @@ public final class ProtobufStats {
     }
 
     private int bitField0_;
-    public static final int PREDICATES_FIELD_NUMBER = 1;
-    private com.google.protobuf.LazyStringList predicates_;
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    public com.google.protobuf.ProtocolStringList
-        getPredicatesList() {
-      return predicates_;
-    }
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    public int getPredicatesCount() {
-      return predicates_.size();
-    }
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    public java.lang.String getPredicates(int index) {
-      return predicates_.get(index);
-    }
-    /**
-     * <pre>
-     * all the predicates part of this char set
-     * </pre>
-     *
-     * <code>repeated string predicates = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getPredicatesBytes(int index) {
-      return predicates_.getByteString(index);
-    }
-
-    public static final int SUBJECTSCOUNT_FIELD_NUMBER = 2;
-    private int subjectsCount_;
+    public static final int DISTINCTSUBJECTSCOUNT_FIELD_NUMBER = 1;
+    private int distinctSubjectsCount_;
     /**
      * <pre>
      * count of all subjects part of this char set
      * </pre>
      *
-     * <code>optional int32 subjectsCount = 2;</code>
+     * <code>optional int32 distinctSubjectsCount = 1;</code>
      */
-    public int getSubjectsCount() {
-      return subjectsCount_;
+    public int getDistinctSubjectsCount() {
+      return distinctSubjectsCount_;
     }
 
-    public static final int TRIPLESPERPREDICATE_FIELD_NUMBER = 3;
+    public static final int TRIPLESPERPREDICATE_FIELD_NUMBER = 2;
     private static final class TriplesPerPredicateDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, java.lang.Integer> defaultEntry =
@@ -2369,7 +2276,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     public boolean containsTriplesPerPredicate(
@@ -2389,7 +2296,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.Integer> getTriplesPerPredicateMap() {
@@ -2400,7 +2307,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     public int getTriplesPerPredicateOrDefault(
@@ -2416,7 +2323,7 @@ public final class ProtobufStats {
      * key -&gt; predicate, value -&gt; count of all triples that has this predicate
      * </pre>
      *
-     * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+     * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
      */
 
     public int getTriplesPerPredicateOrThrow(
@@ -2442,11 +2349,8 @@ public final class ProtobufStats {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      for (int i = 0; i < predicates_.size(); i++) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, predicates_.getRaw(i));
-      }
-      if (subjectsCount_ != 0) {
-        output.writeInt32(2, subjectsCount_);
+      if (distinctSubjectsCount_ != 0) {
+        output.writeInt32(1, distinctSubjectsCount_);
       }
       for (java.util.Map.Entry<java.lang.String, java.lang.Integer> entry
            : internalGetTriplesPerPredicate().getMap().entrySet()) {
@@ -2455,7 +2359,7 @@ public final class ProtobufStats {
             .setKey(entry.getKey())
             .setValue(entry.getValue())
             .build();
-        output.writeMessage(3, triplesPerPredicate);
+        output.writeMessage(2, triplesPerPredicate);
       }
     }
 
@@ -2464,17 +2368,9 @@ public final class ProtobufStats {
       if (size != -1) return size;
 
       size = 0;
-      {
-        int dataSize = 0;
-        for (int i = 0; i < predicates_.size(); i++) {
-          dataSize += computeStringSizeNoTag(predicates_.getRaw(i));
-        }
-        size += dataSize;
-        size += 1 * getPredicatesList().size();
-      }
-      if (subjectsCount_ != 0) {
+      if (distinctSubjectsCount_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, subjectsCount_);
+          .computeInt32Size(1, distinctSubjectsCount_);
       }
       for (java.util.Map.Entry<java.lang.String, java.lang.Integer> entry
            : internalGetTriplesPerPredicate().getMap().entrySet()) {
@@ -2484,7 +2380,7 @@ public final class ProtobufStats {
             .setValue(entry.getValue())
             .build();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(3, triplesPerPredicate);
+            .computeMessageSize(2, triplesPerPredicate);
       }
       memoizedSize = size;
       return size;
@@ -2502,10 +2398,8 @@ public final class ProtobufStats {
       ProtobufStats.CharacteristicSet other = (ProtobufStats.CharacteristicSet) obj;
 
       boolean result = true;
-      result = result && getPredicatesList()
-          .equals(other.getPredicatesList());
-      result = result && (getSubjectsCount()
-          == other.getSubjectsCount());
+      result = result && (getDistinctSubjectsCount()
+          == other.getDistinctSubjectsCount());
       result = result && internalGetTriplesPerPredicate().equals(
           other.internalGetTriplesPerPredicate());
       return result;
@@ -2518,12 +2412,8 @@ public final class ProtobufStats {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
-      if (getPredicatesCount() > 0) {
-        hash = (37 * hash) + PREDICATES_FIELD_NUMBER;
-        hash = (53 * hash) + getPredicatesList().hashCode();
-      }
-      hash = (37 * hash) + SUBJECTSCOUNT_FIELD_NUMBER;
-      hash = (53 * hash) + getSubjectsCount();
+      hash = (37 * hash) + DISTINCTSUBJECTSCOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getDistinctSubjectsCount();
       if (!internalGetTriplesPerPredicate().getMap().isEmpty()) {
         hash = (37 * hash) + TRIPLESPERPREDICATE_FIELD_NUMBER;
         hash = (53 * hash) + internalGetTriplesPerPredicate().hashCode();
@@ -2626,7 +2516,7 @@ public final class ProtobufStats {
       protected com.google.protobuf.MapField internalGetMapField(
           int number) {
         switch (number) {
-          case 3:
+          case 2:
             return internalGetTriplesPerPredicate();
           default:
             throw new RuntimeException(
@@ -2637,7 +2527,7 @@ public final class ProtobufStats {
       protected com.google.protobuf.MapField internalGetMutableMapField(
           int number) {
         switch (number) {
-          case 3:
+          case 2:
             return internalGetMutableTriplesPerPredicate();
           default:
             throw new RuntimeException(
@@ -2668,9 +2558,7 @@ public final class ProtobufStats {
       }
       public Builder clear() {
         super.clear();
-        predicates_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        subjectsCount_ = 0;
+        distinctSubjectsCount_ = 0;
 
         internalGetMutableTriplesPerPredicate().clear();
         return this;
@@ -2697,12 +2585,7 @@ public final class ProtobufStats {
         ProtobufStats.CharacteristicSet result = new ProtobufStats.CharacteristicSet(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          predicates_ = predicates_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000001);
-        }
-        result.predicates_ = predicates_;
-        result.subjectsCount_ = subjectsCount_;
+        result.distinctSubjectsCount_ = distinctSubjectsCount_;
         result.triplesPerPredicate_ = internalGetTriplesPerPredicate();
         result.triplesPerPredicate_.makeImmutable();
         result.bitField0_ = to_bitField0_;
@@ -2747,18 +2630,8 @@ public final class ProtobufStats {
 
       public Builder mergeFrom(ProtobufStats.CharacteristicSet other) {
         if (other == ProtobufStats.CharacteristicSet.getDefaultInstance()) return this;
-        if (!other.predicates_.isEmpty()) {
-          if (predicates_.isEmpty()) {
-            predicates_ = other.predicates_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensurePredicatesIsMutable();
-            predicates_.addAll(other.predicates_);
-          }
-          onChanged();
-        }
-        if (other.getSubjectsCount() != 0) {
-          setSubjectsCount(other.getSubjectsCount());
+        if (other.getDistinctSubjectsCount() != 0) {
+          setDistinctSubjectsCount(other.getDistinctSubjectsCount());
         }
         internalGetMutableTriplesPerPredicate().mergeFrom(
             other.internalGetTriplesPerPredicate());
@@ -2789,157 +2662,27 @@ public final class ProtobufStats {
       }
       private int bitField0_;
 
-      private com.google.protobuf.LazyStringList predicates_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensurePredicatesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          predicates_ = new com.google.protobuf.LazyStringArrayList(predicates_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public com.google.protobuf.ProtocolStringList
-          getPredicatesList() {
-        return predicates_.getUnmodifiableView();
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public int getPredicatesCount() {
-        return predicates_.size();
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public java.lang.String getPredicates(int index) {
-        return predicates_.get(index);
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public com.google.protobuf.ByteString
-          getPredicatesBytes(int index) {
-        return predicates_.getByteString(index);
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public Builder setPredicates(
-          int index, java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensurePredicatesIsMutable();
-        predicates_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public Builder addPredicates(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensurePredicatesIsMutable();
-        predicates_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public Builder addAllPredicates(
-          java.lang.Iterable<java.lang.String> values) {
-        ensurePredicatesIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, predicates_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public Builder clearPredicates() {
-        predicates_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * all the predicates part of this char set
-       * </pre>
-       *
-       * <code>repeated string predicates = 1;</code>
-       */
-      public Builder addPredicatesBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-        ensurePredicatesIsMutable();
-        predicates_.add(value);
-        onChanged();
-        return this;
-      }
-
-      private int subjectsCount_ ;
+      private int distinctSubjectsCount_ ;
       /**
        * <pre>
        * count of all subjects part of this char set
        * </pre>
        *
-       * <code>optional int32 subjectsCount = 2;</code>
+       * <code>optional int32 distinctSubjectsCount = 1;</code>
        */
-      public int getSubjectsCount() {
-        return subjectsCount_;
+      public int getDistinctSubjectsCount() {
+        return distinctSubjectsCount_;
       }
       /**
        * <pre>
        * count of all subjects part of this char set
        * </pre>
        *
-       * <code>optional int32 subjectsCount = 2;</code>
+       * <code>optional int32 distinctSubjectsCount = 1;</code>
        */
-      public Builder setSubjectsCount(int value) {
+      public Builder setDistinctSubjectsCount(int value) {
         
-        subjectsCount_ = value;
+        distinctSubjectsCount_ = value;
         onChanged();
         return this;
       }
@@ -2948,11 +2691,11 @@ public final class ProtobufStats {
        * count of all subjects part of this char set
        * </pre>
        *
-       * <code>optional int32 subjectsCount = 2;</code>
+       * <code>optional int32 distinctSubjectsCount = 1;</code>
        */
-      public Builder clearSubjectsCount() {
+      public Builder clearDistinctSubjectsCount() {
         
-        subjectsCount_ = 0;
+        distinctSubjectsCount_ = 0;
         onChanged();
         return this;
       }
@@ -2988,7 +2731,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public boolean containsTriplesPerPredicate(
@@ -3008,7 +2751,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public java.util.Map<java.lang.String, java.lang.Integer> getTriplesPerPredicateMap() {
@@ -3019,7 +2762,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public int getTriplesPerPredicateOrDefault(
@@ -3035,7 +2778,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public int getTriplesPerPredicateOrThrow(
@@ -3058,7 +2801,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public Builder removeTriplesPerPredicate(
@@ -3080,7 +2823,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
       public Builder putTriplesPerPredicate(
           java.lang.String key,
@@ -3095,7 +2838,7 @@ public final class ProtobufStats {
        * key -&gt; predicate, value -&gt; count of all triples that has this predicate
        * </pre>
        *
-       * <code>map&lt;string, int32&gt; triplesPerPredicate = 3;</code>
+       * <code>map&lt;string, int32&gt; triplesPerPredicate = 2;</code>
        */
 
       public Builder putAllTriplesPerPredicate(
@@ -3186,13 +2929,12 @@ public final class ProtobufStats {
       "(\010\022\030\n\020distinctSubjects\030\004 \001(\005\022\030\n\020isInvers" +
       "eComplex\030\005 \001(\010\"b\n\005Graph\022\014\n\004name\030\001 \001(\t\022\033\n" +
       "\006tables\030\002 \003(\0132\013.TableStats\022.\n\022Characteri" +
-      "sticSets\030\003 \003(\0132\022.CharacteristicSet\"\304\001\n\021C" +
-      "haracteristicSet\022\022\n\npredicates\030\001 \003(\t\022\025\n\r" +
-      "subjectsCount\030\002 \001(\005\022H\n\023triplesPerPredica" +
-      "te\030\003 \003(\0132+.CharacteristicSet.TriplesPerP" +
-      "redicateEntry\032:\n\030TriplesPerPredicateEntr",
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\005:\0028\001b\006proto" +
-      "3"
+      "sticSets\030\003 \003(\0132\022.CharacteristicSet\"\270\001\n\021C" +
+      "haracteristicSet\022\035\n\025distinctSubjectsCoun" +
+      "t\030\001 \001(\005\022H\n\023triplesPerPredicate\030\002 \003(\0132+.C" +
+      "haracteristicSet.TriplesPerPredicateEntr" +
+      "y\032:\n\030TriplesPerPredicateEntry\022\013\n\003key\030\001 \001",
+      "(\t\022\r\n\005value\030\002 \001(\005:\0028\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3223,7 +2965,7 @@ public final class ProtobufStats {
     internal_static_CharacteristicSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CharacteristicSet_descriptor,
-        new java.lang.String[] { "Predicates", "SubjectsCount", "TriplesPerPredicate", });
+        new java.lang.String[] { "DistinctSubjectsCount", "TriplesPerPredicate", });
     internal_static_CharacteristicSet_TriplesPerPredicateEntry_descriptor =
       internal_static_CharacteristicSet_descriptor.getNestedTypes().get(0);
     internal_static_CharacteristicSet_TriplesPerPredicateEntry_fieldAccessorTable = new

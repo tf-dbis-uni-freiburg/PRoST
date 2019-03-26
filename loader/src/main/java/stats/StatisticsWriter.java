@@ -13,6 +13,8 @@ import org.apache.spark.sql.Row;
 
 import stats.ProtobufStats.Graph;
 import stats.ProtobufStats.TableStats;
+import stats.ProtobufStats.CharacteristicSet;
+import static org.apache.spark.sql.functions.*;
 
 public class StatisticsWriter {
 
@@ -20,7 +22,7 @@ public class StatisticsWriter {
 
 	// single instance of the statistics
 	private static StatisticsWriter instance = null;
-	
+
 	private boolean useStatistics = false;
 	private String stats_file_suffix = ".stats";
 	private Vector<TableStats> tableStatistics;
@@ -33,7 +35,7 @@ public class StatisticsWriter {
 	public static StatisticsWriter getInstance() {
 		if (instance == null) {
 			instance.tableStatistics = new Vector<TableStats>();
-			instance.setCharacteristicSets(new Vector<CharacteristicSet>());
+			instance.characteristicSets = new Vector<CharacteristicSet>();
 		}
 		return instance;
 	}
@@ -50,6 +52,9 @@ public class StatisticsWriter {
 		// add table statistics
 		if (tableStatistics != null) {
 			graph_stats_builder.addAllTables(this.tableStatistics);
+		}
+		if (characteristicSets != null) {
+			graph_stats_builder.addAllCharacteristicSets(this.characteristicSets);
 		}
 		final Graph serialized_stats = graph_stats_builder.build();
 		FileOutputStream f_stream; // s
@@ -99,11 +104,40 @@ public class StatisticsWriter {
 		tableStatistics.add(table_stats_builder.build());
 	}
 
-	//TODO add comments
-	public void computeCharacteristicSets(Dataset<Row> triples) {
-		
+	/**
+	 * Calculate the characteristic sets and store them into stats file.
+	 * 
+	 * @param triples
+	 */
+	public void addCharacteristicSetsStats(Dataset<Row> triples) {
+		Dataset<Row> subjectCharSet = triples.select(col("s"), col("p")).groupBy(col("s"))
+				.agg(collect_list(col("p")).alias("charSet"));
+		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
+		// add index to each set
+		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p", exp(col("charSet")));
+		// join with TT based on p
+		charSets = charSets.join(triples);
+		// calculate the predicate set count for each set
+		Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s", "o");
+		Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
+				.alias("distinct_subjects").drop("s");
+		List<Row> charSetSubjectCount = charSetSubject.collectAsList();
+		for (Row row : charSetSubjectCount) {
+			CharacteristicSet.Builder char_set_stats_builder = CharacteristicSet.newBuilder();
+			int charSetId = row.getInt(0);
+			int distintcSubjects = row.getInt(1);
+			char_set_stats_builder.setDistinctSubjectsCount(distintcSubjects);
+			List<Row> predicateStats = charSetPredicateStats.where("id ==" + charSetId).collectAsList();
+			for (Row row2 : predicateStats) {
+				String predicate = row2.getString(1);
+				int predicateCount = row2.getInt(2);
+				char_set_stats_builder.getMutableTriplesPerPredicate().put(predicate, predicateCount);
+			}
+			// save into stats file
+			characteristicSets.add(char_set_stats_builder.build());
+		}
 	}
-	
+
 	public List<TableStats> getTableStatistics() {
 		return tableStatistics;
 	}

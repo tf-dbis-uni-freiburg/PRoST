@@ -7,7 +7,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
-import utils.Stats;
+import joinTree.stats.Stats;
 
 /**
  * An abstract class that each node of the JoinTree has to extend. Each node has
@@ -71,6 +71,7 @@ public abstract class Node {
 	 * tree node. For {@link JoinNode}, see the overridden method.
 	 */
 	public float heuristicNodePriority() {
+		// TODO add usage of characteristic set
 		float priority = 0;
 		for (final TriplePattern triplePattern : this.collectTriples()) {
 			final String predicate = triplePattern.predicate;

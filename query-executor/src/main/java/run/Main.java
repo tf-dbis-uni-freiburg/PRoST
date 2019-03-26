@@ -23,7 +23,7 @@ import executor.Executor;
 import joinTree.JoinTree;
 import translator.Translator;
 import utils.EmergentSchema;
-import utils.Stats;
+import joinTree.stats.Stats;
 
 /**
  * The Main class parses the CLI arguments and calls the translator and the
@@ -246,7 +246,6 @@ public class Main {
 			}
 
 		}
-		logger.error("The input file is not set correctly or contains errors");
 	}
 
 	private static JoinTree translateSingleQuery(final String query, final int width) {

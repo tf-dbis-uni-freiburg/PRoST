@@ -9,7 +9,7 @@ import org.apache.spark.sql.SQLContext;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
-import utils.Stats;
+import joinTree.stats.Stats;
 import utils.Utils;
 
 /*

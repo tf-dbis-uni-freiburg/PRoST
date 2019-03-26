@@ -1,12 +1,14 @@
-package translator;
+package joinTree.stats;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
-import joinTree.ProtobufStats;
+
 import utils.Utils;
 
 /**
@@ -27,12 +29,12 @@ public class Stats {
 
 	private static boolean areStatsParsed = false;
 
-	private HashMap<String, joinTree.ProtobufStats.TableStats> tableStats;
+	private HashMap<String, joinTree.stats.ProtobufStats.TableStats> tableStats;
 	private HashMap<String, Integer> tableSize;
 	private HashMap<String, Integer> tableDistinctSubjects;
 	private HashMap<String, Boolean> iptPropertyComplexity;
-
 	private String[] tableNames;
+	private List<CharacteristicSet> charSets;
 
 	protected Stats() {
 		// Exists only to defeat instantiation.
@@ -45,6 +47,7 @@ public class Stats {
 			instance.tableDistinctSubjects = new HashMap<>();
 			instance.tableStats = new HashMap<>();
 			instance.iptPropertyComplexity = new HashMap<>();
+			instance.charSets = new ArrayList<>();
 			return instance;
 		}
 		if (areStatsParsed) {
@@ -83,6 +86,12 @@ public class Stats {
 			iptPropertyComplexity.put(tableNames[i], table.getIsInverseComplex());
 			i++;
 		}
+		
+		// parse char sets
+		for (final ProtobufStats.CharacteristicSet set : graph.getCharacteristicSetsList()) {
+			CharacteristicSet charSet = new CharacteristicSet(set.getTriplesPerPredicateMap(), set.getDistinctSubjectsCount());
+		}
+		
 		logger.info("Statistics correctly parsed");
 	}
 

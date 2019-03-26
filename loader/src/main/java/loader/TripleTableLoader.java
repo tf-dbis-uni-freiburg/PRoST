@@ -126,7 +126,8 @@ public class TripleTableLoader extends Loader {
 		}
 		
 		// save statistics about characteristic sets
-		StatisticsWriter.getInstance().computeCharacteristicSets(allTriples);
+		StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
+		
 		// The following part just outputs to the log in case there have been
 		// problems parsing the files.
 		if (rawTriples.count() != allTriples.count()) {

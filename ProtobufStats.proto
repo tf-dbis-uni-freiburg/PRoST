@@ -3,6 +3,7 @@ Protobuf definition for the graph Statistics.
 During the loading some statistics are collected about the graph.
 They can be useful for the translator to generate better Join Trees.
 @author: Matteo Cossu
+@author: Polina Koleva
 */
 
 syntax = "proto3";
@@ -22,8 +23,7 @@ message Graph {
 }
 
 message CharacteristicSet {
-    repeated string predicates = 1; // all the predicates part of this char set
-    int32 subjectsCount = 2; // count of all subjects part of this char set
-    map<string, int32> triplesPerPredicate = 3; // key -> predicate, value -> count of all triples that has this predicate
+    int32 distinctSubjectsCount = 1; // count of all subjects part of this char set
+    map<string, int32> triplesPerPredicate = 2; // key -> predicate, value -> count of all triples that has this predicate
 }
 

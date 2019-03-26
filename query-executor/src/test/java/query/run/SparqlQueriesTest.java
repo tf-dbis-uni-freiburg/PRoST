@@ -13,10 +13,10 @@ import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
 
 import executor.Executor;
 import joinTree.JoinTree;
+import joinTree.stats.Stats;
 import query.utilities.HiveDatabaseUtilities;
 import query.utilities.TestData;
 import query.utilities.TripleBean;
-import translator.Stats;
 import translator.Translator;
 
 /**
