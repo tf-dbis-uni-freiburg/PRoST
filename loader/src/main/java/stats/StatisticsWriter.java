@@ -34,6 +34,7 @@ public class StatisticsWriter {
 
 	public static StatisticsWriter getInstance() {
 		if (instance == null) {
+			instance = new StatisticsWriter();
 			instance.tableStatistics = new Vector<TableStats>();
 			instance.characteristicSets = new Vector<CharacteristicSet>();
 		}
