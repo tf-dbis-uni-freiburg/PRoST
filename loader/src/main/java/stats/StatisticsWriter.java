@@ -125,6 +125,8 @@ public class StatisticsWriter {
 		List<Row> charSetSubjectCount = charSetSubject.collectAsList();
 		for (Row row : charSetSubjectCount) {
 			CharacteristicSet.Builder char_set_stats_builder = CharacteristicSet.newBuilder();
+
+			//TODO update protobuf file to long values
 			int charSetId = (int) row.getLong(0);
 			int distinctSubjects = (int) row.getLong(1);
 			char_set_stats_builder.setDistinctSubjectsCount(distinctSubjects);
