@@ -115,9 +115,9 @@ public class StatisticsWriter {
 				.agg(collect_list(col("p")).alias("charSet"));
 		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
 		// add index to each set
-		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p", exp(col("charSet")));
+		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p", explode(col("charSet")));
 		// join with TT based on p
-		charSets = charSets.join(triples);
+		charSets = charSets.join(triples,"p");
 		// calculate the predicate set count for each set
 		Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s", "o");
 		Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
@@ -125,9 +125,11 @@ public class StatisticsWriter {
 		List<Row> charSetSubjectCount = charSetSubject.collectAsList();
 		for (Row row : charSetSubjectCount) {
 			CharacteristicSet.Builder char_set_stats_builder = CharacteristicSet.newBuilder();
-			int charSetId = row.getInt(0);
-			int distintcSubjects = row.getInt(1);
-			char_set_stats_builder.setDistinctSubjectsCount(distintcSubjects);
+
+			//TODO update protobuf file to long values
+			int charSetId = (int) row.getLong(0);
+			int distinctSubjects = (int) row.getLong(1);
+			char_set_stats_builder.setDistinctSubjectsCount(distinctSubjects);
 			List<Row> predicateStats = charSetPredicateStats.where("id ==" + charSetId).collectAsList();
 			for (Row row2 : predicateStats) {
 				String predicate = row2.getString(1);
