@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.IntStream;
 
 import loader.InverseWidePropertyTable;
 import loader.JoinedWidePropertyTable;
@@ -276,12 +277,8 @@ public class Main {
 	 * @param spark
 	 */
 	public static void computeTableStatistics(final SparkSession spark) {
-		final Row[] tables = spark.sql("SHOW TABLES").select("tableName").collect();
-		for (int i = 0; i < tables.length; i++) {
-			// skip the external table
-			if (!tables[i].getString(0).equals("tripletable_ext")) {
-				spark.sql("ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS");
-			}
-		}
+		final Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
+		// skip the external table
+		IntStream.range(0, tables.length).filter(i -> !tables[i].getString(0).equals("tripletable_ext")).mapToObj(i -> "ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS").forEach(spark::sql);
 	}
 }

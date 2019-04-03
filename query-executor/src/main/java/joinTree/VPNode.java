@@ -46,41 +46,39 @@ public class VPNode extends Node {
 
 		// SELECT
 		if (triplePattern.subjectType == ElementType.VARIABLE && triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(triplePattern.subject) + ", o AS "
-					+ Utils.removeQuestionMark(triplePattern.object) + " ");
+			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject)).append(", o AS ").append(Utils.removeQuestionMark(triplePattern.object)).append(" ");
 		} else if (triplePattern.subjectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject));
 		} else if (triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("o AS " + Utils.removeQuestionMark(triplePattern.object));
+			query.append("o AS ").append(Utils.removeQuestionMark(triplePattern.object));
 		}
 
 		// FROM
 		query.append(" FROM ");
 		// when partition by subject
 		//query.append("par_vp_" + tableName);
-		query.append("vp_" + tableName);
+		query.append("vp_").append(tableName);
 
 		// WHERE
 		if (triplePattern.objectType == ElementType.CONSTANT || triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" WHERE ");
 		}
 		if (triplePattern.objectType == ElementType.CONSTANT) {
-			query.append(" o='" + triplePattern.object + "' ");
+			query.append(" o='").append(triplePattern.object).append("' ");
 		}
 
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" s='" + triplePattern.subject + "' ");
+			query.append(" s='").append(triplePattern.subject).append("' ");
 		}
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
 	@Override
 	public String toString() {
-		final StringBuilder str = new StringBuilder("{");
-		str.append("VP node: ");
-		str.append(triplePattern.toString());
-		str.append(" }");
-		return str.toString();
+		final String str = "{" + "VP node: "
+				+ triplePattern.toString()
+				+ " }";
+		return str;
 	}
 
 	@Override

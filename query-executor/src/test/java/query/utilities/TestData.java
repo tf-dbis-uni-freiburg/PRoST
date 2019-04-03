@@ -16,7 +16,7 @@ public class TestData {
 	 * @return
 	 */
 	public static List<TripleBean> createSingleTripleTestData() {
-		final List<TripleBean> testDataTriples = new ArrayList<TripleBean>();
+		final List<TripleBean> testDataTriples = new ArrayList<>();
 		final TripleBean singleTriple = new TripleBean();
 		singleTriple.setS("<http://example.org/book/book1>");
 		singleTriple.setP("<http://purl.org/dc/elements/1.1/title>");

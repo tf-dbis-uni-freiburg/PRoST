@@ -25,13 +25,12 @@ import org.apache.spark.sql.SparkSession;
  * @author Polina Koleva
  */
 public class Executor {
-
 	private static final Logger logger = Logger.getLogger("PRoST");
+	SparkSession spark;
+	SQLContext sqlContext;
 	private final String databaseName;
 	private final List<String[]> queryTimeResults;
 	private final List<String[]> queryStatistics;
-	SparkSession spark;
-	SQLContext sqlContext;
 	private String outputFile;
 
 	public Executor(final String databaseName) {
@@ -95,7 +94,8 @@ public class Executor {
 		// count number of joins overall
 		final int joinsCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join");
 		// count number of broadcast joins for a query
-		final int broadcastJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "BroadcastHashJoin");
+		final int broadcastJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
+				"BroadcastHashJoin");
 		// count number of sort merge joins
 		final int sortMergeJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "SortMergeJoin");
 		// save the statistics

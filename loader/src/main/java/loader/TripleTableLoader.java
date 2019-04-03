@@ -18,9 +18,9 @@ import stats.StatisticsWriter;
  * @author Victor Anthony Arrascue Ayala
  */
 public class TripleTableLoader extends Loader {
-	protected boolean ttPartitionedBySub = false;
-	protected boolean ttPartitionedByPred = false;
-	protected boolean dropDuplicates = true;
+	protected boolean ttPartitionedBySub;
+	protected boolean ttPartitionedByPred;
+	protected boolean dropDuplicates;
 	protected String hdfs_input_directory;
 
 	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,

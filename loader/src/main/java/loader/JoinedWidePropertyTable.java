@@ -1,6 +1,6 @@
 package loader;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -33,8 +33,8 @@ public class JoinedWidePropertyTable extends PropertyTableLoader {
 
 		wptDataset = wptDataset.withColumnRenamed(column_name_subject, COLUMN_NAME_COMMON_RESOURCE);
 		iwptDataset = iwptDataset.withColumnRenamed(column_name_object, COLUMN_NAME_COMMON_RESOURCE);
-		return wptDataset.join(iwptDataset, scala.collection.JavaConverters
-						.asScalaIteratorConverter(Arrays.asList(COLUMN_NAME_COMMON_RESOURCE).iterator()).asScala().toSeq(),
-				"outer");
+		return wptDataset.join(iwptDataset,
+				scala.collection.JavaConverters.asScalaIteratorConverter(
+						Collections.singletonList(COLUMN_NAME_COMMON_RESOURCE).iterator()).asScala().toSeq(), "outer");
 	}
 }

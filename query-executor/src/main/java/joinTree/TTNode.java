@@ -39,12 +39,11 @@ public class TTNode extends Node {
 
 		// SELECT
 		if (triplePattern.subjectType == ElementType.VARIABLE && triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(triplePattern.subject) + ", o AS "
-					+ Utils.removeQuestionMark(triplePattern.object) + " ");
+			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject)).append(", o AS ").append(Utils.removeQuestionMark(triplePattern.object)).append(" ");
 		} else if (triplePattern.subjectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject));
 		} else if (triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("o AS " + Utils.removeQuestionMark(triplePattern.object));
+			query.append("o AS ").append(Utils.removeQuestionMark(triplePattern.object));
 		}
 
 		// FROM
@@ -52,28 +51,27 @@ public class TTNode extends Node {
 		query.append("tripletable");
 		//query.append("par_tripletable");
 		query.append(" WHERE ");
-		query.append(" p='<" + triplePattern.predicate + ">' ");
+		query.append(" p='<").append(triplePattern.predicate).append(">' ");
 		// WHERE
 		if (triplePattern.objectType == ElementType.CONSTANT || triplePattern.subjectType == ElementType.CONSTANT) {
 			query.append(" AND ");
 		}
 		if (triplePattern.objectType == ElementType.CONSTANT) {
-			query.append(" o='" + triplePattern.object + "' ");
+			query.append(" o='").append(triplePattern.object).append("' ");
 		}
 
 		if (triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" s='" + triplePattern.subject + "' ");
+			query.append(" s='").append(triplePattern.subject).append("' ");
 		}
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
 	@Override
 	public String toString() {
-		final StringBuilder str = new StringBuilder("{");
-		str.append("TT node: ");
-		str.append(triplePattern.toString());
-		str.append(" }");
-		return str.toString();
+		final String str = "{" + "TT node: "
+				+ triplePattern.toString()
+				+ " }";
+		return str;
 	}
 
 	@Override

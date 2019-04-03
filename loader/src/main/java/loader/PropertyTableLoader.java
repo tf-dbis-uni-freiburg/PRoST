@@ -21,7 +21,8 @@ abstract class PropertyTableLoader extends Loader {
 	final boolean isPartitioned;
 	private final String ptTableName;
 
-	PropertyTableLoader(final String databaseName, final SparkSession spark, final boolean isPartitioned, final String tableName) {
+	PropertyTableLoader(final String databaseName, final SparkSession spark, final boolean isPartitioned,
+						final String tableName) {
 		super(databaseName, spark);
 		this.isPartitioned = isPartitioned;
 		this.ptTableName = tableName;
@@ -168,8 +169,8 @@ abstract class PropertyTableLoader extends Loader {
 	 *                                names of the values columns in the final PT.
 	 * @return A PT dataset.
 	 */
-	Dataset<Row> createPropertyTableDataset(final Map<String, Boolean> propertiesCardinalities, final String keyColumnName,
-											final String valuesColumnName) {
+	Dataset<Row> createPropertyTableDataset(final Map<String, Boolean> propertiesCardinalities,
+											final String keyColumnName, final String valuesColumnName) {
 		logger.info("Building the complete property table.");
 
 		// create a new aggregation environment

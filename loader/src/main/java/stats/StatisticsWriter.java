@@ -26,7 +26,7 @@ public class StatisticsWriter {
 	private static StatisticsWriter instance = null;
 
 	private boolean useStatistics = false;
-	private String stats_file_suffix = ".stats";
+	private static final String STATS_FILE_SUFFIX = ".stats";
 	private Vector<TableStats> tableStatistics;
 	private Vector<CharacteristicSet> characteristicSets;
 
@@ -37,8 +37,8 @@ public class StatisticsWriter {
 	public static StatisticsWriter getInstance() {
 		if (instance == null) {
 			instance = new StatisticsWriter();
-			instance.tableStatistics = new Vector<TableStats>();
-			instance.characteristicSets = new Vector<CharacteristicSet>();
+			instance.tableStatistics = new Vector<>();
+			instance.characteristicSets = new Vector<>();
 		}
 		return instance;
 	}
@@ -64,7 +64,7 @@ public class StatisticsWriter {
 		final FileOutputStream fStream; // s
 		final File file;
 		try {
-			file = new File(fileName + stats_file_suffix);
+			file = new File(fileName + STATS_FILE_SUFFIX);
 			fStream = new FileOutputStream(file);
 			serializedStats.writeTo(fStream);
 		} catch (final IOException e) {
@@ -121,7 +121,8 @@ public class StatisticsWriter {
 		// join with TT based on p
 		charSets = charSets.join(triples, "p");
 		// calculate the predicate set count for each set
-		final Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s", "o");
+		final Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s",
+				"o");
 		final Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
 				.alias("distinct_subjects").drop("s");
 		final List<Row> charSetSubjectCount = charSetSubject.collectAsList();

@@ -19,11 +19,11 @@ import org.apache.spark.sql.SQLContext;
  */
 public class JoinTree {
 	private static final Logger logger = Logger.getLogger("PRoST");
-	private final Node root;
 	public String filter;
 	// identifier for the query, useful for debugging
 	public String query_name;
 	public List<String> projection;
+	private final Node root;
 	// TODO fix optional tree
 	// private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;

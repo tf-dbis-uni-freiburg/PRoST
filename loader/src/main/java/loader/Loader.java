@@ -20,7 +20,6 @@ public abstract class Loader {
 	public String column_name_predicate = "p";
 	public String column_name_object = "o";
 	public String name_tripletable = "tripletable";
-	public String stats_file_suffix = ".stats";
 	protected SparkSession spark;
 	protected String database_name;
 	protected String[] properties_names;
@@ -55,16 +54,15 @@ public abstract class Loader {
 	 * Remove all the tables indicated as parameter.
 	 *
 	 * @param tableNames the names of the tables that will be removed
-	 * @return
 	 */
-	protected void dropTables(final String... tableNames) {
+	private void dropTables(final String... tableNames) {
 		for (final String tb : tableNames) {
 			spark.sql("DROP TABLE " + tb);
 		}
 		logger.info("Removed tables: " + Arrays.toString(tableNames));
 	}
 
-	protected void useOutputDatabase() {
+	private void useOutputDatabase() {
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + database_name);
 		spark.sql("USE " + database_name);
 		logger.info("Using the database: " + database_name);

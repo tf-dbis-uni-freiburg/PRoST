@@ -98,13 +98,12 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public String toString() {
-		final StringBuilder str = new StringBuilder("{");
-		str.append("Join node: " + tripleGroup.size());
-		str.append(" }");
-		str.append(" [");
-		str.append("\n Left child: " + leftChild.toString());
-		str.append("\n Right child: " + rightChild.toString());
-		str.append("\n]");
-		return str.toString();
+		final String str = "{" + "Join node: " + tripleGroup.size()
+				+ " }"
+				+ " ["
+				+ "\n Left child: " + leftChild.toString()
+				+ "\n Right child: " + rightChild.toString()
+				+ "\n]";
+		return str;
 	}
 }

@@ -35,10 +35,9 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 	 * This method tests if triples with more than three elements are ignored
 	 * when parsing the file.
 	 *
-	 * @throws Exception
 	 */
 	@Test
-	public void queryOnSingleTriple() throws Exception {
+	public void queryOnSingleTriple() {
 		final List<TripleBean> triplesList = TestData.createSingleTripleTestData();
 		final Dataset<TripleBean> data = spark().createDataset(triplesList, triplesEncoder);
 		HiveDatabaseUtilities.writeTriplesToDatabase("singleTripleDb", data, spark());

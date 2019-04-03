@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
 import loader.utilities.HdfsUtilities;
 import loader.utilities.SparkSqlUtilities;
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
@@ -23,7 +22,6 @@ import org.junit.Test;
  * @author Victor Anthony Arrascue Ayala
  */
 public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase implements Serializable {
-	protected static final Logger logger = Logger.getLogger("PRoST");
 	private static final long serialVersionUID = -5681683598336701496L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
@@ -73,7 +71,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t5.setP("<http://example.org/property/pro3>");
 		t5.setO("\"wow hi\"");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
@@ -117,7 +115,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t2.setP("<http://example.org/property/pro3>");
 		t2.setO("<http://example.org/resource/Res2>");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 
@@ -158,7 +156,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t2.setP("<http://example.org/property/pro3>");
 		t2.setO("<http://example.org/resource/Res2>");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 
@@ -205,7 +203,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t3.setP("<http://example.org/property/givenName>");
 		t3.setO("<http://example.org/resource/Res1>");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
@@ -268,7 +266,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t6.setP("<http://example.org/property/pro3>");
 		t6.setO("\"one literal\"^^<type1>");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
@@ -335,12 +333,12 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t6.setP("<http://example.org/property/pro1>");
 		t6.setO("<http://example.org/resource/Res:1000>");
 
-		final ArrayList<TripleBean> triplesListNoDuplicates = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesListNoDuplicates = new ArrayList<>();
 		triplesListNoDuplicates.add(t1);
 		triplesListNoDuplicates.add(t2);
 		triplesListNoDuplicates.add(t3);
 
-		final ArrayList<TripleBean> triplesListWithDuplicates = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesListWithDuplicates = new ArrayList<>();
 		triplesListWithDuplicates.add(t1);
 		triplesListWithDuplicates.add(t2);
 		triplesListWithDuplicates.add(t3);
@@ -411,7 +409,7 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 		t2.setP("<http://example.org/property/pro3>");
 		t2.setO("<http://example.org/resource/Res2>");
 
-		final ArrayList<TripleBean> triplesList = new ArrayList<TripleBean>();
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 

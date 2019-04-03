@@ -98,8 +98,8 @@ public class Translator {
 			// set the root node with the variables that need to be projected
 			// only for the main tree
 			final ArrayList<String> projectionList = new ArrayList<>();
-			for (int i = 0; i < projectionVariables.size(); i++) {
-				projectionList.add(projectionVariables.get(i).getVarName());
+			for (Var projectionVariable : projectionVariables) {
+				projectionList.add(projectionVariable.getVarName());
 			}
 			tree.setProjectionList(projectionList);
 		}
@@ -406,8 +406,7 @@ public class Translator {
 	 */
 	private HashMap<String, HashMap<String, List<Triple>>> getEmergentSchemaSubjectGroups(final List<Triple> triples) {
 		// key - table names, (subject, triples)
-		final HashMap<String, HashMap<String, List<Triple>>> subjectGroups = new HashMap<String, HashMap<String,
-				List<Triple>>>();
+		final HashMap<String, HashMap<String, List<Triple>>> subjectGroups = new HashMap<>();
 		for (final Triple triple : triples) {
 			final String subject = triple.getSubject().toString(prefixes);
 			// find in which table this triple is stored, based on the predicate

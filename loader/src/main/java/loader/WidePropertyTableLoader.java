@@ -20,7 +20,8 @@ public class WidePropertyTableLoader extends PropertyTableLoader {
 	Dataset<Row> loadDataset() {
 		final Dataset<Row> propertiesCardinalities = calculatePropertiesComplexity(column_name_subject);
 		saveTable(propertiesCardinalities, PROPERTIES_CARDINALITIES_TABLE_NAME);
-		final Map<String, Boolean> propertiesCardinalitiesMap = createPropertiesComplexitiesMap(propertiesCardinalities);
+		final Map<String, Boolean> propertiesCardinalitiesMap =
+				createPropertiesComplexitiesMap(propertiesCardinalities);
 		properties_names = propertiesCardinalitiesMap.keySet().toArray(new String[0]);
 		return createPropertyTableDataset(propertiesCardinalitiesMap, column_name_subject,
 				column_name_object);

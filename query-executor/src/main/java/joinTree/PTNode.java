@@ -83,7 +83,7 @@ public class PTNode extends MVNode {
 
 		// subject
 		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).subject) + ",");
+			query.append("s AS ").append(Utils.removeQuestionMark(tripleGroup.get(0).subject)).append(",");
 		}
 
 		// objects
@@ -103,20 +103,19 @@ public class PTNode extends MVNode {
 					whereConditions.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" " + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
 
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
-		query.append(" FROM " + this.tableName + " ");
+		query.append(" FROM ").append(this.tableName).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
-					+ explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {
@@ -131,7 +130,7 @@ public class PTNode extends MVNode {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("WPT node: ");
 		for (final TriplePattern tpGroup : tripleGroup) {
-			str.append(tpGroup.toString() + ", ");
+			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");
 		return str.toString();

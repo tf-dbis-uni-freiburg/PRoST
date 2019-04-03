@@ -79,7 +79,7 @@ public class FilterVisitor extends ExprVisitorBase {
 	public void visit(final NodeValue nv) {
 		// for literals and URIs
 		if (nv.isIRI()) {
-			builder.append("<" + nv.asString() + ">");
+			builder.append("<").append(nv.asString()).append(">");
 		} else {
 			builder.append(nv.asString());
 		}

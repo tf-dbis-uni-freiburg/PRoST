@@ -19,10 +19,10 @@ public class InverseWidePropertyTable extends PropertyTableLoader {
 	Dataset<Row> loadDataset() {
 		final Dataset<Row> propertiesCardinalities = calculatePropertiesComplexity(column_name_object);
 		saveTable(propertiesCardinalities, PROPERTIES_CARDINALITIES_TABLE_NAME);
-		final Map<String, Boolean> propertiesCardinalitiesMap = createPropertiesComplexitiesMap(propertiesCardinalities);
+		final Map<String, Boolean> propertiesCardinalitiesMap =
+				createPropertiesComplexitiesMap(propertiesCardinalities);
 		properties_names = propertiesCardinalitiesMap.keySet().toArray(new String[0]);
-		final Dataset<Row> iwpt = createPropertyTableDataset(propertiesCardinalitiesMap, column_name_object,
+		return createPropertyTableDataset(propertiesCardinalitiesMap, column_name_object,
 				column_name_subject);
-		return iwpt;
 	}
 }

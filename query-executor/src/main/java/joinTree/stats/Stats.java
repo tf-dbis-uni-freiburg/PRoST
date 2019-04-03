@@ -3,9 +3,7 @@ package joinTree.stats;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import utils.Utils;
@@ -33,7 +31,6 @@ public class Stats {
 	private HashMap<String, Integer> tableDistinctSubjects;
 	private HashMap<String, Boolean> iptPropertyComplexity;
 	private String[] tableNames;
-	private List<CharacteristicSet> charSets;
 
 	protected Stats() {
 		// Exists only to defeat instantiation.
@@ -46,7 +43,6 @@ public class Stats {
 			instance.tableDistinctSubjects = new HashMap<>();
 			instance.tableStats = new HashMap<>();
 			instance.iptPropertyComplexity = new HashMap<>();
-			instance.charSets = new ArrayList<>();
 			return instance;
 		}
 		if (areStatsParsed) {

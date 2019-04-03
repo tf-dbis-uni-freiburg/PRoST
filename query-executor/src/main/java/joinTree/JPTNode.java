@@ -24,6 +24,7 @@ public class JPTNode extends MVNode {
 	private final List<TriplePattern> iwptTripleGroup;
 
 	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
+		//TODO triplePatterns never used?
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 
 		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
@@ -68,13 +69,11 @@ public class JPTNode extends MVNode {
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(wptTripleGroup.get(0).subject) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(iwptTripleGroup.get(0).object) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
 			}
 		}
 
@@ -95,10 +94,10 @@ public class JPTNode extends MVNode {
 					whereConditions.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" " + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -120,10 +119,10 @@ public class JPTNode extends MVNode {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");
+				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" " + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");
+				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -133,8 +132,7 @@ public class JPTNode extends MVNode {
 
 		query.append(" FROM ").append(JOINED_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
-					+ explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {
@@ -150,7 +148,7 @@ public class JPTNode extends MVNode {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("JWPT node: ");
 		for (final TriplePattern tpGroup : tripleGroup) {
-			str.append(tpGroup.toString() + ", ");
+			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");
 		return str.toString();
