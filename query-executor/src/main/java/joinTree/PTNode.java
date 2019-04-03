@@ -15,7 +15,7 @@ import utils.Utils;
 /*
  * A node of the JoinTree that refers to the Property Table.
  */
-public class PTNode extends MVNode {
+public class PTNode extends MVNode  {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
 
@@ -26,7 +26,6 @@ public class PTNode extends MVNode {
 	 * table name can be changes depending on the list of triples this node
 	 * contains.
 	 */
-	// private String tableName = "par_wide_property_table";
 	private String tableName = "wide_property_table";
 
 	public PTNode(Node parent, final List<TriplePattern> tripleGroup) {
@@ -117,7 +116,6 @@ public class PTNode extends MVNode {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 		query.append(" FROM " + this.tableName + " ");
-		//query.append(" FROM " + "par_" + this.tableName + " ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);

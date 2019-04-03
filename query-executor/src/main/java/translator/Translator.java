@@ -285,6 +285,11 @@ public class Translator {
 			createVpNodes(triples, nodesQueue);
 			return nodesQueue;
 		}
+		if (useTripleTablePartitioning){
+			logger.info("TT model only");
+			createTTNodes(triples, nodesQueue);
+			return nodesQueue;
+		}
 		throw new RuntimeException("Cannot generate nodes queue. No valid partitioning model enabled.");
 	}
 
@@ -351,6 +356,18 @@ public class Translator {
 			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
 			final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
 			nodesQueue.add(newNode);
+		}
+	}
+
+	/**
+	 * Creates TT nodes from a list of triples.
+	 *
+	 * @param triples    Triples for which TT nodes will be created
+	 * @param nodesQueue PriorityQueue where created nodes are added to
+	 */
+	private void createTTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
+		for (final Triple t : triples) {
+			nodesQueue.add(new TTNode(new TriplePattern(t,prefixes)));
 		}
 	}
 
@@ -599,5 +616,9 @@ public class Translator {
 
 	public void setUseVerticalPartitioning(boolean useVerticalPartitioning) {
 		this.useVerticalPartitioning = useVerticalPartitioning;
+	}
+
+	public void setUseTripleTablePartitioning(boolean useTripleTablePartitioning) {
+		this.useTripleTablePartitioning = useTripleTablePartitioning;
 	}
 }
