@@ -3,12 +3,10 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.spark.sql.SQLContext;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-
 import joinTree.stats.Stats;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 public class IPTNode extends MVNode {
@@ -73,7 +71,7 @@ public class IPTNode extends MVNode {
 
 		// subjects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+			final String columnName = Stats.getInstance().findTableName(t.predicate);
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

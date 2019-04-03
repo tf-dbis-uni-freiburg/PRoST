@@ -2,9 +2,9 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.spark.sql.SQLContext;
-import org.apache.log4j.Logger;
 
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 /*
@@ -27,7 +27,7 @@ public class TTNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public TTNode(Node parent, final TriplePattern triplePattern, final String tableName) {
+	public TTNode(final Node parent, final TriplePattern triplePattern, final String tableName) {
 		super(parent);
 		this.triplePattern = triplePattern;
 	}
@@ -78,7 +78,7 @@ public class TTNode extends Node {
 
 	@Override
 	public List<TriplePattern> collectTriples() {
-		ArrayList<TriplePattern> patterns = new ArrayList<>();
+		final ArrayList<TriplePattern> patterns = new ArrayList<>();
 		patterns.add(triplePattern);
 		return patterns;
 	}

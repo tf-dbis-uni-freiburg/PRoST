@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -15,13 +16,12 @@ import stats.StatisticsWriter;
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
- *
  */
 public class VerticalPartitioningLoader extends Loader {
 
-	public VerticalPartitioningLoader(final String database_name,
-			final SparkSession spark, final boolean computeStatistics) {
-		super(database_name, spark);
+	public VerticalPartitioningLoader(final String databaseName,
+									  final SparkSession spark, final boolean computeStatistics) {
+		super(databaseName, spark);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class VerticalPartitioningLoader extends Loader {
 			final List<Row> sampledRowsList = vpTableDataset.limit(3).collectAsList();
 			logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
 		}
-		logger.info("Vertical Partitioning completed. Loaded " + String.valueOf(properties_names.length) + " tables.");
+		logger.info("Vertical Partitioning completed. Loaded " + properties_names.length + " tables.");
 	}
 
 	private String[] extractProperties() {

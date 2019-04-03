@@ -17,9 +17,7 @@ import com.hp.hpl.jena.sparql.expr.ExprVisitorBase;
 import com.hp.hpl.jena.sparql.expr.NodeValue;
 
 public class FilterVisitor extends ExprVisitorBase {
-
 	StringBuilder builder = new StringBuilder();
-
 	private final PrefixMapping prefixes;
 
 	public FilterVisitor(final PrefixMapping prefixes) {
@@ -99,7 +97,7 @@ public class FilterVisitor extends ExprVisitorBase {
 
 	/**
 	 * Return SQL Filter expression.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getSQLFilter() {

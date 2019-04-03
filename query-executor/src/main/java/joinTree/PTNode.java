@@ -3,19 +3,17 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.spark.sql.SQLContext;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-
 import joinTree.stats.Stats;
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 /*
  * A node of the JoinTree that refers to the Property Table.
  */
-public class PTNode extends MVNode  {
+public class PTNode extends MVNode {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
 
@@ -28,7 +26,7 @@ public class PTNode extends MVNode  {
 	 */
 	private String tableName = "wide_property_table";
 
-	public PTNode(Node parent, final List<TriplePattern> tripleGroup) {
+	public PTNode(final Node parent, final List<TriplePattern> tripleGroup) {
 		this.parent = parent;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
@@ -51,17 +49,17 @@ public class PTNode extends MVNode  {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, String tableName) {
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName) {
 		this(jenaTriples, prefixes);
 		this.tableName = tableName;
 	}
-	
+
 	/**
 	 * If an emergent schema is used, then there exist more than one property
 	 * tables. In this case, the default table name can be changes depending on the
 	 * list of triples this node contains.
 	 */
-	public void setTableName(String tableName) {
+	public void setTableName(final String tableName) {
 		this.tableName = tableName;
 	}
 
@@ -90,7 +88,7 @@ public class PTNode extends MVNode  {
 
 		// objects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+			final String columnName = Stats.getInstance().findTableName(t.predicate);
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

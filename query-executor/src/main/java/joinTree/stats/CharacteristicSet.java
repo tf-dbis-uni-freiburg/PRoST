@@ -9,9 +9,8 @@ import java.util.Set;
  * number of occurrences of this predicates in entities belonging to the
  * characteristic set. Moreover, we store the number of unique subjects that are
  * part of the characteristic set.
- * 
- * @author Polina Koleva
  *
+ * @author Polina Koleva
  */
 public class CharacteristicSet {
 
@@ -19,7 +18,7 @@ public class CharacteristicSet {
 	// predicate, number of triples for this predicate
 	private Map<String, Integer> triplesPerPredicate;
 
-	public CharacteristicSet(Map<String, Integer> triplesPerPredicate, int distinctSubjectsCount) {
+	public CharacteristicSet(final Map<String, Integer> triplesPerPredicate, final int distinctSubjectsCount) {
 		this.triplesPerPredicate = triplesPerPredicate;
 		this.distinctSubjectsCount = distinctSubjectsCount;
 	}
@@ -32,7 +31,7 @@ public class CharacteristicSet {
 		return distinctSubjectsCount;
 	}
 
-	public void setDistinctSubjectsCount(int distinctSubjectsCount) {
+	public void setDistinctSubjectsCount(final int distinctSubjectsCount) {
 		this.distinctSubjectsCount = distinctSubjectsCount;
 	}
 
@@ -40,7 +39,7 @@ public class CharacteristicSet {
 		return triplesPerPredicate;
 	}
 
-	public void setTriplesPerPredicate(Map<String, Integer> triplesPerPredicate) {
+	public void setTriplesPerPredicate(final Map<String, Integer> triplesPerPredicate) {
 		this.triplesPerPredicate = triplesPerPredicate;
 	}
 

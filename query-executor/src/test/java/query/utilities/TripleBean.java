@@ -5,9 +5,8 @@ import java.io.Serializable;
 /**
  * The purpose of this bean class is to facilitate the creation of datasets
  * (dataframes) of rows.
- * 
- * @author Victor Anthony Arrascue Ayala
  *
+ * @author Victor Anthony Arrascue Ayala
  */
 public class TripleBean implements Serializable {
 	private static final long serialVersionUID = 39L;
@@ -19,7 +18,7 @@ public class TripleBean implements Serializable {
 		return s;
 	}
 
-	public void setS(String s) {
+	public void setS(final String s) {
 		this.s = s;
 	}
 
@@ -27,7 +26,7 @@ public class TripleBean implements Serializable {
 		return p;
 	}
 
-	public void setP(String p) {
+	public void setP(final String p) {
 		this.p = p;
 	}
 
@@ -35,7 +34,7 @@ public class TripleBean implements Serializable {
 		return o;
 	}
 
-	public void setO(String o) {
+	public void setO(final String o) {
 		this.o = o;
 	}
 }

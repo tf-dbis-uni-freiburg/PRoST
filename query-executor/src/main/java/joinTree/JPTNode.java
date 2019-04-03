@@ -2,21 +2,19 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.spark.sql.SQLContext;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-
-import translator.JoinedTriplesGroup;
 import joinTree.stats.Stats;
+import org.apache.spark.sql.SQLContext;
+import translator.JoinedTriplesGroup;
 import utils.Utils;
 
 /**
  * A node that uses a Joined Wide Property Table.
- *
  */
-public class JPTNode extends MVNode  {
-	
+public class JPTNode extends MVNode {
+
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
@@ -70,17 +68,19 @@ public class JPTNode extends MVNode  {
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS " + Utils.removeQuestionMark(wptTripleGroup.get(0).subject) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(wptTripleGroup.get(0).subject) + ",");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS " + Utils.removeQuestionMark(iwptTripleGroup.get(0).object) + ",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(iwptTripleGroup.get(0).object) + ",");
 			}
 		}
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
-			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
 			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -105,7 +105,7 @@ public class JPTNode extends MVNode  {
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate.toString()));
+			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

@@ -17,10 +17,12 @@ import org.apache.spark.sql.types.StructType;
  * Spark user defined function that returns for each subject a list of its properties. Each property is represented by a
  * list which contains the objects connected to a subject by this property. For example, for a subject "s1", we have the
  * corresponding triples: "s1 likes o1" , "s1 likes o2" , "s1 has o3", "s1 contains o4" In addition, a list of all
- * predicates is as follows <likes, has, contains, is>. So it can be seen that the subject s1 does not participate into
+ * predicates is as follows &lt likes, has, contains, is>. So it can be seen that the subject s1 does not participate
+ * into
  * a triple with the predicate "is". Let's also assume that the order of predicates is as the given above. Therefore,
- * for the subject s1, the result is (List<List<String>>) <<o1, o2>, <o3>, <o4>, NULL>. The order of results for each
- * predicate will be the same as the order of the predicates specified in the creation of the function.
+ * for the subject s1, the result is (List&lt List&lt String>>) &lt &lt o1, o2>, &lt o3>, &lt o4>, NULL>. The order
+ * of results for each predicate will be the same as the order of the predicates specified in the creation of the
+ * function.
  *
  * @author Matteo Cossu
  */
@@ -31,11 +33,9 @@ public class PropertiesAggregateFunction extends UserDefinedAggregateFunction {
 	// the returned properties for each subject from this function
 	// are ordered in the same way as their order in this array
 	private final String[] allProperties;
-
-	private int mAllProps;
-
 	// string used to distinguish between two values inside a single column
 	private final String columns_separator;
+	private int mAllProps;
 
 	public PropertiesAggregateFunction(final String[] allProperties, final String separator) {
 		this.allProperties = allProperties;

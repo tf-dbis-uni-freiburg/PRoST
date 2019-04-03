@@ -2,9 +2,9 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.spark.sql.SQLContext;
-import org.apache.log4j.Logger;
 
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 /*
@@ -13,9 +13,9 @@ import utils.Utils;
 public class VPNode extends Node {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
-
-	private final String tableName;
 	public TriplePattern triplePattern;
+	private final String tableName;
+
 
 	/*
 	 * The node contains a single triple pattern.
@@ -29,7 +29,7 @@ public class VPNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public VPNode(Node parent, final TriplePattern triplePattern, final String tableName) {
+	public VPNode(final Node parent, final TriplePattern triplePattern, final String tableName) {
 		super(parent);
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
@@ -85,7 +85,7 @@ public class VPNode extends Node {
 
 	@Override
 	public List<TriplePattern> collectTriples() {
-		ArrayList<TriplePattern> patterns = new ArrayList<>();
+		final ArrayList<TriplePattern> patterns = new ArrayList<>();
 		patterns.add(triplePattern);
 		return patterns;
 	}

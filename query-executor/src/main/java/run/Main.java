@@ -8,6 +8,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import executor.Executor;
+import joinTree.JoinTree;
+import joinTree.stats.Stats;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -18,12 +21,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
-import executor.Executor;
-import joinTree.JoinTree;
 import translator.Translator;
 import utils.EmergentSchema;
-import joinTree.stats.Stats;
 
 /**
  * The Main class parses the CLI arguments and calls the translator and the
@@ -53,7 +52,7 @@ public class Main {
 	private static boolean isGrouping = true;
 	private static String emergentSchemaFile = "";
 	private static String benchmarkFile = "";
-	
+
 	private static String loj4jFileName = "log4j.properties";
 
 	public static void main(final String[] args) throws IOException {
@@ -87,15 +86,18 @@ public class Main {
 		final Option lpOpt = new Option("lp", "logicalPartitionStrategies", true, "Logical Partition Strategy.");
 		lpOpt.setRequired(false);
 		options.addOption(lpOpt);
-		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "Disables grouping of triple patterns when using " + "WPT, IWPT, or JWPT models");
+		final Option disableGroupingOpt = new Option("dg", "disablesGrouping", false, "Disables grouping of triple "
+				+ "patterns when using " + "WPT, IWPT, or JWPT models");
 		disableGroupingOpt.setRequired(false);
 		options.addOption(disableGroupingOpt);
-		final Option randomQueryExecutionOpt = new Option("r", "randomQueryExecution", false, "If queries have to be executed in a random order.");
+		final Option randomQueryExecutionOpt = new Option("r", "randomQueryExecution", false, "If queries have to be "
+				+ "executed in a random order.");
 		randomQueryExecutionOpt.setRequired(false);
 		options.addOption(randomQueryExecutionOpt);
 		final Option benchmarkOpt = new Option("t", "times", true, "Save the time results in a csv file.");
 		options.addOption(benchmarkOpt);
-		final Option groupSizeOpt = new Option("g", "groupSize", true, "Minimum Group Size for Wide Property Table nodes");
+		final Option groupSizeOpt = new Option("g", "groupSize", true, "Minimum Group Size for Wide Property Table "
+				+ "nodes");
 		options.addOption(groupSizeOpt);
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -123,7 +125,7 @@ public class Main {
 		}
 		if (cmd.hasOption("width")) {
 			treeWidth = Integer.valueOf(cmd.getOptionValue("width"));
-			logger.info("Maximum tree width is set to " + String.valueOf(treeWidth));
+			logger.info("Maximum tree width is set to " + treeWidth);
 		}
 		if (cmd.hasOption("DB")) {
 			database_name = cmd.getOptionValue("DB");
@@ -134,7 +136,7 @@ public class Main {
 
 		if (cmd.hasOption("groupSize")) {
 			minimumGroupSize = Integer.valueOf(cmd.getOptionValue("groupSize"));
-			logger.info("Minimum Group Size set to " + String.valueOf(minimumGroupSize));
+			logger.info("Minimum Group Size set to " + minimumGroupSize);
 		}
 
 		// default if a logical partition is not specified is: WPT, and VP.
@@ -176,7 +178,7 @@ public class Main {
 			isGrouping = false;
 			logger.info("Grouping of multiple triples is disabled.");
 		}
-		
+
 		//validate input
 		if (useJoinedPropertyTable && (useInversePropertyTable || usePropertyTable)) {
 			useInversePropertyTable = false;
@@ -191,14 +193,14 @@ public class Main {
 			minimumGroupSize = 1;
 			logger.info("Minimum group size set to 1 when VP is disabled");
 		}
-		if (!isGrouping && useInversePropertyTable && usePropertyTable){
+		if (!isGrouping && useInversePropertyTable && usePropertyTable) {
 			useInversePropertyTable = false;
 			logger.info("Disabled IWPT. Not used when grouping is disabled and WPT is enabled");
 		}
-		
+
 		// create a singleton parsing a file with statistics
 		Stats.getInstance().parseStats(statsFileName);
-		
+
 		final File file = new File(inputFile);
 
 		// create an executor
@@ -221,14 +223,14 @@ public class Main {
 				executor.saveResultsCsv(benchmarkFile);
 			}
 		} else if (file.isDirectory()) {
-			List<String> queryFiles = Arrays.asList(file.list());
-			
+			final List<String> queryFiles = Arrays.asList(file.list());
+
 			// if random order applied, shuffle the queries
-			if(cmd.hasOption("randomQueryExecution")){
+			if (cmd.hasOption("randomQueryExecution")) {
 				logger.info("Executing queries in a random order.");
 				Collections.shuffle(queryFiles);
 			}
-			
+
 			// if the path is a directory execute every files inside
 			for (final String fname : queryFiles) {
 				logger.info("Starting: " + fname);
