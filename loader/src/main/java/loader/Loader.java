@@ -1,5 +1,7 @@
 package loader;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
@@ -59,7 +61,7 @@ public abstract class Loader {
 		for (final String tb : tableNames) {
 			spark.sql("DROP TABLE " + tb);
 		}
-		logger.info("Removed tables: " + tableNames);
+		logger.info("Removed tables: " + Arrays.toString(tableNames));
 	}
 
 	protected void useOutputDatabase() {
