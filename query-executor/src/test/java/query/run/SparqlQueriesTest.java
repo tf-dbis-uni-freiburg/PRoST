@@ -50,11 +50,11 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 
 		Stats.getInstance().parseStats(statsSingleTripleQuery1.getAbsolutePath());
 		Translator translator = new Translator(singleTripleQuery1.getAbsolutePath(), -1);
-		translator.setUsePropertyTable(true);
+		translator.setUseTripleTablePartitioning(true);
 		translator.setMinimumGroupSize(-1);
 		JoinTree jt = translator.translateQuery();
 		Executor executor = new Executor("singleTripleDb");
-		executor.setOutputFile("F:\\works.txt");
+		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\works.txt");
 		executor.execute(jt);
 	}
 }
