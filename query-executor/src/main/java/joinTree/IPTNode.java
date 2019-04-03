@@ -12,10 +12,11 @@ import joinTree.stats.Stats;
 import utils.Utils;
 
 public class IPTNode extends MVNode {
-
-	protected static final String inversePropertyTableName = "inverse_wide_property_table";
+	private static final String COLUMN_NAME_OBJECT = "o";
+	private static final String INVERSE_PROPERTY_TABLE_NAME = "inverse_wide_property_table";
 
 	public List<TriplePattern> tripleGroup;
+
 
 	/**
 	 * The node contains a list of triple patterns with the same object.
@@ -67,7 +68,7 @@ public class IPTNode extends MVNode {
 
 		// object
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
+			query.append(COLUMN_NAME_OBJECT + " AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
 		}
 
 		// subjects
@@ -78,7 +79,7 @@ public class IPTNode extends MVNode {
 				return;
 			}
 			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.object + "'");
+				whereConditions.add(COLUMN_NAME_OBJECT + "='" + t.object + "'");
 			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
@@ -98,7 +99,8 @@ public class IPTNode extends MVNode {
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
 
-		query.append(" FROM ").append(inversePropertyTableName).append(" ");
+
+		query.append(" FROM ").append(INVERSE_PROPERTY_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
 			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
 					+ explodedColumn);
