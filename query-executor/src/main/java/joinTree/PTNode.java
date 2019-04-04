@@ -13,7 +13,7 @@ import utils.Utils;
 /*
  * A node of the JoinTree that refers to the Property Table.
  */
-public class PTNode extends MVNode {
+public class PTNode extends MVNode  {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
 

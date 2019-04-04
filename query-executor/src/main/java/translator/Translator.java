@@ -615,4 +615,5 @@ public class Translator {
 	enum NodeType {
 		VP, WPT, IWPT, JWPT
 	}
+
 }

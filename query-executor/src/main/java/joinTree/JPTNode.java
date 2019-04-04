@@ -13,8 +13,8 @@ import utils.Utils;
 /**
  * A node that uses a Joined Wide Property Table.
  */
-public class JPTNode extends MVNode {
-
+public class JPTNode extends MVNode  {
+	
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
