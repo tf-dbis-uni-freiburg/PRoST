@@ -28,8 +28,8 @@ import stats.StatisticsWriter;
 /**
  * The Main class parses the CLI arguments and calls the executor.
  * <p>
- * Options: -h, --help prints the usage help message. -i, --input <file> HDFS
- * input path of the RDF graph. -o, --output <DBname> output database name. -s,
+ * Options: -h, --help prints the usage help message. -i, --input {@code <file>} HDFS
+ * input path of the RDF graph. -o, --output {@code <DBName>} output database name. -s,
  * compute statistics
  *
  * @author Matteo Cossu
@@ -38,6 +38,7 @@ import stats.StatisticsWriter;
 public class Main {
 	private static final String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
+
 	private static String input_location;
 	private static String outputDB;
 	private static boolean useStatistics = false;
@@ -48,9 +49,9 @@ public class Main {
 	private static boolean generateIWPT = false;
 	private static boolean generateJWPT = false;
 	// options for physical partitioning
-	private static boolean ttPartitionedByPred = false;
-	private static boolean ttPartitionedBySub = false;
-	private static boolean wptPartitionedBySub = false;
+	private static boolean ttPartitionedByPredicate = false;
+	private static boolean ttPartitionedBySubject = false;
+	private static boolean wptPartitionedBySubject = false;
 
 	public static void main(final String[] args) throws Exception {
 		final InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
@@ -87,17 +88,17 @@ public class Main {
 		options.addOption(duplicatesOpt);
 
 		// Settings for physically partitioning some of the tables
-		final Option ttpPartPredOpt = new Option("ttp", "ttPartitionedByPredicate", false,
+		final Option ttpPartPredicateOpt = new Option("ttp", "ttPartitionedByPredicate", false,
 				"To physically partition the Triple Table by predicate.");
-		ttpPartPredOpt.setRequired(false);
-		options.addOption(ttpPartPredOpt);
+		ttpPartPredicateOpt.setRequired(false);
+		options.addOption(ttpPartPredicateOpt);
 
-		final Option ttpPartSubOpt = new Option("tts", "ttPartitionedBySub", false,
+		final Option ttpPartSubjectOpt = new Option("tts", "ttPartitionedBySubject", false,
 				"To physically partition the Triple Table by subject.");
-		ttpPartSubOpt.setRequired(false);
-		options.addOption(ttpPartSubOpt);
+		ttpPartSubjectOpt.setRequired(false);
+		options.addOption(ttpPartSubjectOpt);
 
-		final Option wptPartSubOpt = new Option("wpts", "wptPartitionedBySub", false,
+		final Option wptPartSubOpt = new Option("wpts", "wptPartitionedBySubject", false,
 				"To physically partition the Wide Property Table by subject.");
 		wptPartSubOpt.setRequired(false);
 		options.addOption(wptPartSubOpt);
@@ -160,20 +161,20 @@ public class Main {
 		}
 
 		// Relevant for physical partitioning
-		if (cmd.hasOption("ttPartitionedByPredicate") && cmd.hasOption("ttPartitionedBySub")) {
+		if (cmd.hasOption("ttPartitionedByPredicate") && cmd.hasOption("ttPartitionedBySubject")) {
 			logger.error("Triple table cannot be partitioned by both subject and predicate.");
 			return;
 		}
 		if (cmd.hasOption("ttPartitionedByPredicate")) {
-			ttPartitionedByPred = true;
+			ttPartitionedByPredicate = true;
 			logger.info("Triple Table will be partitioned by predicate.");
 		}
-		if (cmd.hasOption("ttPartitionedBySub")) {
-			ttPartitionedBySub = true;
+		if (cmd.hasOption("ttPartitionedBySubject")) {
+			ttPartitionedBySubject = true;
 			logger.info("Triple Table will be partitioned by subject.");
 		}
-		if (cmd.hasOption("wptPartitionedBySub")) {
-			wptPartitionedBySub = true;
+		if (cmd.hasOption("wptPartitionedBySubject")) {
+			wptPartitionedBySubject = true;
 			logger.info("Wide Property Table will be partitioned by subject.");
 		}
 
@@ -221,7 +222,7 @@ public class Main {
 		if (generateTT) {
 			startTime = System.currentTimeMillis();
 			final TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark,
-					ttPartitionedBySub, ttPartitionedByPred, dropDuplicates);
+					ttPartitionedBySubject, ttPartitionedByPredicate, dropDuplicates);
 			tt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Tripletable: " + executionTime);
@@ -230,7 +231,7 @@ public class Main {
 		if (generateWPT) {
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader pt_loader =
-					new WidePropertyTableLoader(outputDB, spark, wptPartitionedBySub);
+					new WidePropertyTableLoader(outputDB, spark, wptPartitionedBySubject);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Property Table: " + executionTime);
@@ -239,7 +240,7 @@ public class Main {
 		if (generateIWPT) {
 			startTime = System.currentTimeMillis();
 			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(outputDB, spark,
-					wptPartitionedBySub);
+					wptPartitionedBySubject);
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + executionTime);
@@ -248,7 +249,7 @@ public class Main {
 		if (generateJWPT) {
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(outputDB, spark,
-					wptPartitionedBySub);
+					wptPartitionedBySubject);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Joined Property Table: " + executionTime);
@@ -273,12 +274,12 @@ public class Main {
 	/**
 	 * Calculate statistics for each table in the database except the external ones.
 	 * Broadcast join is used only when statistics are already computed.
-	 *
-	 * @param spark
 	 */
-	public static void computeTableStatistics(final SparkSession spark) {
-		final Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
+	private static void computeTableStatistics(final SparkSession spark) {
+		@SuppressWarnings("RedundantCast") final Row[] tables =
+				(Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
 		// skip the external table
-		IntStream.range(0, tables.length).filter(i -> !tables[i].getString(0).equals("tripletable_ext")).mapToObj(i -> "ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS").forEach(spark::sql);
+		IntStream.range(0, tables.length).filter(i -> !tables[i].getString(0).equals("tripletable_ext"))
+				.mapToObj(i -> "ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS").forEach(spark::sql);
 	}
 }
