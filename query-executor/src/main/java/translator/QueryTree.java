@@ -7,13 +7,13 @@ import com.hp.hpl.jena.graph.Triple;
 public class QueryTree {
 	private List<Triple> triples;
 	private String filter;
-	
-	public QueryTree(List<Triple> triples, String filter) {
+
+	public QueryTree(final List<Triple> triples, final String filter) {
 		this.setTriples(triples);
 		this.setFilter(filter);
 	}
-	
-	public QueryTree(List<Triple> triples) {
+
+	public QueryTree(final List<Triple> triples) {
 		this.setTriples(triples);
 		this.setFilter(null);
 	}
@@ -22,7 +22,7 @@ public class QueryTree {
 		return triples;
 	}
 
-	public void setTriples(List<Triple> triples) {
+	public void setTriples(final List<Triple> triples) {
 		this.triples = triples;
 	}
 
@@ -30,7 +30,7 @@ public class QueryTree {
 		return filter;
 	}
 
-	public void setFilter(String filter) {
+	public void setFilter(final String filter) {
 		this.filter = filter;
 	}
 }

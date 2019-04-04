@@ -4,8 +4,6 @@ import java.util.HashSet;
 
 import com.hp.hpl.jena.graph.Triple;
 
-import javax.annotation.Nullable;
-
 /**
  * A group of triples that have their common variable at either their subject or object.
  */
@@ -26,7 +24,6 @@ public class JoinedTriplesGroup {
 	}
 
 	/**
-	 *
 	 * @return returns the triples whose common variable is an object
 	 */
 	public HashSet<Triple> getIwptGroup() {
@@ -36,7 +33,7 @@ public class JoinedTriplesGroup {
 	/**
 	 * @return returns the number of elements in this group.
 	 */
-	public int size(){
+	public int size() {
 		return wptGroup.size() + iwptGroup.size();
 	}
 }

@@ -2,9 +2,9 @@ package loader;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -15,13 +15,12 @@ import stats.StatisticsWriter;
  *
  * @author Matteo Cossu
  * @author Victor Anthony Arrascue Ayala
- *
  */
 public class VerticalPartitioningLoader extends Loader {
 
-	public VerticalPartitioningLoader(final String database_name,
-			final SparkSession spark, final boolean computeStatistics) {
-		super(database_name, spark);
+	public VerticalPartitioningLoader(final String databaseName,
+									  final SparkSession spark, final boolean computeStatistics) {
+		super(databaseName, spark);
 	}
 
 	@Override
@@ -32,8 +31,7 @@ public class VerticalPartitioningLoader extends Loader {
 			properties_names = extractProperties();
 		}
 
-		for (int i = 0; i < properties_names.length; i++) {
-			final String property = properties_names[i];
+		for (final String property : properties_names) {
 			final String createVPTableFixed =
 					String.format("CREATE TABLE IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
 							"vp_" + getValidHiveName(property), column_name_subject, column_name_object);
@@ -69,7 +67,7 @@ public class VerticalPartitioningLoader extends Loader {
 			final List<Row> sampledRowsList = vpTableDataset.limit(3).collectAsList();
 			logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
 		}
-		logger.info("Vertical Partitioning completed. Loaded " + String.valueOf(properties_names.length) + " tables.");
+		logger.info("Vertical Partitioning completed. Loaded " + properties_names.length + " tables.");
 	}
 
 	private String[] extractProperties() {
@@ -94,9 +92,7 @@ public class VerticalPartitioningLoader extends Loader {
 		final Set<String> originalRemovedPredicates = new HashSet<>();
 		final Set<String> propertiesSet = new HashSet<>(Arrays.asList(properties));
 
-		final Iterator<String> it = propertiesSet.iterator();
-		while (it.hasNext()) {
-			final String predicate = it.next();
+		for (final String predicate : propertiesSet) {
 			if (seenPredicates.contains(predicate.toLowerCase())) {
 				originalRemovedPredicates.add(predicate);
 			} else {
@@ -110,7 +106,6 @@ public class VerticalPartitioningLoader extends Loader {
 			logger.info("The following predicates had to be removed from the list of predicates "
 					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
 		}
-		final String[] cleanedProperties = propertiesSet.toArray(new String[propertiesSet.size()]);
-		return cleanedProperties;
+		return propertiesSet.toArray(new String[propertiesSet.size()]);
 	}
 }

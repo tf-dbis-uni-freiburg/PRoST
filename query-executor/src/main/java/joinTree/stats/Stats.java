@@ -3,12 +3,9 @@ package joinTree.stats;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
-
 import utils.Utils;
 
 /**
@@ -34,7 +31,6 @@ public class Stats {
 	private HashMap<String, Integer> tableDistinctSubjects;
 	private HashMap<String, Boolean> iptPropertyComplexity;
 	private String[] tableNames;
-	private List<CharacteristicSet> charSets;
 
 	protected Stats() {
 		// Exists only to defeat instantiation.
@@ -47,7 +43,6 @@ public class Stats {
 			instance.tableDistinctSubjects = new HashMap<>();
 			instance.tableStats = new HashMap<>();
 			instance.iptPropertyComplexity = new HashMap<>();
-			instance.charSets = new ArrayList<>();
 			return instance;
 		}
 		if (areStatsParsed) {
@@ -65,7 +60,7 @@ public class Stats {
 			areStatsParsed = true;
 		}
 
-		ProtobufStats.Graph graph;
+		final ProtobufStats.Graph graph;
 		try {
 			graph = ProtobufStats.Graph.parseFrom(new FileInputStream(fileName));
 		} catch (final FileNotFoundException e) {
@@ -89,7 +84,8 @@ public class Stats {
 		
 		// parse char sets
 		for (final ProtobufStats.CharacteristicSet set : graph.getCharacteristicSetsList()) {
-			CharacteristicSet charSet = new CharacteristicSet(set.getTriplesPerPredicateMap(), set.getDistinctSubjectsCount());
+			final CharacteristicSet charSet = new CharacteristicSet(set.getTriplesPerPredicateMap(),
+					set.getDistinctSubjectsCount());
 		}
 		
 		logger.info("Statistics correctly parsed");
@@ -135,7 +131,7 @@ public class Stats {
 	 * if there is no match
 	 */
 	public String findTableName(final String tableName) {
-		String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
+		final String cleanedTableName = Utils.toMetastoreName(tableName).toLowerCase();
 		for (final String realTableName : tableNames) {
 			final boolean exactMatch = realTableName.equalsIgnoreCase(cleanedTableName);
 			// if there is a match, return the correct table name

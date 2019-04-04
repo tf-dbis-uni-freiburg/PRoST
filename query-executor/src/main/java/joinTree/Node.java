@@ -2,17 +2,16 @@ package joinTree;
 
 import java.util.List;
 
+import joinTree.stats.Stats;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
-import joinTree.stats.Stats;
-
 /**
  * An abstract class that each node of the JoinTree has to extend. Each node has
  * a parent and data frame that contains the data of the node.
- * 
+ *
  * @author Polina Koleva
  */
 public abstract class Node {
@@ -28,7 +27,7 @@ public abstract class Node {
 		this.parent = null;
 	}
 
-	public Node(Node parent) {
+	public Node(final Node parent) {
 		this.parent = parent;
 	}
 
@@ -38,7 +37,7 @@ public abstract class Node {
 	public abstract void computeNodeData(SQLContext sqlContext);
 
 	/**
-	 * Get a list of triples that each node contains. For example, {@link VpNode}
+	 * Get a list of triples that each node contains. For example, {@link VPNode}
 	 * represents only one triple. On the other side, {@link PTNode} contains a list
 	 * of triples with the same subject.
 	 */
@@ -47,7 +46,7 @@ public abstract class Node {
 	/**
 	 * Calculate a score for each node. Based on it, the position of the node in the
 	 * join tree is determined.
-	 * 
+	 *
 	 * @return heuristic score of a node
 	 */
 	public float getPriority() {

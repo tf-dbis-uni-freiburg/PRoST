@@ -3,12 +3,10 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.spark.sql.SQLContext;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-
 import joinTree.stats.Stats;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 public class IPTNode extends MVNode {
@@ -68,12 +66,12 @@ public class IPTNode extends MVNode {
 
 		// object
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			query.append(COLUMN_NAME_OBJECT + " AS " + Utils.removeQuestionMark(tripleGroup.get(0).object) + ",");
+			query.append(COLUMN_NAME_OBJECT + " AS ").append(Utils.removeQuestionMark(tripleGroup.get(0).object)).append(",");
 		}
 
 		// subjects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+			final String columnName = Stats.getInstance().findTableName(t.predicate);
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -88,10 +86,10 @@ public class IPTNode extends MVNode {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");
+				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" " + columnName + " AS " + Utils.removeQuestionMark(t.subject) + ",");
+				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -102,8 +100,7 @@ public class IPTNode extends MVNode {
 
 		query.append(" FROM ").append(INVERSE_PROPERTY_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
-					+ explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {
@@ -119,7 +116,7 @@ public class IPTNode extends MVNode {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("IWPT node: ");
 		for (final TriplePattern tpGroup : tripleGroup) {
-			str.append(tpGroup.toString() + ", ");
+			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");
 		return str.toString();

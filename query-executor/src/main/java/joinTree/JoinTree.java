@@ -1,7 +1,8 @@
 package joinTree;
+
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -15,30 +16,26 @@ import org.apache.spark.sql.SQLContext;
  *
  * @author Matteo Cossu
  * @author Polina Koleva
- *
  */
 public class JoinTree {
-
 	private static final Logger logger = Logger.getLogger("PRoST");
-
+	public String filter;
+	// identifier for the query, useful for debugging
+	public String query_name;
+	public List<String> projection;
 	private final Node root;
-
 	// TODO fix optional tree
 	// private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
-	public String filter;
-	public List<String> projection;
-
-	// identifier for the query, useful for debugging
-	public String query_name;
 	// number of VpNodes and MVNodes
 	private int vpLeavesCount = 0;
 	private int wptLeavesCount = 0;
 
-	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String query_name) {
-		this.query_name = query_name;
+
+	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String queryName) {
+		this.query_name = queryName;
 		this.root = root;
-		
+
 		// calculate number of vp and wpt nodes for the tree
 		// findLeaves();
 
@@ -51,7 +48,7 @@ public class JoinTree {
 
 	/**
 	 * Compute the result of a join tree.
-	 * 
+	 *
 	 * @return
 	 */
 	public Dataset<Row> compute(final SQLContext sqlContext) {
@@ -65,22 +62,22 @@ public class JoinTree {
 			selectedColumns[i] = new Column(this.projection.get(i));
 		}
 		// TODO fix the optional trees
-//		for (int i = 0; i < optionalTreeRoots.size(); i++) {
-//			// OPTIONAL
-//			final Node currentOptionalNode = optionalTreeRoots.get(i);
-//			// compute joins in the optional tree
-//			Dataset<Row> optionalResults = currentOptionalNode.computeJoinWithChildren(sqlContext);
-//			// add selection and filter in the optional tree
-//			// if there is a filter set, apply it
-//			if (currentOptionalNode.filter == null) {
-//				optionalResults = optionalResults.filter(currentOptionalNode.filter);
-//			}
-//
-//			// add left join with the optional tree
-//			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
-//			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
-//					"left_outer");
-//		}
+		/*for (int i = 0; i < optionalTreeRoots.size(); i++) {
+			// OPTIONAL
+			final Node currentOptionalNode = optionalTreeRoots.get(i);
+			// compute joins in the optional tree
+			Dataset<Row> optionalResults = currentOptionalNode.computeJoinWithChildren(sqlContext);
+			// add selection and filter in the optional tree
+			// if there is a filter set, apply it
+			if (currentOptionalNode.filter == null) {
+				optionalResults = optionalResults.filter(currentOptionalNode.filter);
+			}
+
+			// add left join with the optional tree
+			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
+			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
+					"left_outer");
+		}*/
 
 		// if there is a filter set, apply it
 		results = this.filter == null ? results.select(selectedColumns)
@@ -127,7 +124,7 @@ public class JoinTree {
 ////
 ////			// add left join with the optional tree
 ////			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
-////			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
+////			results = results.join(optionalResults,scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
 ////					"left_outer");
 ////		}
 //

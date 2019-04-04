@@ -3,13 +3,11 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.spark.sql.SQLContext;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-
 import joinTree.stats.Stats;
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SQLContext;
 import utils.Utils;
 
 /*
@@ -28,7 +26,7 @@ public class PTNode extends MVNode  {
 	 */
 	private String tableName = "wide_property_table";
 
-	public PTNode(Node parent, final List<TriplePattern> tripleGroup) {
+	public PTNode(final Node parent, final List<TriplePattern> tripleGroup) {
 		this.parent = parent;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
@@ -51,17 +49,17 @@ public class PTNode extends MVNode  {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, String tableName) {
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName) {
 		this(jenaTriples, prefixes);
 		this.tableName = tableName;
 	}
-	
+
 	/**
 	 * If an emergent schema is used, then there exist more than one property
 	 * tables. In this case, the default table name can be changes depending on the
 	 * list of triples this node contains.
 	 */
-	public void setTableName(String tableName) {
+	public void setTableName(final String tableName) {
 		this.tableName = tableName;
 	}
 
@@ -85,12 +83,12 @@ public class PTNode extends MVNode  {
 
 		// subject
 		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-			query.append("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).subject) + ",");
+			query.append("s AS ").append(Utils.removeQuestionMark(tripleGroup.get(0).subject)).append(",");
 		}
 
 		// objects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate.toString());
+			final String columnName = Stats.getInstance().findTableName(t.predicate);
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -105,20 +103,19 @@ public class PTNode extends MVNode  {
 					whereConditions.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" " + columnName + " AS " + Utils.removeQuestionMark(t.object) + ",");
+				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
 
 		// delete last comma
 		query.deleteCharAt(query.length() - 1);
-		query.append(" FROM " + this.tableName + " ");
+		query.append(" FROM ").append(this.tableName).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(" + explodedColumn + ") exploded" + explodedColumn + " AS P"
-					+ explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {
@@ -133,7 +130,7 @@ public class PTNode extends MVNode  {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("WPT node: ");
 		for (final TriplePattern tpGroup : tripleGroup) {
-			str.append(tpGroup.toString() + ", ");
+			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");
 		return str.toString();

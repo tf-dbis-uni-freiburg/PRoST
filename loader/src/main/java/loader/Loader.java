@@ -1,5 +1,7 @@
 package loader;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
@@ -11,25 +13,19 @@ import org.apache.spark.sql.SparkSession;
  */
 public abstract class Loader {
 
-	protected SparkSession spark;
-	protected String database_name;
-	protected static final Logger logger = Logger.getLogger("PRoST");
-	public boolean keep_temporary_tables = false;
 	public static final String table_format = "parquet";
 	public static final String max_length_col_name = "128";
-	/**
-	 * The separators used in the RDF data.
-	 */
-	public String line_terminator = "\\n";
+	protected static final Logger logger = Logger.getLogger("PRoST");
 	public String column_name_subject = "s";
 	public String column_name_predicate = "p";
 	public String column_name_object = "o";
 	public String name_tripletable = "tripletable";
+	protected SparkSession spark;
+	protected String database_name;
 	protected String[] properties_names;
-	public String stats_file_suffix = ".stats";
 
-	public Loader(final String database_name, final SparkSession spark) {
-		this.database_name = database_name;
+	public Loader(final String databaseName, final SparkSession spark) {
+		this.database_name = databaseName;
 		this.spark = spark;
 		// Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
 		// spark.sql("SET hive.exec.dynamic.partition = true");
@@ -47,8 +43,7 @@ public abstract class Loader {
 	 * Replace all not allowed characters of a DB column name by an underscore("_") and return a valid DB column name.
 	 * The datastore accepts only characters in the range [a-zA-Z0-9_]
 	 *
-	 * @param columnName
-	 *            column name that will be validated and fixed
+	 * @param columnName column name that will be validated and fixed
 	 * @return name of a DB column
 	 */
 	protected String getValidHiveName(final String columnName) {
@@ -58,18 +53,16 @@ public abstract class Loader {
 	/**
 	 * Remove all the tables indicated as parameter.
 	 *
-	 * @param tableNames
-	 *            the names of the tables that will be removed
-	 * @return
+	 * @param tableNames the names of the tables that will be removed
 	 */
-	protected void dropTables(final String... tableNames) {
+	private void dropTables(final String... tableNames) {
 		for (final String tb : tableNames) {
 			spark.sql("DROP TABLE " + tb);
 		}
-		logger.info("Removed tables: " + tableNames);
+		logger.info("Removed tables: " + Arrays.toString(tableNames));
 	}
 
-	protected void useOutputDatabase() {
+	private void useOutputDatabase() {
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + database_name);
 		spark.sql("USE " + database_name);
 		logger.info("Using the database: " + database_name);

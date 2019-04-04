@@ -2,15 +2,14 @@ package translator;
 
 import java.util.Comparator;
 
-import org.apache.log4j.Logger;
 import joinTree.Node;
+import org.apache.log4j.Logger;
 
 /**
  * Comparator used to sort nodes when building a join tree. A score for each
  * node is based on a heuristic function. Nodes are sorted in ascending order.
- * 
- * @author Polina Koleva
  *
+ * @author Polina Koleva
  */
 public class NodeComparator implements Comparator<Node> {
 

@@ -1,7 +1,11 @@
 package stats;
 
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.collect_list;
+import static org.apache.spark.sql.functions.explode;
+import static org.apache.spark.sql.functions.monotonically_increasing_id;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -10,11 +14,9 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-
+import stats.ProtobufStats.CharacteristicSet;
 import stats.ProtobufStats.Graph;
 import stats.ProtobufStats.TableStats;
-import stats.ProtobufStats.CharacteristicSet;
-import static org.apache.spark.sql.functions.*;
 
 public class StatisticsWriter {
 
@@ -24,7 +26,7 @@ public class StatisticsWriter {
 	private static StatisticsWriter instance = null;
 
 	private boolean useStatistics = false;
-	private String stats_file_suffix = ".stats";
+	private static final String STATS_FILE_SUFFIX = ".stats";
 	private Vector<TableStats> tableStatistics;
 	private Vector<CharacteristicSet> characteristicSets;
 
@@ -35,8 +37,8 @@ public class StatisticsWriter {
 	public static StatisticsWriter getInstance() {
 		if (instance == null) {
 			instance = new StatisticsWriter();
-			instance.tableStatistics = new Vector<TableStats>();
-			instance.characteristicSets = new Vector<CharacteristicSet>();
+			instance.tableStatistics = new Vector<>();
+			instance.characteristicSets = new Vector<>();
 		}
 		return instance;
 	}
@@ -46,8 +48,9 @@ public class StatisticsWriter {
 	 */
 	public void saveStatistics(final String fileName) {
 		// if statistics are not needed
-		if (!useStatistics)
+		if (!useStatistics) {
 			return;
+		}
 
 		final Graph.Builder graph_stats_builder = Graph.newBuilder();
 		// add table statistics
@@ -57,15 +60,13 @@ public class StatisticsWriter {
 		if (characteristicSets != null) {
 			graph_stats_builder.addAllCharacteristicSets(this.characteristicSets);
 		}
-		final Graph serialized_stats = graph_stats_builder.build();
-		FileOutputStream f_stream; // s
-		File file;
+		final Graph serializedStats = graph_stats_builder.build();
+		final FileOutputStream fStream; // s
+		final File file;
 		try {
-			file = new File(fileName + stats_file_suffix);
-			f_stream = new FileOutputStream(file);
-			serialized_stats.writeTo(f_stream);
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
+			file = new File(fileName + STATS_FILE_SUFFIX);
+			fStream = new FileOutputStream(file);
+			serializedStats.writeTo(fStream);
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
@@ -78,8 +79,9 @@ public class StatisticsWriter {
 	 */
 	public void addStatsTable(final Dataset<Row> table, final String tableName, final String subjectColumnName) {
 		// if statistics are not needed
-		if (!useStatistics)
+		if (!useStatistics) {
 			return;
+		}
 
 		final TableStats.Builder table_stats_builder = TableStats.newBuilder();
 
@@ -92,8 +94,8 @@ public class StatisticsWriter {
 				.setName(tableName);
 
 		if (table.sparkSession().catalog().tableExists("inverse_properties")) {
-			final String query = new String("select is_complex from inverse_properties where p='" + tableName + "'");
-			final boolean isInverseComplex = table.sparkSession().sql(query.toString()).head().getInt(0) == 1;
+			final String query = "select is_complex from inverse_properties where p='" + tableName + "'";
+			final boolean isInverseComplex = table.sparkSession().sql(query).head().getInt(0) == 1;
 			// put them in the protobuf object
 			table_stats_builder.setIsInverseComplex(isInverseComplex);
 		}
@@ -107,37 +109,38 @@ public class StatisticsWriter {
 
 	/**
 	 * Calculate the characteristic sets and store them into stats file.
-	 * 
+	 *
 	 * @param triples
 	 */
-	public void addCharacteristicSetsStats(Dataset<Row> triples) {
-		Dataset<Row> subjectCharSet = triples.select(col("s"), col("p")).groupBy(col("s"))
+	public void addCharacteristicSetsStats(final Dataset<Row> triples) {
+		final Dataset<Row> subjectCharSet = triples.select(col("s"), col("p")).groupBy(col("s"))
 				.agg(collect_list(col("p")).alias("charSet"));
 		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
 		// add index to each set
 		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p", explode(col("charSet")));
 		// join with TT based on p
-		charSets = charSets.join(triples,"p");
+		charSets = charSets.join(triples, "p");
 		// calculate the predicate set count for each set
-		Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s", "o");
-		Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
+		final Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s",
+				"o");
+		final Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
 				.alias("distinct_subjects").drop("s");
-		List<Row> charSetSubjectCount = charSetSubject.collectAsList();
-		for (Row row : charSetSubjectCount) {
-			CharacteristicSet.Builder char_set_stats_builder = CharacteristicSet.newBuilder();
+		final List<Row> charSetSubjectCount = charSetSubject.collectAsList();
+		for (final Row row : charSetSubjectCount) {
+			final CharacteristicSet.Builder charSetStatsBuilder = CharacteristicSet.newBuilder();
 
 			//TODO update protobuf file to long values
-			int charSetId = (int) row.getLong(0);
-			int distinctSubjects = (int) row.getLong(1);
-			char_set_stats_builder.setDistinctSubjectsCount(distinctSubjects);
-			List<Row> predicateStats = charSetPredicateStats.where("id ==" + charSetId).collectAsList();
-			for (Row row2 : predicateStats) {
-				String predicate = row2.getString(1);
-				int predicateCount = row2.getInt(2);
-				char_set_stats_builder.getMutableTriplesPerPredicate().put(predicate, predicateCount);
+			final int charSetId = (int) row.getLong(0);
+			final int distinctSubjects = (int) row.getLong(1);
+			charSetStatsBuilder.setDistinctSubjectsCount(distinctSubjects);
+			final List<Row> predicateStats = charSetPredicateStats.where("id ==" + charSetId).collectAsList();
+			for (final Row row2 : predicateStats) {
+				final String predicate = row2.getString(1);
+				final int predicateCount = row2.getInt(2);
+				charSetStatsBuilder.getMutableTriplesPerPredicate().put(predicate, predicateCount);
 			}
 			// save into stats file
-			characteristicSets.add(char_set_stats_builder.build());
+			characteristicSets.add(charSetStatsBuilder.build());
 		}
 	}
 
@@ -145,7 +148,7 @@ public class StatisticsWriter {
 		return tableStatistics;
 	}
 
-	public void setTableStatistics(Vector<TableStats> tableStatistics) {
+	public void setTableStatistics(final Vector<TableStats> tableStatistics) {
 		this.tableStatistics = tableStatistics;
 	}
 
@@ -153,7 +156,7 @@ public class StatisticsWriter {
 		return useStatistics;
 	}
 
-	public void setUseStatistics(boolean useStatistics) {
+	public void setUseStatistics(final boolean useStatistics) {
 		this.useStatistics = useStatistics;
 	}
 
@@ -161,7 +164,7 @@ public class StatisticsWriter {
 		return characteristicSets;
 	}
 
-	public void setCharacteristicSets(Vector<CharacteristicSet> characteristicSets) {
+	public void setCharacteristicSets(final Vector<CharacteristicSet> characteristicSets) {
 		this.characteristicSets = characteristicSets;
 	}
 }

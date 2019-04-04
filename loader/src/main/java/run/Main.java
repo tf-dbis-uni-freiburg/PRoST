@@ -4,14 +4,13 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.IntStream;
 
 import loader.InverseWidePropertyTable;
 import loader.JoinedWidePropertyTable;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
 import loader.WidePropertyTableLoader;
-import stats.StatisticsWriter;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -24,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.StatisticsWriter;
 
 /**
  * The Main class parses the CLI arguments and calls the executor.
@@ -36,10 +36,10 @@ import org.apache.spark.sql.SparkSession;
  * @author Victor Anthony Arrascue Ayala
  */
 public class Main {
-	private static String input_location;
-	private static String outputDB;
 	private static final String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
+	private static String input_location;
+	private static String outputDB;
 	private static boolean useStatistics = false;
 	private static boolean dropDuplicates = true;
 	private static boolean generateTT = false;
@@ -195,13 +195,14 @@ public class Main {
 		// create a statistics writer with statistics enabled
 		StatisticsWriter.getInstance().setUseStatistics(true);
 		//Validate parameters
-		if (useStatistics && !generateVP){
+		if (useStatistics && !generateVP) {
 			logger.info("Logical strategy activated: VP. Mandatory to generate statistics.");
 			generateVP = true;
 		}
-		if (!generateTT && (generateVP || generateJWPT || generateIWPT || generateWPT)){
+		if (!generateTT && (generateVP || generateJWPT || generateIWPT || generateWPT)) {
 			generateTT = true;
-			logger.info("Logical strategy activated: TT (mandatory for VP, WPT, IWPT, and JWPT) with default physical partitioning");
+			logger.info("Logical strategy activated: TT (mandatory for VP, WPT, IWPT, and JWPT) with default physical"
+					+ " partitioning");
 		}
 
 
@@ -219,11 +220,11 @@ public class Main {
 
 		if (generateTT) {
 			startTime = System.currentTimeMillis();
-			 final TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark,
+			final TripleTableLoader tt_loader = new TripleTableLoader(input_location, outputDB, spark,
 					ttPartitionedBySub, ttPartitionedByPred, dropDuplicates);
-			 tt_loader.load();
+			tt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Tripletable: " + String.valueOf(executionTime));
+			logger.info("Time in ms to build the Tripletable: " + executionTime);
 		}
 
 		if (generateWPT) {
@@ -232,7 +233,7 @@ public class Main {
 					new WidePropertyTableLoader(outputDB, spark, wptPartitionedBySub);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Property Table: " + String.valueOf(executionTime));
+			logger.info("Time in ms to build the Property Table: " + executionTime);
 		}
 
 		if (generateIWPT) {
@@ -241,7 +242,7 @@ public class Main {
 					wptPartitionedBySub);
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Inverse Property Table: " + String.valueOf(executionTime));
+			logger.info("Time in ms to build the Inverse Property Table: " + executionTime);
 		}
 
 		if (generateJWPT) {
@@ -250,7 +251,7 @@ public class Main {
 					wptPartitionedBySub);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Joined Property Table: " + String.valueOf(executionTime));
+			logger.info("Time in ms to build the Joined Property Table: " + executionTime);
 		}
 
 		if (generateVP) {
@@ -259,12 +260,12 @@ public class Main {
 					new VerticalPartitioningLoader(outputDB, spark, useStatistics);
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Vertical partitioning: " + String.valueOf(executionTime));
+			logger.info("Time in ms to build the Vertical partitioning: " + executionTime);
 		}
-		
+
 		// save statistics if needed
 		StatisticsWriter.getInstance().saveStatistics(outputDB);
-		
+
 		// compute statistics for each table
 		computeTableStatistics(spark);
 	}
@@ -272,16 +273,12 @@ public class Main {
 	/**
 	 * Calculate statistics for each table in the database except the external ones.
 	 * Broadcast join is used only when statistics are already computed.
-	 * 
+	 *
 	 * @param spark
 	 */
-	public static void computeTableStatistics(SparkSession spark) {
-		Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
-		for (int i = 0; i < tables.length; i++) {
-			// skip the external table
-			if (!tables[i].getString(0).equals("tripletable_ext")) {
-				spark.sql("ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS");
-			}
-		}
+	public static void computeTableStatistics(final SparkSession spark) {
+		final Row[] tables = (Row[]) spark.sql("SHOW TABLES").select("tableName").collect();
+		// skip the external table
+		IntStream.range(0, tables.length).filter(i -> !tables[i].getString(0).equals("tripletable_ext")).mapToObj(i -> "ANALYZE TABLE " + tables[i].get(0) + " COMPUTE STATISTICS").forEach(spark::sql);
 	}
 }

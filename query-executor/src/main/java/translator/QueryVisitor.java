@@ -19,7 +19,7 @@ public class QueryVisitor extends OpVisitorBase {
 	private List<Var> projectionVariables;
 	private PrefixMapping prefixes;
 
-	public QueryVisitor(PrefixMapping prefixes) {
+	public QueryVisitor(final PrefixMapping prefixes) {
 		super();
 		this.prefixes = prefixes;
 		this.optionalQueryTrees = new ArrayList<>();
@@ -37,11 +37,11 @@ public class QueryVisitor extends OpVisitorBase {
 		return this.mainQueryTree;
 	}
 
-	public void visit(OpBGP opBGP) {
+	public void visit(final OpBGP opBGP) {
 		this.mainQueryTree = new QueryTree(opBGP.getPattern().getList());
 	}
-	
-	public void visit(OpBGP opBGP, boolean isOptional, String filter) {
+
+	public void visit(final OpBGP opBGP, final boolean isOptional, final String filter) {
 		if (!isOptional) {
 			// main join tree triples
 			this.mainQueryTree = new QueryTree(opBGP.getPattern().getList());
@@ -51,7 +51,7 @@ public class QueryVisitor extends OpVisitorBase {
 		}
 	}
 
-	public void visit(OpLeftJoin opLeftJoin) {
+	public void visit(final OpLeftJoin opLeftJoin) {
 		if (opLeftJoin.getLeft() instanceof OpBGP) {
 			this.visit((OpBGP) opLeftJoin.getLeft(), false, null);
 		}
@@ -59,11 +59,11 @@ public class QueryVisitor extends OpVisitorBase {
 		if (opLeftJoin.getRight() instanceof OpBGP) {
 			// filter expression for the optional
 			if (opLeftJoin.getExprs() != null) {
-				FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
-				for (Expr e : opLeftJoin.getExprs()) {
+				final FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
+				for (final Expr e : opLeftJoin.getExprs()) {
 					e.visit(filterVisitor);
 				}
-				String optionalFilter = filterVisitor.getSQLFilter();
+				final String optionalFilter = filterVisitor.getSQLFilter();
 				this.visit((OpBGP) opLeftJoin.getRight(), true, optionalFilter);
 			} else {
 				this.visit((OpBGP) opLeftJoin.getRight(), true, null);
@@ -71,15 +71,15 @@ public class QueryVisitor extends OpVisitorBase {
 		}
 	}
 
-	public void visit(OpFilter opFilter) {
-		FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
-		for (Expr e : opFilter.getExprs()) {
+	public void visit(final OpFilter opFilter) {
+		final FilterVisitor filterVisitor = new FilterVisitor(this.prefixes);
+		for (final Expr e : opFilter.getExprs()) {
 			e.visit(filterVisitor);
 		}
 		this.mainQueryTree.setFilter(filterVisitor.getSQLFilter());
 	}
 
-	public void visit(OpProject opProject) {
+	public void visit(final OpProject opProject) {
 		this.projectionVariables = opProject.getVars();
 	}
 }

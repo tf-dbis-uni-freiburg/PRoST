@@ -1,9 +1,8 @@
 package joinTree;
 
-import org.apache.log4j.Logger;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import org.apache.log4j.Logger;
 
 public class TriplePattern {
 
