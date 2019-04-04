@@ -1,7 +1,5 @@
 package loader;
 
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
@@ -12,28 +10,31 @@ import org.apache.spark.sql.SparkSession;
  * @author Victor Anthony Arrascue Ayala
  */
 public abstract class Loader {
+	static final Logger logger = Logger.getLogger("PRoST");
 
-	public static final String table_format = "parquet";
-	public static final String max_length_col_name = "128";
-	protected static final Logger logger = Logger.getLogger("PRoST");
-	public String column_name_subject = "s";
-	public String column_name_predicate = "p";
-	public String column_name_object = "o";
-	public String name_tripletable = "tripletable";
-	protected SparkSession spark;
-	protected String database_name;
-	protected String[] properties_names;
+	static final String TABLE_FORMAT = "parquet";
+	static final String MAX_LENGTH_COL_NAME = "128";
+	static final String COLUMN_NAME_SUBJECT = "s";
+	static final String COLUMN_NAME_PREDICATE = "p";
+	static final String COLUMN_NAME_OBJECT = "o";
+	static final String TRIPLETABLE_NAME = "tripletable";
+
+	protected final SparkSession spark;
+	private final String databaseName;
+	private String[] propertiesNames;
 
 	public Loader(final String databaseName, final SparkSession spark) {
-		this.database_name = databaseName;
+		this.databaseName = databaseName;
 		this.spark = spark;
-		// Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
-		// spark.sql("SET hive.exec.dynamic.partition = true");
-		// spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
-		// spark.sql("SET hive.exec.max.dynamic.partitions = 4000");
-		// spark.sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
+		/*
+		 Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
+		 spark.sql("SET hive.exec.dynamic.partition = true");
+		 spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
+		 spark.sql("SET hive.exec.max.dynamic.partitions = 4000");
+		 spark.sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
+		 from now on, set the right database
+		*/
 
-		// from now on, set the right database
 		useOutputDatabase();
 	}
 
@@ -46,25 +47,25 @@ public abstract class Loader {
 	 * @param columnName column name that will be validated and fixed
 	 * @return name of a DB column
 	 */
-	protected String getValidHiveName(final String columnName) {
+	String getValidHiveName(final String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
 
-	/**
-	 * Remove all the tables indicated as parameter.
-	 *
-	 * @param tableNames the names of the tables that will be removed
-	 */
-	private void dropTables(final String... tableNames) {
-		for (final String tb : tableNames) {
-			spark.sql("DROP TABLE " + tb);
-		}
-		logger.info("Removed tables: " + Arrays.toString(tableNames));
+	private void useOutputDatabase() {
+		spark.sql("CREATE DATABASE IF NOT EXISTS " + databaseName);
+		spark.sql("USE " + databaseName);
+		logger.info("Using the database: " + databaseName);
 	}
 
-	private void useOutputDatabase() {
-		spark.sql("CREATE DATABASE IF NOT EXISTS " + database_name);
-		spark.sql("USE " + database_name);
-		logger.info("Using the database: " + database_name);
+	String getDatabaseName() {
+		return databaseName;
+	}
+
+	String[] getPropertiesNames() {
+		return propertiesNames;
+	}
+
+	void setPropertiesNames(final String[] propertiesNames) {
+		this.propertiesNames = propertiesNames;
 	}
 }

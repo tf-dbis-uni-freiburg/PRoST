@@ -17,12 +17,12 @@ public class InverseWidePropertyTable extends PropertyTableLoader {
 
 	@Override
 	Dataset<Row> loadDataset() {
-		final Dataset<Row> propertiesCardinalities = calculatePropertiesComplexity(column_name_object);
+		final Dataset<Row> propertiesCardinalities = calculatePropertiesComplexity(COLUMN_NAME_OBJECT);
 		saveTable(propertiesCardinalities, PROPERTIES_CARDINALITIES_TABLE_NAME);
 		final Map<String, Boolean> propertiesCardinalitiesMap =
 				createPropertiesComplexitiesMap(propertiesCardinalities);
-		properties_names = propertiesCardinalitiesMap.keySet().toArray(new String[0]);
-		return createPropertyTableDataset(propertiesCardinalitiesMap, column_name_object,
-				column_name_subject);
+		setPropertiesNames(propertiesCardinalitiesMap.keySet().toArray(new String[0]));
+		return createPropertyTableDataset(propertiesCardinalitiesMap, COLUMN_NAME_OBJECT,
+				COLUMN_NAME_SUBJECT);
 	}
 }

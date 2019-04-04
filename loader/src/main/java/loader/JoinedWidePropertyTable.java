@@ -18,21 +18,21 @@ public class JoinedWidePropertyTable extends PropertyTableLoader {
 	}
 
 	Dataset<Row> loadDataset() {
-		final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(database_name, spark,
+		final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(getDatabaseName(), spark,
 				isPartitioned);
 		Dataset<Row> iwptDataset = iwptLoader.loadDataset();
-		for (final String property : iwptLoader.properties_names) {
+		for (final String property : iwptLoader.getPropertiesNames()) {
 			iwptDataset = iwptDataset.withColumnRenamed(property, IWPT_PREFIX.concat(property));
 		}
 
-		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(database_name, spark, isPartitioned);
+		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(getDatabaseName(), spark, isPartitioned);
 		Dataset<Row> wptDataset = wptLoader.loadDataset();
-		for (final String property : wptLoader.properties_names) {
+		for (final String property : wptLoader.getPropertiesNames()) {
 			wptDataset = wptDataset.withColumnRenamed(property, WPT_PREFIX.concat(property));
 		}
 
-		wptDataset = wptDataset.withColumnRenamed(column_name_subject, COLUMN_NAME_COMMON_RESOURCE);
-		iwptDataset = iwptDataset.withColumnRenamed(column_name_object, COLUMN_NAME_COMMON_RESOURCE);
+		wptDataset = wptDataset.withColumnRenamed(COLUMN_NAME_SUBJECT, COLUMN_NAME_COMMON_RESOURCE);
+		iwptDataset = iwptDataset.withColumnRenamed(COLUMN_NAME_OBJECT, COLUMN_NAME_COMMON_RESOURCE);
 		return wptDataset.join(iwptDataset,
 				scala.collection.JavaConverters.asScalaIteratorConverter(
 						Collections.singletonList(COLUMN_NAME_COMMON_RESOURCE).iterator()).asScala().toSeq(), "outer");

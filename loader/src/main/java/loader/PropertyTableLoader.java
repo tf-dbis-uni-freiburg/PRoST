@@ -52,7 +52,7 @@ abstract class PropertyTableLoader extends Loader {
 		// 1 for multivalued predicate, 0 for single predicate
 		// select all the properties
 		final Dataset<Row> allProperties = spark
-				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", column_name_predicate, name_tripletable));
+				.sql(String.format("SELECT DISTINCT(%1$s) AS %1$s FROM %2$s", COLUMN_NAME_PREDICATE, TRIPLETABLE_NAME));
 
 		logger.info("Total Number of Properties found: " + allProperties.count());
 
@@ -60,7 +60,7 @@ abstract class PropertyTableLoader extends Loader {
 		final Dataset<Row> multivaluedProperties = spark.sql(String.format(
 				"SELECT DISTINCT(%1$s) AS %1$s FROM "
 						+ "(SELECT %2$s, %1$s, COUNT(*) AS rc FROM %3$s GROUP BY %2$s, %1$s HAVING rc > 1) AS grouped",
-				column_name_predicate, valueColumnName, name_tripletable));
+				COLUMN_NAME_PREDICATE, valueColumnName, TRIPLETABLE_NAME));
 
 		logger.info("Number of Multivalued Properties found: " + multivaluedProperties.count());
 
@@ -70,8 +70,8 @@ abstract class PropertyTableLoader extends Loader {
 
 		// combine them
 		final Dataset<Row> combinedProperties = singledValueProperties
-				.selectExpr(column_name_predicate, "0 AS is_complex")
-				.union(multivaluedProperties.selectExpr(column_name_predicate, "1 AS is_complex"));
+				.selectExpr(COLUMN_NAME_PREDICATE, "0 AS is_complex")
+				.union(multivaluedProperties.selectExpr(COLUMN_NAME_PREDICATE, "1 AS is_complex"));
 
 		// remove '<' and '>', convert the characters
 		final Dataset<Row> cleanedProperties = combinedProperties.withColumn("p",
@@ -100,15 +100,15 @@ abstract class PropertyTableLoader extends Loader {
 	 *
 	 * @param dataset       DataSet to be saved.
 	 * @param tableName     Name of the table to be generated
-	 * @param isPartitioned Partition by <code>column_name_subject</code> if true
+	 * @param isPartitioned Partition by <code>COLUMN_NAME_SUBJECT</code> if true
 	 */
 	private void saveTable(final Dataset<Row> dataset, final String tableName, final Boolean isPartitioned) {
 		if (isPartitioned) {
-			dataset.write().mode(SaveMode.Overwrite).format(table_format).partitionBy(column_name_subject)
+			dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).partitionBy(COLUMN_NAME_SUBJECT)
 					.saveAsTable(tableName);
-			logger.info("Saved table: " + tableName + ", partitioned by : " + column_name_subject);
+			logger.info("Saved table: " + tableName + ", partitioned by : " + COLUMN_NAME_SUBJECT);
 		} else {
-			dataset.write().mode(SaveMode.Overwrite).format(table_format).saveAsTable(tableName);
+			dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(tableName);
 			logger.info("Saved table: " + tableName);
 		}
 	}
@@ -182,7 +182,7 @@ abstract class PropertyTableLoader extends Loader {
 
 		// get the compressed table
 		final Dataset<Row> compressedTriples = spark.sql(String.format("SELECT %s, CONCAT(%s, '%s', %s) AS po FROM %s",
-				keyColumnName, column_name_predicate, COLUMNS_SEPARATOR, valuesColumnName, name_tripletable));
+				keyColumnName, COLUMN_NAME_PREDICATE, COLUMNS_SEPARATOR, valuesColumnName, TRIPLETABLE_NAME));
 
 		// group by the subject and get all the data
 		final Dataset<Row> grouped = compressedTriples.groupBy(keyColumnName)
