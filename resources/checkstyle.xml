@@ -159,6 +159,7 @@
       <property name="allowedAnnotations" value="Override, Test"/>
       <property name="validateThrows" value="true"/>
       <property name="scope" value="public"/>
+	  <property name="tokens" value="CLASS_DEF, ANNOTATION_FIELD_DEF"/>
     </module>
     <module name="MethodName">
       <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
