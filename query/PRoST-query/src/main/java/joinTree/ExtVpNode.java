@@ -12,8 +12,6 @@ import executor.Utils;
  * Join tree node that uses or create a semi-join table.
  */
 public class ExtVpNode extends Node {
-	// private static final Logger logger = Logger.getLogger("PRoST");
-
 	private final String tableName;
 	private final String tableNameWithDatabaseIdentifier; // databaseName.tableName
 	public DatabaseStatistics extVPDatabaseStatistic;
@@ -23,7 +21,6 @@ public class ExtVpNode extends Node {
 		this.triplePattern = triplePattern;
 		tripleGroup = Collections.emptyList();
 		this.tableName = tableName;
-		// this.extVPDatabaseName = databaseName;
 		tableNameWithDatabaseIdentifier = databaseName + "." + tableName;
 		this.extVPDatabaseStatistic = extvpStats;
 	}
@@ -55,7 +52,6 @@ public class ExtVpNode extends Node {
 			}
 		}
 
-		//logger.info("ExtVp query: " + query.toString());
 		sparkNodeData = sqlContext.sql(query.toString());
 	}
 
