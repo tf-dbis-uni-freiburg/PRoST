@@ -25,6 +25,11 @@
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ini4j</groupId>
+			<artifactId>ini4j</artifactId>
+			<version>0.5.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -61,6 +66,7 @@
 								</excludes>
 								<includes>
 									<include>*google*</include>
+									<include>*ini4j*</include>
 								</includes>
 							</artifactSet>
 							<relocations>
@@ -69,6 +75,28 @@
 									<shadedPattern>shaded.com.google.protobuf</shadedPattern>
 								</relocation>
 							</relocations>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
 						</configuration>
 					</execution>
 				</executions>
