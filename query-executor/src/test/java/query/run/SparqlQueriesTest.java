@@ -52,7 +52,7 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		translator.setMinimumGroupSize(-1);
 		final JoinTree jt = translator.translateQuery();
 		final Executor executor = new Executor("singleTripleDb");
-		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\works.txt");
+		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\result");
 		executor.execute(jt);
 	}
 }

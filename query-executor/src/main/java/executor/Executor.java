@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
 /**
@@ -70,7 +71,7 @@ public class Executor {
 		long resultCount = -1;
 		// if specified, save the results in HDFS, just count otherwise
 		if (outputFile != null) {
-			results.write().parquet(outputFile);
+			results.write().mode(SaveMode.Overwrite).parquet(outputFile);
 		} else {
 			resultCount = results.count();
 		}
