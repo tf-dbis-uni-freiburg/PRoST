@@ -31,7 +31,7 @@ public class Main {
 	private static final Logger logger = Logger.getLogger("PRoST");
 
 	public static void main(final String[] args) throws Exception {
-		logger.info("Initializing loader");
+		logger.info("INITIALIZING LOADER");
 
 		final InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
 		final Properties props = new Properties();
