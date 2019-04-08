@@ -80,8 +80,13 @@ public class JoinTree {
 		}*/
 
 		// if there is a filter set, apply it
-		results = this.filter == null ? results.select(selectedColumns)
-				: results.filter(this.filter).select(selectedColumns);
+		results = this.filter == null ? results
+				: results.filter(this.filter);
+
+		// apply projection as defined in the SPARQL query
+		if (selectedColumns.length>0){
+			results = results.select(selectedColumns);
+		}
 
 		// if results are distinct
 		if (selectDistinct) {
