@@ -17,10 +17,12 @@ import stats.StatisticsWriter;
  * @author Victor Anthony Arrascue Ayala
  */
 public class VerticalPartitioningLoader extends Loader {
+	private final boolean isPartitioning;
 
-	public VerticalPartitioningLoader(final String databaseName,
-									  final SparkSession spark, final boolean computeStatistics) {
+	public VerticalPartitioningLoader(final String databaseName, final SparkSession spark,
+									  final boolean isPartitioning) {
 		super(databaseName, spark);
+		this.isPartitioning = isPartitioning;
 	}
 
 	@Override
@@ -32,30 +34,31 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 
 		for (final String property : getPropertiesNames()) {
-			final String createVPTableFixed =
-					String.format("CREATE TABLE IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED AS PARQUET",
-							"vp_" + getValidHiveName(property), COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT);
-			// Commented code is partitioning by subject
-			/*
-			 * String createVPTableFixed = String.format(
-			 * "CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET"
-			 * , "vp_" + this.getValidHiveName(property), COLUMN_NAME_SUBJECT,
-			 * COLUMN_NAME_OBJECT);
-			 */
+			final String createVPTableFixed;
+			if (!isPartitioning) {
+				createVPTableFixed = String.format("CREATE TABLE IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED "
+								+ "AS PARQUET",
+						"vp_" + getValidHiveName(property), COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT);
+			} else {
+				createVPTableFixed = String.format(
+						"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING) PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
+						"vp_" + this.getValidHiveName(property), COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT);
+			}
 			spark.sql(createVPTableFixed);
 
-			final String populateVPTable = String.format(
-					"INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
-					"vp_" + getValidHiveName(property), COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT, TRIPLETABLE_NAME,
-					COLUMN_NAME_PREDICATE, property);
-			// Commented code is partitioning by subject
-			/*
-			 * String populateVPTable = String.format(
-			 * "INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s " +
-			 * "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
-			 * COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT, TRIPLETABLE_NAME,
-			 * COLUMN_NAME_PREDICATE, property);
-			 */
+			final String populateVPTable;
+			if (!isPartitioning) {
+				populateVPTable = String.format(
+						"INSERT OVERWRITE TABLE %1$s " + "SELECT %2$s, %3$s " + "FROM %4$s WHERE %5$s = '%6$s' ",
+						"vp_" + getValidHiveName(property), COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT, TRIPLETABLE_NAME,
+						COLUMN_NAME_PREDICATE, property);
+			} else {
+				populateVPTable = String.format(
+						"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s " +
+								"FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
+						COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT, TRIPLETABLE_NAME,
+						COLUMN_NAME_PREDICATE, property);
+			}
 			spark.sql(populateVPTable);
 
 			// calculate stats
@@ -69,6 +72,7 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		logger.info("Vertical Partitioning completed. Loaded " + getPropertiesNames().length + " tables.");
 	}
+
 
 	private String[] extractProperties() {
 		final List<Row> props = spark
