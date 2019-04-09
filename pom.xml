@@ -18,7 +18,8 @@
 	<modules>
 		<module>loader</module>
 		<module>query-executor</module>
-	</modules>
+        <module>statistics</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

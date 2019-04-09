@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import stats.StatisticsWriter;
 
 /**
  * Class that constructs a triples table. First, the loader creates an external
@@ -18,18 +17,18 @@ import stats.StatisticsWriter;
  * @author Victor Anthony Arrascue Ayala
  */
 public class TripleTableLoader extends Loader {
-	protected boolean ttPartitionedBySub;
-	protected boolean ttPartitionedByPred;
-	protected boolean dropDuplicates;
-	protected String hdfs_input_directory;
+	protected final boolean ttPartitionedBySubject;
+	protected final boolean ttPartitionedByPredicate;
+	protected final boolean dropDuplicates;
+	protected final String hdfsInputDirectory;
 
 	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
-							 final boolean ttPartitionedBySub, final boolean ttPartitionedByPred,
+							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
 							 final boolean dropDuplicates) {
 		super(databaseName, spark);
-		this.hdfs_input_directory = hdfsInputDirectory;
-		this.ttPartitionedBySub = ttPartitionedBySub;
-		this.ttPartitionedByPred = ttPartitionedByPred;
+		this.hdfsInputDirectory = hdfsInputDirectory;
+		this.ttPartitionedBySubject = ttPartitionedBySubject;
+		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
 		this.dropDuplicates = dropDuplicates;
 	}
 
@@ -48,19 +47,19 @@ public class TripleTableLoader extends Loader {
 						+ "( \"input.regex\" = \"(\\\\S+)\\\\s+(\\\\S+)\\\\s+(.+)\\\\s*\\\\.\\\\s*$\")"
 						+ "LOCATION '%5$s'",
 				TRIPLETABLE_NAME + "_ext", COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
-				hdfs_input_directory);
+				hdfsInputDirectory);
 		spark.sql(createTripleTableRaw);
 
-		if (!ttPartitionedBySub && !ttPartitionedByPred) {
+		if (!ttPartitionedBySubject && !ttPartitionedByPredicate) {
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT);
-		} else if (ttPartitionedBySub) {
+		} else if (ttPartitionedBySubject) {
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING, %4$s STRING) "
 							+ "PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT);
-		} else if (ttPartitionedByPred) {
+		} else if (ttPartitionedByPredicate) {
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %4$s STRING) "
 							+ "PARTITIONED BY (%3$s STRING) STORED AS PARQUET",
@@ -73,7 +72,7 @@ public class TripleTableLoader extends Loader {
 			distinctStatement = "DISTINCT";
 		}
 
-		if (!ttPartitionedBySub && !ttPartitionedByPred) {
+		if (!ttPartitionedBySubject && !ttPartitionedByPredicate) {
 			repairTripleTableFixed = String.format(
 					"INSERT OVERWRITE TABLE %1$s  " + "SELECT " + distinctStatement + " %2$s, %3$s, trim(%4$s)  "
 							+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
@@ -84,7 +83,7 @@ public class TripleTableLoader extends Loader {
 							+ "LENGTH(%3$s) < %6$s",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
 					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
-		} else if (ttPartitionedBySub) {
+		} else if (ttPartitionedBySubject) {
 			repairTripleTableFixed = String.format(
 					"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT " + distinctStatement
 							+ " %3$s, trim(%4$s), %2$s " + "FROM %5$s "
@@ -97,7 +96,7 @@ public class TripleTableLoader extends Loader {
 							+ "LENGTH(%3$s) < %6$s",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
 					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
-		} else if (ttPartitionedByPred) {
+		} else if (ttPartitionedByPredicate) {
 			repairTripleTableFixed = String.format(
 					"INSERT OVERWRITE TABLE %1$s PARTITION (%3$s) " + "SELECT " + distinctStatement
 							+ " %2$s, trim(%4$s), %3$s " + "FROM %5$s "
@@ -130,7 +129,7 @@ public class TripleTableLoader extends Loader {
 		}
 
 		// save statistics about characteristic sets
-		StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
+		//StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
 
 		// The following part just outputs to the log in case there have been
 		// problems parsing the files.

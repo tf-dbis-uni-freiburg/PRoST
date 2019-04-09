@@ -2,6 +2,7 @@ package loader;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
+import stats.DatabaseStatistics;
 
 /**
  * This abstract class define the parameters and methods for loading an RDF graph into HDFS using Spark SQL.
@@ -21,6 +22,7 @@ public abstract class Loader {
 
 	protected final SparkSession spark;
 	private final String databaseName;
+	DatabaseStatistics statistics;
 	private String[] propertiesNames;
 
 	public Loader(final String databaseName, final SparkSession spark) {
@@ -35,6 +37,13 @@ public abstract class Loader {
 		 from now on, set the right database
 		*/
 
+		useOutputDatabase();
+	}
+
+	public Loader(final String databaseName, final SparkSession spark, final DatabaseStatistics statistics) {
+		this.databaseName = databaseName;
+		this.spark = spark;
+		this.statistics = statistics;
 		useOutputDatabase();
 	}
 
