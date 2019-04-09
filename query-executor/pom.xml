@@ -60,6 +60,12 @@
 			<artifactId>ini4j</artifactId>
 			<version>0.5.1</version>
 		</dependency>
+		<dependency>
+			<groupId>uni.freiburg.dbis.prost</groupId>
+			<artifactId>statistics</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -107,6 +113,7 @@
 									<include>org.eclipse.collections*</include>
 									<include>org.jetbrains.kotlin*</include>
 									<include>*ini4j*</include>
+									<include>*statistics*</include>
 								</includes>
 							</artifactSet>
 							<relocations>

@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.stats.Stats;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import utils.Utils;
 
 /*
@@ -26,7 +26,8 @@ public class PTNode extends MVNode  {
 	 */
 	private String tableName = "wide_property_table";
 
-	public PTNode(final Node parent, final List<TriplePattern> tripleGroup) {
+	public PTNode(final Node parent, final List<TriplePattern> tripleGroup, final DatabaseStatistics statistics) {
+		super(statistics);
 		this.parent = parent;
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
@@ -36,7 +37,8 @@ public class PTNode extends MVNode  {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
+		super(statistics);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		tripleGroup = triplePatterns;
 		for (final Triple t : jenaTriples) {
@@ -49,8 +51,9 @@ public class PTNode extends MVNode  {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName) {
-		this(jenaTriples, prefixes);
+	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName,
+				  final DatabaseStatistics statistics) {
+		this(jenaTriples, prefixes, statistics);
 		this.tableName = tableName;
 	}
 
@@ -70,7 +73,7 @@ public class PTNode extends MVNode  {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isTableComplex(triplePattern.predicate);
+			triplePattern.isComplex = statistics.getPropertyStatistics().get(triplePattern.predicate).isComplex();
 		}
 	}
 
@@ -88,7 +91,9 @@ public class PTNode extends MVNode  {
 
 		// objects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate);
+			//TODO check what is being retrieved here. Original statistics was getting the table name, but it
+			// should be the name of the column in the pt
+			final String columnName = statistics.getPropertyStatistics().get(t.predicate).getVpTableName();
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

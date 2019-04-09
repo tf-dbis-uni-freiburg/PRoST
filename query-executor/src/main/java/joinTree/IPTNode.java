@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.stats.Stats;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import utils.Utils;
 
 public class IPTNode extends MVNode {
@@ -21,8 +21,8 @@ public class IPTNode extends MVNode {
 	 *
 	 * @param tripleGroup List of TriplePattern referring to the same object
 	 */
-	public IPTNode(final List<TriplePattern> tripleGroup) {
-		super();
+	public IPTNode(final List<TriplePattern> tripleGroup, DatabaseStatistics statistics) {
+		super(statistics);
 		this.tripleGroup = tripleGroup;
 		setIsComplex();
 	}
@@ -34,7 +34,8 @@ public class IPTNode extends MVNode {
 	 * @param jenaTriples list of Triples referring to the same object.
 	 * @param prefixes    prefix mapping of the properties.
 	 */
-	public IPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes) {
+	public IPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
+		super(statistics);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
@@ -49,7 +50,8 @@ public class IPTNode extends MVNode {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isInverseTableComplex(triplePattern.predicate);
+			triplePattern.isComplex =
+					statistics.getPropertyStatistics().get(triplePattern.predicate).isInverseComplex();
 		}
 	}
 
@@ -71,7 +73,9 @@ public class IPTNode extends MVNode {
 
 		// subjects
 		for (final TriplePattern t : tripleGroup) {
-			final String columnName = Stats.getInstance().findTableName(t.predicate);
+			//TODO check what is being retrieved here. Original statistics was getting the table name, but it
+			// should be the name of the column in the pt
+			final String columnName = statistics.getPropertyStatistics().get(t.predicate).getVpTableName();
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

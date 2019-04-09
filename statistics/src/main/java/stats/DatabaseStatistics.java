@@ -18,6 +18,10 @@ public class DatabaseStatistics {
 	private String databaseName;
 	private HashMap<String, PropertyStatistics> propertyStatistics;
 
+	public DatabaseStatistics(){
+
+	}
+
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
 		this.propertyStatistics = new HashMap<>();

@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.stats.Stats;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import translator.JoinedTriplesGroup;
 import utils.Utils;
 
@@ -23,7 +23,10 @@ public class JPTNode extends MVNode  {
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
-	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
+	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
+				   final DatabaseStatistics statistics) {
+
+		super(statistics);
 		//TODO triplePatterns never used?
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 
@@ -52,11 +55,12 @@ public class JPTNode extends MVNode  {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isTableComplex(triplePattern.predicate);
+			triplePattern.isComplex = super.statistics.getPropertyStatistics().get(triplePattern.predicate).isComplex();
 		}
 
 		for (final TriplePattern triplePattern : iwptTripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isInverseTableComplex(triplePattern.predicate);
+			triplePattern.isComplex =
+					super.statistics.getPropertyStatistics().get(triplePattern.predicate).isInverseComplex();
 		}
 	}
 
@@ -79,7 +83,11 @@ public class JPTNode extends MVNode  {
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
-			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
+			final String columnName =
+					//TODO check what is being retrieved here. Original statistics was getting the table name, but it
+					// should be the name of the column in the pt
+					WPT_PREFIX.concat(statistics.getPropertyStatistics().get(t.predicate).getVpTableName());
+					//Stats.getInstance().findTableName(t.predicate));
 			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -104,7 +112,9 @@ public class JPTNode extends MVNode  {
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
+			//TODO check what is being retrieved here. Original statistics was getting the table name, but it
+			// should be the name of the column in the pt
+			final String columnName = IWPT_PREFIX.concat(statistics.getPropertyStatistics().get(t.predicate).getVpTableName());
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;

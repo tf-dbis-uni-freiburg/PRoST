@@ -23,9 +23,11 @@ import joinTree.PTNode;
 import joinTree.TTNode;
 import joinTree.TriplePattern;
 import joinTree.VPNode;
-import joinTree.stats.Stats;
 import org.apache.log4j.Logger;
+import stats.DatabaseStatistics;
+import stats.PropertyStatistics;
 import utils.EmergentSchema;
+import utils.Settings;
 
 /**
  * This class parses the SPARQL query, build a {@link JoinTree} and save its
@@ -37,31 +39,27 @@ import utils.EmergentSchema;
 public class Translator {
 
 	private static final Logger logger = Logger.getLogger("PRoST");
+	private final DatabaseStatistics statistics;
+	private final Settings settings;
 	// minimum number of triple patterns with the same subject to form a group
 	// (property table)
-	private static final int DEFAULT_MIN_GROUP_SIZE = 2;
-	private final String inputFile;
-	private boolean isGrouping = true;
-	private int treeWidth;
-	private int minimumGroupSize = DEFAULT_MIN_GROUP_SIZE;
 	private PrefixMapping prefixes;
-	private boolean useTripleTablePartitioning = false;
-	private boolean usePropertyTable = false;
-	private boolean useInversePropertyTable = false;
-	private boolean useJoinedPropertyTable = false;
-	private boolean useVerticalPartitioning = false;
+
+	private String queryPath;
+
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when you are running the jar, its default value is -1.
 
 	// TODO Move this logic to the translator
-	public Translator(final String input, final int treeWidth) {
-		inputFile = input;
-		this.treeWidth = treeWidth;
+	public Translator(final Settings settings, final DatabaseStatistics statistics, final String queryPath) {
+		this.settings = settings;
+		this.statistics = statistics;
+		this.queryPath = queryPath;
 	}
 
 	public JoinTree translateQuery() {
 		// parse the query and extract prefixes
-		final Query query = QueryFactory.read("file:" + inputFile);
+		final Query query = QueryFactory.read("file:" + queryPath);
 		prefixes = query.getPrefixMapping();
 
 		logger.info("** SPARQL QUERY **\n" + query + "\n****************");
@@ -88,7 +86,7 @@ public class Translator {
 //		}
 		// final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
 
-		final JoinTree tree = new JoinTree(rootNode, null, inputFile);
+		final JoinTree tree = new JoinTree(rootNode, null, queryPath);
 
 		// set filter
 		tree.filter = mainTree.getFilter();
@@ -98,7 +96,7 @@ public class Translator {
 			// set the root node with the variables that need to be projected
 			// only for the main tree
 			final ArrayList<String> projectionList = new ArrayList<>();
-			for (Var projectionVariable : projectionVariables) {
+			for (final Var projectionVariable : projectionVariables) {
 				projectionList.add(projectionVariable.getVarName());
 			}
 			tree.setProjectionList(projectionList);
@@ -114,7 +112,7 @@ public class Translator {
 	/*
 	 * Constructs the join tree.
 	 */
-	public Node buildTree(final List<Triple> triples) {
+	private Node buildTree(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
 		Node currentNode = null;
 
@@ -124,7 +122,7 @@ public class Translator {
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
 			if (relatedNode != null) {
 				// append join node to the queue
-				final JoinNode joinNode = new JoinNode(null, currentNode, relatedNode);
+				final JoinNode joinNode = new JoinNode(null, currentNode, relatedNode, statistics);
 				nodesQueue.add(joinNode);
 				// add join node as a parent
 				currentNode.parent = joinNode;
@@ -145,7 +143,8 @@ public class Translator {
 	 * @param joinedGroups a mapping of <code>JoinedTriplesGroup</code>
 	 * @param key          a key from <code>joinedGroups</code>
 	 */
-	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups, final String key) {
+	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups,
+												 final String key) {
 		if (joinedGroups.containsKey(key)) {
 			if (joinedGroups.get(key).size() == 0) {
 				joinedGroups.remove(key);
@@ -156,12 +155,12 @@ public class Translator {
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 
-		if (useJoinedPropertyTable) {
+		if (settings.isUsingJWPT()) {
 			final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedGroups(triples);
 			logger.info("JWPT and VP models only");
 
 			while (!joinedGroups.isEmpty()) {
-				if (isGrouping) {
+				if (settings.isGroupingTriples()) {
 					// get largest group
 					final String largestGroupKey = getLargestGroupKey(joinedGroups);
 					final JoinedTriplesGroup largestJoinedTriplesGroup = joinedGroups.get(largestGroupKey);
@@ -191,7 +190,7 @@ public class Translator {
 
 			return nodesQueue;
 		}
-		if (usePropertyTable && useInversePropertyTable && isGrouping) {
+		if (settings.isUsingWPT() && settings.isUsingIWPT() && settings.isGroupingTriples()) {
 			logger.info("WPT, IWPT, and VP models only");
 
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
@@ -242,7 +241,7 @@ public class Translator {
 			}
 			return nodesQueue;
 		}
-		if (usePropertyTable) {
+		if (settings.isUsingWPT()) {
 			logger.info("WPT and VP models only");
 			// group by subject, check if emergent schema option is set
 			if (EmergentSchema.isUsed()) {
@@ -250,10 +249,11 @@ public class Translator {
 				final HashMap<String, HashMap<String, List<Triple>>> emergentSchemaSubjectGroups =
 						getEmergentSchemaSubjectGroups(triples);
 				for (final String tableName : emergentSchemaSubjectGroups.keySet()) {
-					final HashMap<String, List<Triple>> emergentSubjectGroups = emergentSchemaSubjectGroups.get(tableName);
+					final HashMap<String, List<Triple>> emergentSubjectGroups =
+							emergentSchemaSubjectGroups.get(tableName);
 					for (final String subject : emergentSubjectGroups.keySet()) {
 						final List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
-						nodesQueue.add(new PTNode(subjectTriples, prefixes, tableName));
+						nodesQueue.add(new PTNode(subjectTriples, prefixes, tableName, statistics));
 					}
 				}
 			} else {
@@ -265,7 +265,7 @@ public class Translator {
 			}
 			return nodesQueue;
 		}
-		if (useInversePropertyTable) {
+		if (settings.isUsingIWPT()) {
 			logger.info("IWPT and VP only");
 			final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 			for (final List<Triple> triplesGroup : objectGroups.values()) {
@@ -273,13 +273,13 @@ public class Translator {
 			}
 			return nodesQueue;
 		}
-		if (useVerticalPartitioning) {
+		if (settings.isUsingVP()) {
 			// VP only
 			logger.info("VP model only");
 			createVpNodes(triples, nodesQueue);
 			return nodesQueue;
 		}
-		if (useTripleTablePartitioning) {
+		if (settings.isUsingTT()) {
 			logger.info("TT model only");
 			createTTNodes(triples, nodesQueue);
 			return nodesQueue;
@@ -298,20 +298,20 @@ public class Translator {
 	 */
 	private void createNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue,
 							 final NodeType nodeType) {
-		if (triples.size() >= minimumGroupSize) {
+		if (triples.size() >= settings.getMinGroupSize()) {
 			switch (nodeType) {
 				case WPT:
-					nodesQueue.add(new PTNode(triples, prefixes));
+					nodesQueue.add(new PTNode(triples, prefixes, statistics));
 					break;
 				case IWPT:
-					nodesQueue.add(new IPTNode(triples, prefixes));
+					nodesQueue.add(new IPTNode(triples, prefixes, statistics));
 					break;
 				case JWPT:
 					throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
 				default:
 					createVpNodes(triples, nodesQueue);
 			}
-		} else if (useVerticalPartitioning) {
+		} else if (settings.isUsingVP()) {
 			createVpNodes(triples, nodesQueue);
 		} else {
 			throw new RuntimeException("Cannot create node. No valid partitioning enabled");
@@ -328,8 +328,8 @@ public class Translator {
 	 * @param nodesQueue  <Code>PriorityQueue</code> to add created nodes to.
 	 */
 	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
-		if (joinedGroup.size() >= minimumGroupSize) {
-			nodesQueue.add(new JPTNode(joinedGroup, prefixes));
+		if (joinedGroup.size() >= settings.getMinGroupSize()) {
+			nodesQueue.add(new JPTNode(joinedGroup, prefixes, statistics));
 		} else {
 			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
 			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v
@@ -347,8 +347,9 @@ public class Translator {
 	 */
 	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
-			final String tableName = Stats.getInstance().findTableName(t.getPredicate().toString());
-			final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName);
+			final String tableName =
+					statistics.getPropertyStatistics().get(t.getPredicate().toString()).getVpTableName();
+			final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName, statistics);
 			nodesQueue.add(newNode);
 		}
 	}
@@ -361,7 +362,7 @@ public class Translator {
 	 */
 	private void createTTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
-			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes)));
+			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics));
 		}
 	}
 
@@ -377,7 +378,7 @@ public class Translator {
 		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
 		// overwriting values
 		for (final Triple triple : triples) {
-			if (isGrouping) {
+			if (settings.isGroupingTriples()) {
 				final String subject = triple.getSubject().toString(prefixes);
 				if (subjectGroups.containsKey(subject)) {
 					subjectGroups.get(subject).add(triple);
@@ -411,7 +412,7 @@ public class Translator {
 			final String subject = triple.getSubject().toString(prefixes);
 			// find in which table this triple is stored, based on the predicate
 			final String subjectTableName = EmergentSchema.getInstance()
-					.getTable(Stats.getInstance().findTableName(triple.getPredicate().toString()));
+					.getTable(statistics.getPropertyStatistics().get(triple.getPredicate().toString()).getVpTableName());
 			// if we already have a triple for the table
 			if (subjectGroups.containsKey(subjectTableName)) {
 				final HashMap<String, List<Triple>> subjects = subjectGroups.get(subjectTableName);
@@ -446,7 +447,7 @@ public class Translator {
 		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
 		// overwriting values
 		for (final Triple triple : triples) {
-			if (isGrouping) {
+			if (settings.isGroupingTriples()) {
 				final String object = triple.getObject().toString(prefixes);
 				if (objectGroups.containsKey(object)) {
 					objectGroups.get(object).add(triple);
@@ -470,7 +471,7 @@ public class Translator {
 		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
 		// overwriting values
 		for (final Triple triple : triples) {
-			if (isGrouping) {
+			if (settings.isGroupingTriples()) {
 				final String subject = triple.getSubject().toString(prefixes);
 				final String object = triple.getObject().toString(prefixes);
 
@@ -571,45 +572,14 @@ public class Translator {
 			return 5;
 		}
 		final String predicate = ((VPNode) node).triplePattern.predicate;
-		final int tableSize = Stats.getInstance().getTableSize(predicate);
-		final int numberUniqueSubjects = Stats.getInstance().getTableDistinctSubjects(predicate);
+		final PropertyStatistics propertyStatistics = statistics.getPropertyStatistics().get(predicate);
+		final int tableSize = propertyStatistics.getTuplesNumber();
+		final int numberUniqueSubjects = propertyStatistics.getDistinctSubjects();
 		final float proportion = tableSize / numberUniqueSubjects;
 		if (proportion > 1) {
 			return 3;
 		}
 		return 2;
-	}
-
-	public void setUsePropertyTable(final boolean usePropertyTable) {
-		this.usePropertyTable = usePropertyTable;
-	}
-
-	public void setUseInversePropertyTable(final boolean useInversePropertyTable) {
-		this.useInversePropertyTable = useInversePropertyTable;
-	}
-
-	public void setMinimumGroupSize(final int size) {
-		minimumGroupSize = size;
-	}
-
-	public void setUseJoinedPropertyTable(final boolean useJoinedPropertyTable) {
-		this.useJoinedPropertyTable = useJoinedPropertyTable;
-		if (this.useJoinedPropertyTable) {
-			setUsePropertyTable(false);
-			setUseInversePropertyTable(false);
-		}
-	}
-
-	public void setIsGrouping(final boolean isGrouping) {
-		this.isGrouping = isGrouping;
-	}
-
-	public void setUseVerticalPartitioning(final boolean useVerticalPartitioning) {
-		this.useVerticalPartitioning = useVerticalPartitioning;
-	}
-
-	public void setUseTripleTablePartitioning(final boolean useTripleTablePartitioning) {
-		this.useTripleTablePartitioning = useTripleTablePartitioning;
 	}
 
 	enum NodeType {

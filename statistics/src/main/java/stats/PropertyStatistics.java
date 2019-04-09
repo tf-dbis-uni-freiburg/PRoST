@@ -22,4 +22,24 @@ public class PropertyStatistics {
 		this.isInverseComplex = tuplesNumber != distinctObjects;
 		this.vpTableName = tableName;
 	}
+
+	public String getVpTableName() {
+		return vpTableName;
+	}
+
+	public int getTuplesNumber() {
+		return tuplesNumber;
+	}
+
+	public int getDistinctSubjects() {
+		return distinctSubjects;
+	}
+
+	public boolean isComplex() {
+		return isComplex;
+	}
+
+	public boolean isInverseComplex() {
+		return isInverseComplex;
+	}
 }

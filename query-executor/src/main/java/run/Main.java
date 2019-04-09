@@ -9,9 +9,9 @@ import java.util.Properties;
 
 import executor.Executor;
 import joinTree.JoinTree;
-import joinTree.stats.Stats;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import stats.DatabaseStatistics;
 import translator.Translator;
 import utils.EmergentSchema;
 import utils.Settings;
@@ -37,13 +37,13 @@ public class Main {
 
 		final Settings settings = new Settings(args);
 
-
 		// if emergent schema has to be applied
 		if (settings.isUsingEmergentSchema()) {
 			EmergentSchema.getInstance().readSchema(settings.getEmergentSchemaPath());
 		}
-		// create a singleton parsing a file with statistics
-		Stats.getInstance().parseStats(settings.getStatsPath());
+
+		DatabaseStatistics statistics = new DatabaseStatistics();
+		statistics.loadFromFile(settings.getStatsPath());
 
 		final File file = new File(settings.getInputPath());
 
@@ -55,7 +55,7 @@ public class Main {
 
 			// translation phase
 			final JoinTree translatedQuery = translateSingleQuery(settings.getInputPath(),
-					settings.getJoinTreeMaximumWidth(), settings);
+					statistics, settings);
 
 			// set result file
 			if (settings.getOutputFilePath() != null) {
@@ -81,7 +81,7 @@ public class Main {
 
 				// translation phase
 				final JoinTree translatedQuery = translateSingleQuery(settings.getInputPath() + "/" + fileName,
-						settings.getJoinTreeMaximumWidth(), settings);
+						statistics, settings);
 
 				// execution phase
 				executor.execute(translatedQuery);
@@ -94,16 +94,9 @@ public class Main {
 		}
 	}
 
-	private static JoinTree translateSingleQuery(final String query, final int width, final Settings settings) {
-		final Translator translator = new Translator(query, width);
-
-		translator.setUseVerticalPartitioning(settings.isUsingVP());
-		translator.setUsePropertyTable(settings.isUsingWPT());
-		translator.setUseInversePropertyTable(settings.isUsingIWPT());
-		translator.setUseJoinedPropertyTable(settings.isUsingJWPT());
-		translator.setIsGrouping(settings.isGroupingTriples());
-		translator.setMinimumGroupSize(settings.getMinGroupSize());
-
+	private static JoinTree translateSingleQuery(final String query, final DatabaseStatistics statistics,
+												 final Settings settings) {
+		final Translator translator = new Translator(settings, statistics, query);
 		return translator.translateQuery();
 	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import utils.Utils;
 
 /*
@@ -20,8 +21,8 @@ public class VPNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public VPNode(final TriplePattern triplePattern, final String tableName) {
-		super();
+	public VPNode(final TriplePattern triplePattern, final String tableName, final DatabaseStatistics statistics) {
+		super(statistics);
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 	}
@@ -29,8 +30,9 @@ public class VPNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public VPNode(final Node parent, final TriplePattern triplePattern, final String tableName) {
-		super(parent);
+	public VPNode(final Node parent, final TriplePattern triplePattern, final String tableName,
+				  final DatabaseStatistics statistics) {
+		super(parent, statistics);
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
 	}
