@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.stats.Stats;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import translator.JoinedTriplesGroup;
 import utils.Utils;
 
@@ -23,16 +23,16 @@ public class JPTNode extends MVNode  {
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
-	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes) {
-		//TODO triplePatterns never used?
-		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
+	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
+				   final DatabaseStatistics statistics) {
+
+		super(statistics);
 
 		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
 		wptTripleGroup = wptTriplePatterns;
 		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			wptTriplePatterns.add(tp);
-			triplePatterns.add(tp);
 		}
 
 		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
@@ -40,7 +40,6 @@ public class JPTNode extends MVNode  {
 		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTriplePatterns.add(tp);
-			triplePatterns.add(tp);
 		}
 		setIsComplex();
 	}
@@ -52,11 +51,12 @@ public class JPTNode extends MVNode  {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isTableComplex(triplePattern.predicate);
+			triplePattern.isComplex = super.statistics.getProperties().get(triplePattern.predicate).isComplex();
 		}
 
 		for (final TriplePattern triplePattern : iwptTripleGroup) {
-			triplePattern.isComplex = Stats.getInstance().isInverseTableComplex(triplePattern.predicate);
+			triplePattern.isComplex =
+					super.statistics.getProperties().get(triplePattern.predicate).isInverseComplex();
 		}
 	}
 
@@ -69,17 +69,20 @@ public class JPTNode extends MVNode  {
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
+						.append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
+						.append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
 			}
 		}
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
-			final String columnName = WPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
+			final String columnName =
+					WPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
 			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -94,17 +97,19 @@ public class JPTNode extends MVNode  {
 					whereConditions.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
+				query.append(" P").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.object)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
+				query.append(" ").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.object)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = IWPT_PREFIX.concat(Stats.getInstance().findTableName(t.predicate));
+			final String columnName = IWPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -119,10 +124,12 @@ public class JPTNode extends MVNode  {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" P").append(columnName)
+						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" ").append(columnName)
+						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -132,7 +139,8 @@ public class JPTNode extends MVNode  {
 
 		query.append(" FROM ").append(JOINED_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn)
+					.append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {

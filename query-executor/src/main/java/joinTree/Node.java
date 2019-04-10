@@ -2,11 +2,10 @@ package joinTree;
 
 import java.util.List;
 
-import joinTree.stats.Stats;
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 
 /**
  * An abstract class that each node of the JoinTree has to extend. Each node has
@@ -15,24 +14,24 @@ import org.apache.spark.sql.SQLContext;
  * @author Polina Koleva
  */
 public abstract class Node {
-
-	private static final Logger logger = Logger.getLogger("PRoST");
-
 	public Node parent;
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
+	final DatabaseStatistics statistics;
 	private Float priority;
 
-	public Node() {
+	public Node(final DatabaseStatistics statistics) {
 		this.parent = null;
+		this.statistics = statistics;
 	}
 
-	public Node(final Node parent) {
+	public Node(final Node parent, final DatabaseStatistics statistics) {
 		this.parent = parent;
+		this.statistics = statistics;
 	}
 
 	/**
-	 * Compute the Dataset<Row> to the data referring to this node.
+	 * Compute the Dataset&lt;Row> to the data referring to this node.
 	 */
 	public abstract void computeNodeData(SQLContext sqlContext);
 
@@ -80,7 +79,7 @@ public abstract class Node {
 				priority = 0;
 				break;
 			} else {
-				final int size = Stats.getInstance().getTableSize(predicate);
+				final int size = statistics.getProperties().get(predicate).getTuplesNumber();
 				priority += size;
 			}
 		}

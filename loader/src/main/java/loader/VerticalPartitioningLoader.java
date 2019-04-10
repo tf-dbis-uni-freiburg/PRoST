@@ -8,7 +8,8 @@ import java.util.Set;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import stats.StatisticsWriter;
+import stats.DatabaseStatistics;
+import stats.PropertyStatistics;
 
 /**
  * Build the VP, i.e. a table for each predicate.
@@ -22,6 +23,12 @@ public class VerticalPartitioningLoader extends Loader {
 	public VerticalPartitioningLoader(final String databaseName, final SparkSession spark,
 									  final boolean isPartitioning) {
 		super(databaseName, spark);
+		this.isPartitioning = isPartitioning;
+	}
+
+	public VerticalPartitioningLoader(final String databaseName, final SparkSession spark,
+									  final boolean isPartitioning, final DatabaseStatistics statistics) {
+		super(databaseName, spark, statistics);
 		this.isPartitioning = isPartitioning;
 	}
 
@@ -54,8 +61,8 @@ public class VerticalPartitioningLoader extends Loader {
 						COLUMN_NAME_PREDICATE, property);
 			} else {
 				populateVPTable = String.format(
-						"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s " +
-								"FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
+						"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT %3$s, %2$s "
+								+ "FROM %4$s WHERE %5$s = '%6$s' ", "vp_" + this.getValidHiveName(property),
 						COLUMN_NAME_SUBJECT, COLUMN_NAME_OBJECT, TRIPLETABLE_NAME,
 						COLUMN_NAME_PREDICATE, property);
 			}
@@ -63,9 +70,11 @@ public class VerticalPartitioningLoader extends Loader {
 
 			// calculate stats
 			final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
-			StatisticsWriter.getInstance().addStatsTable(vpTableDataset, getValidHiveName(property),
-					COLUMN_NAME_SUBJECT);
 
+			if (statistics != null) {
+				statistics.getProperties().put(property, new PropertyStatistics(vpTableDataset,
+						getValidHiveName(property)));
+			}
 			logger.info("Created VP table for the property: " + property);
 			final List<Row> sampledRowsList = vpTableDataset.limit(3).collectAsList();
 			logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
@@ -84,14 +93,14 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		final List<String> propertiesList = Arrays.asList(properties);
 		logger.info("Number of distinct predicates found: " + propertiesList.size());
-		final String[] cleanedProperties = handleCaseInsPred(properties);
+		final String[] cleanedProperties = handleCaseInsensitivePredicates(properties);
 		final List<String> cleanedPropertiesList = Arrays.asList(cleanedProperties);
 		logger.info("Final list of predicates: " + cleanedPropertiesList);
 		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
 		return cleanedProperties;
 	}
 
-	private String[] handleCaseInsPred(final String[] properties) {
+	private String[] handleCaseInsensitivePredicates(final String[] properties) {
 		final Set<String> seenPredicates = new HashSet<>();
 		final Set<String> originalRemovedPredicates = new HashSet<>();
 		final Set<String> propertiesSet = new HashSet<>(Arrays.asList(properties));
@@ -110,6 +119,6 @@ public class VerticalPartitioningLoader extends Loader {
 			logger.info("The following predicates had to be removed from the list of predicates "
 					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
 		}
-		return propertiesSet.toArray(new String[propertiesSet.size()]);
+		return propertiesSet.toArray(new String[0]);
 	}
 }

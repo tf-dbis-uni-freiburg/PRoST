@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import stats.StatisticsWriter;
+import stats.DatabaseStatistics;
 
 /**
  * The Main class parses the CLI arguments and calls the executor.
@@ -42,7 +42,8 @@ public class Main {
 
 
 		// create a statistics writer with statistics enabled
-		StatisticsWriter.getInstance().setUseStatistics(settings.isComputingStatistics());
+		//StatisticsWriter.getInstance().setUseStatistics(settings.isComputingStatistics());
+		DatabaseStatistics statistics = new DatabaseStatistics(settings.getDatabaseName());
 
 		// Set the loader from the inputFile to the outputDB
 		final SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
@@ -98,16 +99,23 @@ public class Main {
 
 		if (settings.isGeneratingVP()) {
 			startTime = System.currentTimeMillis();
-			final VerticalPartitioningLoader vp_loader =
-					new VerticalPartitioningLoader(settings.getDatabaseName(), spark,
-							settings.isVpPartitionedBySubject());
+			final VerticalPartitioningLoader vp_loader;
+			if (settings.isComputingStatistics()) {
+				vp_loader = new VerticalPartitioningLoader(settings.getDatabaseName(), spark,
+								settings.isVpPartitionedBySubject(), statistics);
+			} else {
+				vp_loader = new VerticalPartitioningLoader(settings.getDatabaseName(), spark,
+								settings.isVpPartitionedBySubject());
+			}
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Vertical partitioning: " + executionTime);
 		}
 
 		// save statistics if needed
-		StatisticsWriter.getInstance().saveStatistics(settings.getDatabaseName());
+		if (settings.isComputingStatistics()) {
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+		}
 
 		// compute statistics for each table
 		computeTableStatistics(spark);

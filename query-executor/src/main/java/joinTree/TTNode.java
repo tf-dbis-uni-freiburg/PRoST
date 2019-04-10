@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
+import stats.DatabaseStatistics;
 import utils.Utils;
 
 /*
@@ -19,16 +20,16 @@ public class TTNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public TTNode(final TriplePattern triplePattern) {
-		super();
+	public TTNode(final TriplePattern triplePattern, final DatabaseStatistics statistics) {
+		super(statistics);
 		this.triplePattern = triplePattern;
 	}
 
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public TTNode(final Node parent, final TriplePattern triplePattern, final String tableName) {
-		super(parent);
+	public TTNode(final Node parent, final TriplePattern triplePattern, final DatabaseStatistics statistics) {
+		super(parent, statistics);
 		this.triplePattern = triplePattern;
 	}
 
