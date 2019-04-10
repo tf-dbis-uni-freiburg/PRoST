@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.DatabaseStatistics;
 
 /**
  * Class that constructs a triples table. First, the loader creates an external
@@ -26,6 +27,16 @@ public class TripleTableLoader extends Loader {
 							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
 							 final boolean dropDuplicates) {
 		super(databaseName, spark);
+		this.hdfsInputDirectory = hdfsInputDirectory;
+		this.ttPartitionedBySubject = ttPartitionedBySubject;
+		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
+		this.dropDuplicates = dropDuplicates;
+	}
+
+	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
+							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
+							 final boolean dropDuplicates, DatabaseStatistics statistics) {
+		super(databaseName, spark, statistics);
 		this.hdfsInputDirectory = hdfsInputDirectory;
 		this.ttPartitionedBySubject = ttPartitionedBySubject;
 		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
@@ -128,7 +139,10 @@ public class TripleTableLoader extends Loader {
 			logger.info("Total number of triples loaded: " + allTriples.count());
 		}
 
-		// save statistics about characteristic sets
+		// compute statistics about characteristic sets
+		if (statistics != null) {
+			statistics.computeCharacteristicSetsStatistics(allTriples);
+		}
 		//StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
 
 		// The following part just outputs to the log in case there have been
