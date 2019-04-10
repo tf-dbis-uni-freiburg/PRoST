@@ -25,7 +25,6 @@ import joinTree.TriplePattern;
 import joinTree.VPNode;
 import org.apache.log4j.Logger;
 import stats.DatabaseStatistics;
-import stats.PropertyStatistics;
 import utils.EmergentSchema;
 import utils.Settings;
 
@@ -45,7 +44,7 @@ public class Translator {
 	// (property table)
 	private PrefixMapping prefixes;
 
-	private String queryPath;
+	private final String queryPath;
 
 	// TODO check this, if you do not specify the treeWidth in the input parameters
 	// when you are running the jar, its default value is -1.
@@ -76,14 +75,14 @@ public class Translator {
 		final Node rootNode = buildTree(mainTree.getTriples());
 
 		// TODO fix the optional
-//		final List<Node> optionalTreeRoots = new ArrayList<>();
-//		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
-//			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
-//			// build optional tree
-//			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples());
-//			// optionalTreeRoot.filter = currentOptionalTree.getFilter();
-//			optionalTreeRoots.add(optionalTreeRoot);
-//		}
+		//		final List<Node> optionalTreeRoots = new ArrayList<>();
+		//		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
+		//			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
+		//			// build optional tree
+		//			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples());
+		//			// optionalTreeRoot.filter = currentOptionalTree.getFilter();
+		//			optionalTreeRoots.add(optionalTreeRoot);
+		//		}
 		// final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
 
 		final JoinTree tree = new JoinTree(rootNode, null, queryPath);
@@ -348,7 +347,7 @@ public class Translator {
 	private void createVpNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
 			final String tableName =
-					statistics.getPropertyStatistics().get(t.getPredicate().toString()).getVpTableName();
+					statistics.getProperties().get(t.getPredicate().toString()).getInternalName();
 			final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName, statistics);
 			nodesQueue.add(newNode);
 		}
@@ -412,7 +411,7 @@ public class Translator {
 			final String subject = triple.getSubject().toString(prefixes);
 			// find in which table this triple is stored, based on the predicate
 			final String subjectTableName = EmergentSchema.getInstance()
-					.getTable(statistics.getPropertyStatistics().get(triple.getPredicate().toString()).getVpTableName());
+					.getTable(statistics.getProperties().get(triple.getPredicate().toString()).getInternalName());
 			// if we already have a triple for the table
 			if (subjectGroups.containsKey(subjectTableName)) {
 				final HashMap<String, List<Triple>> subjects = subjectGroups.get(subjectTableName);
@@ -562,28 +561,11 @@ public class Translator {
 
 	}
 
-	// TODO remove if we do not use width
-	/*
-	 * heuristicWidth decides a width based on the proportion between the number of
-	 * elements in a table and the unique subjects.
+	/**
+	 * possible node types.
 	 */
-	private int heuristicWidth(final Node node) {
-		if (node instanceof PTNode || node instanceof IPTNode || node instanceof JPTNode) {
-			return 5;
-		}
-		final String predicate = ((VPNode) node).triplePattern.predicate;
-		final PropertyStatistics propertyStatistics = statistics.getPropertyStatistics().get(predicate);
-		final int tableSize = propertyStatistics.getTuplesNumber();
-		final int numberUniqueSubjects = propertyStatistics.getDistinctSubjects();
-		final float proportion = tableSize / numberUniqueSubjects;
-		if (proportion > 1) {
-			return 3;
-		}
-		return 2;
-	}
-
 	enum NodeType {
-		VP, WPT, IWPT, JWPT
+		WPT, IWPT, JWPT
 	}
 
 }

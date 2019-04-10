@@ -27,15 +27,12 @@ public class JPTNode extends MVNode  {
 				   final DatabaseStatistics statistics) {
 
 		super(statistics);
-		//TODO triplePatterns never used?
-		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 
 		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
 		wptTripleGroup = wptTriplePatterns;
 		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			wptTriplePatterns.add(tp);
-			triplePatterns.add(tp);
 		}
 
 		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
@@ -43,7 +40,6 @@ public class JPTNode extends MVNode  {
 		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTriplePatterns.add(tp);
-			triplePatterns.add(tp);
 		}
 		setIsComplex();
 	}
@@ -55,12 +51,12 @@ public class JPTNode extends MVNode  {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
-			triplePattern.isComplex = super.statistics.getPropertyStatistics().get(triplePattern.predicate).isComplex();
+			triplePattern.isComplex = super.statistics.getProperties().get(triplePattern.predicate).isComplex();
 		}
 
 		for (final TriplePattern triplePattern : iwptTripleGroup) {
 			triplePattern.isComplex =
-					super.statistics.getPropertyStatistics().get(triplePattern.predicate).isInverseComplex();
+					super.statistics.getProperties().get(triplePattern.predicate).isInverseComplex();
 		}
 	}
 
@@ -73,21 +69,20 @@ public class JPTNode extends MVNode  {
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
+						.append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ").append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
+				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
+						.append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
 			}
 		}
 
 		// wpt
 		for (final TriplePattern t : wptTripleGroup) {
 			final String columnName =
-					//TODO check what is being retrieved here. Original statistics was getting the table name, but it
-					// should be the name of the column in the pt
-					WPT_PREFIX.concat(statistics.getPropertyStatistics().get(t.predicate).getVpTableName());
-					//Stats.getInstance().findTableName(t.predicate));
+					WPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
 			if (columnName.equals(WPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -102,19 +97,19 @@ public class JPTNode extends MVNode  {
 					whereConditions.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
+				query.append(" P").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.object)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object)).append(",");
+				query.append(" ").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.object)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
 
 		// iwpt
 		for (final TriplePattern t : iwptTripleGroup) {
-			//TODO check what is being retrieved here. Original statistics was getting the table name, but it
-			// should be the name of the column in the pt
-			final String columnName = IWPT_PREFIX.concat(statistics.getPropertyStatistics().get(t.predicate).getVpTableName());
+			final String columnName = IWPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -129,10 +124,12 @@ public class JPTNode extends MVNode  {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" P").append(columnName)
+						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" ").append(columnName)
+						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -142,7 +139,8 @@ public class JPTNode extends MVNode  {
 
 		query.append(" FROM ").append(JOINED_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn)
+					.append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {

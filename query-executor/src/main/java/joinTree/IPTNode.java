@@ -9,23 +9,15 @@ import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import utils.Utils;
 
+/**
+ * A node that uses an Inverse Wide Property Table.
+ */
 public class IPTNode extends MVNode {
 	private static final String COLUMN_NAME_OBJECT = "o";
 	private static final String INVERSE_PROPERTY_TABLE_NAME = "inverse_wide_property_table";
 
-	public List<TriplePattern> tripleGroup;
+	private final List<TriplePattern> tripleGroup;
 
-
-	/**
-	 * The node contains a list of triple patterns with the same object.
-	 *
-	 * @param tripleGroup List of TriplePattern referring to the same object
-	 */
-	public IPTNode(final List<TriplePattern> tripleGroup, DatabaseStatistics statistics) {
-		super(statistics);
-		this.tripleGroup = tripleGroup;
-		setIsComplex();
-	}
 
 	/**
 	 * Alternative constructor, used to instantiate a Node directly with a list of
@@ -51,7 +43,7 @@ public class IPTNode extends MVNode {
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : tripleGroup) {
 			triplePattern.isComplex =
-					statistics.getPropertyStatistics().get(triplePattern.predicate).isInverseComplex();
+					statistics.getProperties().get(triplePattern.predicate).isInverseComplex();
 		}
 	}
 
@@ -68,14 +60,13 @@ public class IPTNode extends MVNode {
 
 		// object
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			query.append(COLUMN_NAME_OBJECT + " AS ").append(Utils.removeQuestionMark(tripleGroup.get(0).object)).append(",");
+			query.append(COLUMN_NAME_OBJECT + " AS ")
+					.append(Utils.removeQuestionMark(tripleGroup.get(0).object)).append(",");
 		}
 
 		// subjects
 		for (final TriplePattern t : tripleGroup) {
-			//TODO check what is being retrieved here. Original statistics was getting the table name, but it
-			// should be the name of the column in the pt
-			final String columnName = statistics.getPropertyStatistics().get(t.predicate).getVpTableName();
+			final String columnName = statistics.getProperties().get(t.predicate).getInternalName();
 			if (columnName == null) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
@@ -90,10 +81,12 @@ public class IPTNode extends MVNode {
 					whereConditions.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" P").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.subject)).append(",");
 				explodedColumns.add(columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
+				query.append(" ").append(columnName).append(" AS ")
+						.append(Utils.removeQuestionMark(t.subject)).append(",");
 				whereConditions.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -104,7 +97,8 @@ public class IPTNode extends MVNode {
 
 		query.append(" FROM ").append(INVERSE_PROPERTY_TABLE_NAME).append(" ");
 		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
+			query.append("\n lateral view explode(").append(explodedColumn)
+					.append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
 		}
 
 		if (!whereConditions.isEmpty()) {

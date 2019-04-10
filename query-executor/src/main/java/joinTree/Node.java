@@ -2,7 +2,6 @@ package joinTree;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -15,13 +14,11 @@ import stats.DatabaseStatistics;
  * @author Polina Koleva
  */
 public abstract class Node {
-	private static final Logger logger = Logger.getLogger("PRoST");
-
 	public Node parent;
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
-	private Float priority;
 	final DatabaseStatistics statistics;
+	private Float priority;
 
 	public Node(final DatabaseStatistics statistics) {
 		this.parent = null;
@@ -34,7 +31,7 @@ public abstract class Node {
 	}
 
 	/**
-	 * Compute the Dataset<Row> to the data referring to this node.
+	 * Compute the Dataset&lt;Row> to the data referring to this node.
 	 */
 	public abstract void computeNodeData(SQLContext sqlContext);
 
@@ -82,7 +79,7 @@ public abstract class Node {
 				priority = 0;
 				break;
 			} else {
-				final int size = statistics.getPropertyStatistics().get(predicate).getTuplesNumber();
+				final int size = statistics.getProperties().get(predicate).getTuplesNumber();
 				priority += size;
 			}
 		}

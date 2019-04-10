@@ -72,7 +72,7 @@ public class VerticalPartitioningLoader extends Loader {
 			final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 
 			if (statistics != null) {
-				statistics.getPropertyStatistics().put(property, new PropertyStatistics(vpTableDataset,
+				statistics.getProperties().put(property, new PropertyStatistics(vpTableDataset,
 						getValidHiveName(property)));
 			}
 			logger.info("Created VP table for the property: " + property);
@@ -93,14 +93,14 @@ public class VerticalPartitioningLoader extends Loader {
 		}
 		final List<String> propertiesList = Arrays.asList(properties);
 		logger.info("Number of distinct predicates found: " + propertiesList.size());
-		final String[] cleanedProperties = handleCaseInsPred(properties);
+		final String[] cleanedProperties = handleCaseInsensitivePredicates(properties);
 		final List<String> cleanedPropertiesList = Arrays.asList(cleanedProperties);
 		logger.info("Final list of predicates: " + cleanedPropertiesList);
 		logger.info("Final number of distinct predicates: " + cleanedPropertiesList.size());
 		return cleanedProperties;
 	}
 
-	private String[] handleCaseInsPred(final String[] properties) {
+	private String[] handleCaseInsensitivePredicates(final String[] properties) {
 		final Set<String> seenPredicates = new HashSet<>();
 		final Set<String> originalRemovedPredicates = new HashSet<>();
 		final Set<String> propertiesSet = new HashSet<>(Arrays.asList(properties));
@@ -119,6 +119,6 @@ public class VerticalPartitioningLoader extends Loader {
 			logger.info("The following predicates had to be removed from the list of predicates "
 					+ "(it is case-insensitive equal to another predicate): " + originalRemovedPredicates);
 		}
-		return propertiesSet.toArray(new String[propertiesSet.size()]);
+		return propertiesSet.toArray(new String[0]);
 	}
 }

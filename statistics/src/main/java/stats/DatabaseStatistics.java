@@ -16,15 +16,15 @@ import com.google.gson.reflect.TypeToken;
  */
 public class DatabaseStatistics {
 	private String databaseName;
-	private HashMap<String, PropertyStatistics> propertyStatistics;
+	private HashMap<String, PropertyStatistics> properties;
 
-	public DatabaseStatistics(){
+	public DatabaseStatistics() {
 
 	}
 
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
-		this.propertyStatistics = new HashMap<>();
+		this.properties = new HashMap<>();
 	}
 
 	public void saveToFile(final String path) {
@@ -50,15 +50,15 @@ public class DatabaseStatistics {
 
 			final DatabaseStatistics ds2 = gson.fromJson(br, type);
 			this.databaseName = ds2.databaseName;
-			this.propertyStatistics = ds2.propertyStatistics;
+			this.properties = ds2.properties;
 
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public HashMap<String, PropertyStatistics> getPropertyStatistics() {
-		return propertyStatistics;
+	public HashMap<String, PropertyStatistics> getProperties() {
+		return properties;
 	}
 
 }
