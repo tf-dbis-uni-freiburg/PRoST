@@ -21,7 +21,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 
 
-
 /**
  * Handles statistical information about a whole database.
  */
@@ -70,12 +69,18 @@ public class DatabaseStatistics {
 		}
 	}
 
-	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable){
+	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable) {
+		//TODO computed stats don't seem to be correct
 		final Dataset<Row> subjectCharSet = tripletable.select(col("s"), col("p")).groupBy(col("s"))
 				.agg(collect_list(col("p")).alias("charSet"));
 		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
 		// add index to each set
-		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p", explode(col("charSet")));
+
+		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p",
+				explode(col("charSet")));
+		//	CharSets needs to persisted so that monotonically_increasing_id is computed. Otherwise there will be
+		// 	different ids when applying a filter operation
+		charSets.persist();
 		// join with TT based on p
 		charSets = charSets.join(tripletable, "p");
 		// calculate the predicate set count for each set
@@ -91,11 +96,11 @@ public class DatabaseStatistics {
 			final Long distinctSubjects = row.getLong(1);
 			characteristicSetStatistics.setDistinctSubjects(distinctSubjects);
 
-			// TODO  predicates are not being retrieved
-			final List<Row> predicateStats = charSetPredicateStats.where("id ==" + charSetId).collectAsList();
+			final List<Row> predicateStats =
+					charSetPredicateStats.where("id = " + charSetId).collectAsList();
 			for (final Row row2 : predicateStats) {
 				final String predicate = row2.getString(1);
-				final long predicateCount = row2.getLong(2);
+				final Long predicateCount = row2.getLong(2);
 				characteristicSetStatistics.getTuplesPerPredicate().put(predicate, predicateCount);
 			}
 			characteristicSets.add(characteristicSetStatistics);
