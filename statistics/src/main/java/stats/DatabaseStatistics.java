@@ -1,9 +1,11 @@
 package stats;
 
+import static org.apache.spark.sql.functions.array;
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.collect_set;
+import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.explode;
-import static org.apache.spark.sql.functions.monotonically_increasing_id;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -12,7 +14,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,41 +71,29 @@ public class DatabaseStatistics {
 	}
 
 	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable) {
-		//TODO computed stats don't seem to be correct
-		final Dataset<Row> subjectCharSet = tripletable.select(col("s"), col("p")).groupBy(col("s"))
-				.agg(collect_set(col("p")) .alias("charSet"));
-		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
-		// add index to each set
 
-		charSets = charSets.withColumn("id", monotonically_increasing_id()).withColumn("p",
-				explode(col("charSet")));
-		//	CharSets needs to persisted so that monotonically_increasing_id is computed. Otherwise there will be
-		// 	different ids when applying a filter operation
-		charSets.persist();
-		// join with TT based on p
-		charSets = charSets.join(tripletable, "p");
-		// calculate the predicate set count for each set
-		final Dataset<Row> charSetPredicateStats = charSets.groupBy("id", "p").count().alias("pred_stats").drop("s",
-				"o");
-		final Dataset<Row> charSetSubject = charSets.select("id", "s").distinct().groupBy("id").count()
-				.alias("distinct_subjects").drop("s");
-		final List<Row> charSetSubjectCount = charSetSubject.collectAsList();
+		Dataset<Row> charSets = tripletable.select("s", "p");
 
-		for (final Row row : charSetSubjectCount) {
-			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
-			final Long charSetId = row.getLong(0);
-			final Long distinctSubjects = row.getLong(1);
-			characteristicSetStatistics.setDistinctSubjects(distinctSubjects);
+		charSets =
+				charSets.groupBy("s").agg(collect_set("p").as("charSet"), collect_list("p").as("predicates"));
 
-			final List<Row> predicateStats =
-					charSetPredicateStats.where("id = " + charSetId).collectAsList();
-			for (final Row row2 : predicateStats) {
-				final String predicate = row2.getString(1);
-				final Long predicateCount = row2.getLong(2);
-				characteristicSetStatistics.getTuplesPerPredicate().put(predicate, predicateCount);
-			}
-			characteristicSets.add(characteristicSetStatistics);
-		}
+		charSets = charSets.groupBy("charSet").agg(count("s").as("subjectCount"),
+				collect_list("predicates").as("predicates"));
+		charSets = charSets.withColumn("predicates", explode(col("predicates")));
+		charSets = charSets.withColumn("predicates", explode(col("predicates")));
+		charSets = charSets.groupBy("charSet", "subjectCount", "predicates").agg(count("predicates"));
+
+		charSets = charSets.withColumn("tuplesPerPredicate", array(col("predicates"), col("count(predicates)")));
+
+		charSets = charSets.groupBy("charSet", "subjectCount").agg(collect_list("tuplesPerPredicate"));
+
+		//TODO save statistics
+		/*List<Row> collectedCharSets = charSets.collectAsList();
+		for (charSet: collectedCharSets){
+
+		}*/
+
+
 	}
 
 	public HashMap<String, PropertyStatistics> getProperties() {
