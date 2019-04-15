@@ -1,7 +1,7 @@
 package stats;
 
 import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.collect_list;
+import static org.apache.spark.sql.functions.collect_set;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.monotonically_increasing_id;
 
@@ -72,7 +72,7 @@ public class DatabaseStatistics {
 	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable) {
 		//TODO computed stats don't seem to be correct
 		final Dataset<Row> subjectCharSet = tripletable.select(col("s"), col("p")).groupBy(col("s"))
-				.agg(collect_list(col("p")).alias("charSet"));
+				.agg(collect_set(col("p")) .alias("charSet"));
 		Dataset<Row> charSets = subjectCharSet.select(col("charSet")).distinct();
 		// add index to each set
 
