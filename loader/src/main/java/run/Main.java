@@ -63,7 +63,8 @@ public class Main {
 			final TripleTableLoader tt_loader =
 					new TripleTableLoader(settings.getInputPath(), settings.getDatabaseName(), spark,
 							settings.isTtPartitionedBySubject(), settings.isTtPartitionedByPredicate(),
-							settings.isDroppingDuplicateTriples());
+							settings.isDroppingDuplicateTriples(), settings.isComputingCharacteristicSets(),
+							statistics);
 			tt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Tripletable: " + executionTime);

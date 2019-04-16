@@ -41,7 +41,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithMoreThanThreeRes_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithMoreThanThreeRes").replace('\\', '/'),
-				"triplesWithMoreThanThreeRes_db", spark(), true, false, true);
+				"triplesWithMoreThanThreeRes_db", spark(), true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -100,7 +100,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS incompleteTriples_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\incompleteTriples").replace('\\', '/'), "incompleteTriples_db", spark(), true,
-				false, true);
+				false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -141,7 +141,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithEmptyLines_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithEmptyLines").replace('\\', '/'), "triplesWithEmptyLines_db",
-				spark(), true, false, true);
+				spark(), true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -182,7 +182,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS caseInsensitivePredicates_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\caseInsensitivePredicates").replace('\\', '/'),
-				"caseInsensitivePredicates_db", spark(), true, false, true);
+				"caseInsensitivePredicates_db", spark(), true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -230,7 +230,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDotsInLiterals_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDotsInLiterals").replace('\\', '/'),
-				"triplesWithDotsInLiterals_db", spark(), true, false, true);
+				"triplesWithDotsInLiterals_db", spark(), true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -296,7 +296,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDuplicates_db CASCADE");
 		TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/'), "triplesWithDuplicates_db",
-				spark(), true, false, true);
+				spark(), true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:
@@ -356,7 +356,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		spark().sql("DROP TABLE tripletable");
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/'), "triplesWithDuplicates_db", spark(), true, false,
-				false);
+				false, false);
 		tt_loader.load();
 
 		expectedTT = spark().createDataset(triplesListWithDuplicates, triplesEncoder).select("s", "p", "o").orderBy("s",
@@ -379,7 +379,8 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS emptyFile_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\emptyFile").replace('\\', '/'), "emptyFile_db", spark(), true, false, true);
+		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target"
+				+ "\\test_output\\emptyFile").replace('\\', '/'), "emptyFile_db", spark(), true, false, true, false);
 		tt_loader.load();
 	}
 
@@ -393,7 +394,7 @@ public class TripleTableLoaderPartBySubTest extends JavaDataFrameSuiteBase imple
 		SparkSqlUtilities.enableSessionForPhysicalPartitioning(spark());
 		spark().sql("DROP DATABASE IF EXISTS triplesWithPrefixes_db CASCADE");
 		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithPrefixes").replace('\\', '/'), "triplesWithPrefixes_db", spark(),
-				true, false, true);
+				true, false, true, false);
 		tt_loader.load();
 
 		// Expected value:

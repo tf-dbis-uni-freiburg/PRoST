@@ -26,6 +26,7 @@ public class Settings {
 	private String databaseName;
 	private boolean computeStatistics = false;
 	private boolean dropDuplicateTriples = false;
+	private boolean computeCharacteristicSets= false;
 	private boolean generateTT = false;
 	private boolean generateWPT = false;
 	private boolean generateVP = false;
@@ -49,6 +50,7 @@ public class Settings {
 			final Ini settings = new Ini(file);
 			this.computeStatistics = settings.get("postprocessing", "computeStatistics", boolean.class);
 			this.dropDuplicateTriples = settings.get("postprocessing", "dropDuplicates", boolean.class);
+			this.computeCharacteristicSets = settings.get("postprocessing", "computeCharacteristicSets", boolean.class);
 
 			this.generateTT = settings.get("logicalPartitioning", "TT", Boolean.class);
 			this.generateWPT = settings.get("logicalPartitioning", "WPT", boolean.class);
@@ -175,6 +177,9 @@ public class Settings {
 		if (computeStatistics) {
 			enabledPostProcessingOptions.add("Updating statistics file");
 		}
+		if (computeCharacteristicSets){
+			enabledPostProcessingOptions.add("Computing characteristic sets annotations");
+		}
 		logger.info("Post processing options: " + String.join(", ", enabledPostProcessingOptions));
 
 	}
@@ -193,6 +198,10 @@ public class Settings {
 
 	public boolean isDroppingDuplicateTriples() {
 		return dropDuplicateTriples;
+	}
+
+	public boolean isComputingCharacteristicSets(){
+		return computeCharacteristicSets;
 	}
 
 	public boolean isGeneratingTT() {

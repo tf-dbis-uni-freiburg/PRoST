@@ -120,4 +120,7 @@ public class DatabaseStatistics {
 		return properties;
 	}
 
+	public ArrayList<CharacteristicSetStatistics> getCharacteristicSets() {
+		return characteristicSets;
+	}
 }

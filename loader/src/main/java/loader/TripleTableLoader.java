@@ -22,25 +22,29 @@ public class TripleTableLoader extends Loader {
 	protected final boolean ttPartitionedByPredicate;
 	protected final boolean dropDuplicates;
 	protected final String hdfsInputDirectory;
+	protected final boolean computingCharacteristicSets;
 
 	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
 							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
-							 final boolean dropDuplicates) {
+							 final boolean dropDuplicates, final boolean computingCharacteristicSets) {
 		super(databaseName, spark);
 		this.hdfsInputDirectory = hdfsInputDirectory;
 		this.ttPartitionedBySubject = ttPartitionedBySubject;
 		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
 		this.dropDuplicates = dropDuplicates;
+		this.computingCharacteristicSets = computingCharacteristicSets;
 	}
 
 	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
 							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
-							 final boolean dropDuplicates, DatabaseStatistics statistics) {
+							 final boolean dropDuplicates, final boolean computingCharacteristicSets,
+							 final DatabaseStatistics statistics) {
 		super(databaseName, spark, statistics);
 		this.hdfsInputDirectory = hdfsInputDirectory;
 		this.ttPartitionedBySubject = ttPartitionedBySubject;
 		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
 		this.dropDuplicates = dropDuplicates;
+		this.computingCharacteristicSets = computingCharacteristicSets;
 	}
 
 	@Override
@@ -140,7 +144,7 @@ public class TripleTableLoader extends Loader {
 		}
 
 		// compute statistics about characteristic sets
-		if (statistics != null) {
+		if (statistics != null && computingCharacteristicSets) {
 			statistics.computeCharacteristicSetsStatistics(allTriples);
 		}
 		//StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
