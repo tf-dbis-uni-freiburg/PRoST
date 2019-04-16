@@ -14,12 +14,16 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import scala.collection.Iterator;
+import scala.collection.immutable.Vector;
+import scala.collection.mutable.WrappedArray;
 
 
 /**
@@ -70,30 +74,46 @@ public class DatabaseStatistics {
 		}
 	}
 
+	/*
+		The goal is to compute the number of distinct subjects for each characteristic set, and the number of tuples
+		for each property of the characteristic set.
+
+		initial schema: s:string, charSet:array<string>, predicates:array<string>; with charSet the set of
+		predicates, and predicates the list of predicates. That is, predicates might contain duplicates
+
+		final schema: charSet:array<string>, distinctSubjects:long, tuplesPerPredicate:array<array<string>> ->
+		arrays of the type <<"propertyName","count">,...,<"pn","cn">>
+	 */
 	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable) {
-
-		Dataset<Row> charSets = tripletable.select("s", "p");
-
-		charSets =
-				charSets.groupBy("s").agg(collect_set("p").as("charSet"), collect_list("p").as("predicates"));
-
-		charSets = charSets.groupBy("charSet").agg(count("s").as("subjectCount"),
+		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(collect_set("p").as("charSet"), collect_list(
+				"p").as("predicates"));
+		characteristicSets = characteristicSets.groupBy("charSet").agg(count("s").as("subjectCount"),
 				collect_list("predicates").as("predicates"));
-		charSets = charSets.withColumn("predicates", explode(col("predicates")));
-		charSets = charSets.withColumn("predicates", explode(col("predicates")));
-		charSets = charSets.groupBy("charSet", "subjectCount", "predicates").agg(count("predicates"));
+		// the distinct list of predicates are exploded so they can be grouped and counted (distinct predicate lists
+		// of the same charSet are different rows
+		characteristicSets = characteristicSets.withColumn("predicates", explode(col("predicates")));
+		characteristicSets = characteristicSets.withColumn("predicates", explode(col("predicates")));
+		// the string predicate must be kept to be added to the final array together with its count
+		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount", "predicates").agg(count(
+				"predicates"));
+		characteristicSets = characteristicSets.withColumn("tuplesPerPredicate", array(col("predicates"), col("count"
+				+ "(predicates)")));
+		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount").agg(collect_list(
+				"tuplesPerPredicate").as("tuplesPerPredicate"));
 
-		charSets = charSets.withColumn("tuplesPerPredicate", array(col("predicates"), col("count(predicates)")));
+		final List<Row> collectedCharSets = characteristicSets.collectAsList();
+		for (final Row charSet : collectedCharSets) {
+			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
+			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
 
-		charSets = charSets.groupBy("charSet", "subjectCount").agg(collect_list("tuplesPerPredicate"));
-
-		//TODO save statistics
-		/*List<Row> collectedCharSets = charSets.collectAsList();
-		for (charSet: collectedCharSets){
-
-		}*/
-
-
+			final WrappedArray<WrappedArray<String>> properties = charSet.getAs("tuplesPerPredicate");
+			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
+			while (iterator.hasNext()) {
+				final Vector<String> v = iterator.next().toVector();
+				characteristicSetStatistics.getTuplesPerPredicate().put(v.getElem(0,1), Long.valueOf(v.getElem(1,1)));
+			}
+			this.characteristicSets.add(characteristicSetStatistics);
+		}
 	}
 
 	public HashMap<String, PropertyStatistics> getProperties() {

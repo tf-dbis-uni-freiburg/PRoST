@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class CharacteristicSetStatistics {
-	private String tableName;
 	private Long distinctSubjects;
 	private HashMap<String, Long> tuplesPerPredicate;
 
