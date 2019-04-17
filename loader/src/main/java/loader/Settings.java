@@ -26,7 +26,7 @@ public class Settings {
 	private String databaseName;
 	private boolean computeStatistics = false;
 	private boolean dropDuplicateTriples = false;
-	private boolean computeCharacteristicSets= false;
+	private boolean computeCharacteristicSets = false;
 	private boolean generateTT = false;
 	private boolean generateWPT = false;
 	private boolean generateVP = false;
@@ -177,7 +177,7 @@ public class Settings {
 		if (computeStatistics) {
 			enabledPostProcessingOptions.add("Updating statistics file");
 		}
-		if (computeCharacteristicSets){
+		if (computeCharacteristicSets) {
 			enabledPostProcessingOptions.add("Computing characteristic sets annotations");
 		}
 		logger.info("Post processing options: " + String.join(", ", enabledPostProcessingOptions));
@@ -200,7 +200,7 @@ public class Settings {
 		return dropDuplicateTriples;
 	}
 
-	public boolean isComputingCharacteristicSets(){
+	public boolean isComputingCharacteristicSets() {
 		return computeCharacteristicSets;
 	}
 

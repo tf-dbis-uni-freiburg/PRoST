@@ -134,20 +134,23 @@ public class TripleTableLoader extends Loader {
 		final Dataset<Row> allTriples = spark.sql(queryAllTriples);
 		final Dataset<Row> rawTriples = spark.sql(queryRawTriples);
 
-		if (allTriples.count() == 0) {
+		final long tuplesCount = allTriples.count();
+		if (tuplesCount == 0) {
 			logger.error("Either your HDFS path does not contain any files or "
 					+ "no triples were accepted in the given format (nt)");
 			logger.error("The program will stop here.");
 			throw new Exception("Empty HDFS directory or empty files within.");
 		} else {
-			logger.info("Total number of triples loaded: " + allTriples.count());
+			logger.info("Total number of triples loaded: " + tuplesCount);
 		}
 
-		// compute statistics about characteristic sets
-		if (statistics != null && computingCharacteristicSets) {
-			statistics.computeCharacteristicSetsStatistics(allTriples);
+		if (statistics != null) {
+			statistics.setTuplesNumber(tuplesCount);
+			// compute statistics about characteristic sets
+			if (computingCharacteristicSets) {
+				statistics.computeCharacteristicSetsStatistics(allTriples);
+			}
 		}
-		//StatisticsWriter.getInstance().addCharacteristicSetsStats(allTriples);
 
 		// The following part just outputs to the log in case there have been
 		// problems parsing the files.
@@ -195,8 +198,9 @@ public class TripleTableLoader extends Loader {
 			if (triplesWithMalformedObjects.count() > 0) {
 				logger.info("---of which " + triplesWithMalformedObjects.count() + " have malformed objects");
 			}
-			final Dataset<Row> triplesWithMultipleObjects = spark.sql("SELECT * FROM " + TRIPLETABLE_NAME + "_ext" + " WHERE "
-					+ COLUMN_NAME_OBJECT + " RLIKE '^\\s*<.*<.*>'");
+			final Dataset<Row> triplesWithMultipleObjects = spark.sql(
+					"SELECT * FROM " + TRIPLETABLE_NAME + "_ext" + " WHERE "
+							+ COLUMN_NAME_OBJECT + " RLIKE '^\\s*<.*<.*>'");
 			if (triplesWithMultipleObjects.count() > 0) {
 				logger.info("---of which " + triplesWithMultipleObjects.count() + " have multiple objects");
 			}
@@ -206,8 +210,9 @@ public class TripleTableLoader extends Loader {
 			if (objectsWithMultipleLiterals.count() > 0) {
 				logger.info("---of which " + objectsWithMultipleLiterals.count() + " have multiple literals");
 			}
-			final Dataset<Row> longPredicates = spark.sql("SELECT * FROM " + TRIPLETABLE_NAME + "_ext" + " WHERE LENGTH("
-					+ COLUMN_NAME_PREDICATE + ") > 128");
+			final Dataset<Row> longPredicates = spark.sql(
+					"SELECT * FROM " + TRIPLETABLE_NAME + "_ext" + " WHERE LENGTH("
+							+ COLUMN_NAME_PREDICATE + ") > 128");
 			if (longPredicates.count() > 0) {
 				logger.info("---of which " + longPredicates.count() + " have predicates with more than 128 characters");
 			}

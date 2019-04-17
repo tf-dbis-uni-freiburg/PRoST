@@ -31,6 +31,7 @@ import scala.collection.mutable.WrappedArray;
  */
 public class DatabaseStatistics {
 	private String databaseName;
+	private Long tuplesNumber;
 	private HashMap<String, PropertyStatistics> properties;
 	private ArrayList<CharacteristicSetStatistics> characteristicSets;
 
@@ -40,6 +41,7 @@ public class DatabaseStatistics {
 
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
+		this.tuplesNumber = Long.valueOf("0");
 		this.properties = new HashMap<>();
 		this.characteristicSets = new ArrayList<>();
 	}
@@ -57,6 +59,7 @@ public class DatabaseStatistics {
 		}
 	}
 
+	//TODO use a builder to construct this object
 	public void loadFromFile(final String path) {
 		final Gson gson = new Gson();
 		try {
@@ -67,7 +70,9 @@ public class DatabaseStatistics {
 
 			final DatabaseStatistics ds2 = gson.fromJson(br, type);
 			this.databaseName = ds2.databaseName;
+			this.tuplesNumber = ds2.tuplesNumber;
 			this.properties = ds2.properties;
+			this.characteristicSets = ds2.characteristicSets;
 
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -110,7 +115,7 @@ public class DatabaseStatistics {
 			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
 				final Vector<String> v = iterator.next().toVector();
-				characteristicSetStatistics.getTuplesPerPredicate().put(v.getElem(0,1), Long.valueOf(v.getElem(1,1)));
+				characteristicSetStatistics.getTuplesPerPredicate().put(v.getElem(0, 1), Long.valueOf(v.getElem(1, 1)));
 			}
 			this.characteristicSets.add(characteristicSetStatistics);
 		}
@@ -122,5 +127,9 @@ public class DatabaseStatistics {
 
 	public ArrayList<CharacteristicSetStatistics> getCharacteristicSets() {
 		return characteristicSets;
+	}
+
+	public void setTuplesNumber(final Long tuplesNumber) {
+		this.tuplesNumber = tuplesNumber;
 	}
 }
