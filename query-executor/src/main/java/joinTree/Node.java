@@ -1,10 +1,15 @@
 package joinTree;
 
+import static java.lang.Math.min;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import stats.CharacteristicSetStatistics;
 import stats.DatabaseStatistics;
 
 /**
@@ -68,14 +73,18 @@ public abstract class Node {
 	 * in a join tree. Note: This heuristic function is valid only for leaves in the
 	 * tree node. For {@link JoinNode}, see the overridden method.
 	 */
-	public float heuristicNodePriority() {
-		// TODO add usage of characteristic set
+	float heuristicNodePriority() {
+		if (!statistics.getCharacteristicSets().isEmpty()) {
+			return computeStarJoinCardinality();
+		}
 		float priority = 0;
 		for (final TriplePattern triplePattern : this.collectTriples()) {
 			final String predicate = triplePattern.predicate;
 			final boolean isObjectVariable = triplePattern.objectType == ElementType.VARIABLE;
 			final boolean isSubjectVariable = triplePattern.subjectType == ElementType.VARIABLE;
 			if (!isObjectVariable || !isSubjectVariable) {
+				//TODO number of distinct subjects|predicates / number of tuples for the given property is a better
+				// estimation
 				priority = 0;
 				break;
 			} else {
@@ -84,5 +93,51 @@ public abstract class Node {
 			}
 		}
 		return priority;
+	}
+
+	private HashSet<String> computeCharacteristicSet() {
+		final HashSet<String> characteristicSet = new HashSet<>();
+		for (final TriplePattern pattern : this.collectTriples()) {
+			characteristicSet.add(pattern.predicate);
+		}
+		return characteristicSet;
+	}
+
+	private ArrayList<CharacteristicSetStatistics> computeCharacteristicSupersets(
+			final HashSet<String> baseCharacteristicSet, final DatabaseStatistics statistics) {
+		final ArrayList<CharacteristicSetStatistics> superSets = new ArrayList<>();
+		for (final CharacteristicSetStatistics characteristicSetStatistics : statistics.getCharacteristicSets()) {
+			if (characteristicSetStatistics.containsSubset(baseCharacteristicSet)) {
+				superSets.add(characteristicSetStatistics);
+			}
+		}
+		return superSets;
+	}
+
+	/*
+	See Neumann, Thomas, and Guido Moerkotte.
+	"Characteristic sets: Accurate cardinality estimation for RDF queries with multiple joins."
+	2011 IEEE 27th International Conference on Data Engineering. IEEE, 2011.
+	 */
+	private long computeStarJoinCardinality() {
+		final ArrayList<CharacteristicSetStatistics> superSets = computeCharacteristicSupersets(
+				this.computeCharacteristicSet(), statistics);
+		long cardinality = 0;
+		for (final CharacteristicSetStatistics superSet : superSets) {
+			long m = 1;
+			long o = 1;
+			for (final TriplePattern triple : this.collectTriples()) {
+				//m = m * (superSet.getTuplesPerPredicate().get(triple.predicate) / superSet.getDistinctSubjects());
+				if (triple.objectType == ElementType.CONSTANT) {
+					// o is min(o,sel(?o=o|?p=p)
+					// min(o,sel(?o=o|?p=p) is sel(?o=o && ?p=p)/sel(?p=p)
+					o = min(o, statistics.getProperties().get(triple.predicate).getBoundObjectEstimatedSelectivity());
+				} else {
+					m = m * (superSet.getTuplesPerPredicate().get(triple.predicate) / superSet.getDistinctSubjects());
+				}
+			}
+			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;
+		}
+		return cardinality;
 	}
 }
