@@ -1,0 +1,45 @@
+{
+  "databaseName": "test_db",
+  "tuplesNumber": 7,
+  "properties": {
+    "ex:p0": {
+      "internalName": "ex_p0",
+      "tuplesNumber": 3,
+      "isComplex": true,
+      "isInverseComplex": false
+    },
+    "ex:p1": {
+      "internalName": "ex_p1",
+      "tuplesNumber": 3,
+      "isComplex": true,
+      "isInverseComplex": false
+    },
+	"ex:p2": {
+      "internalName": "ex_p2",
+      "tuplesNumber": 1,
+      "isComplex": false,
+      "isInverseComplex": false
+    }
+  },
+  "characteristicSets": [
+    {
+      "distinctSubjects": 2,
+      "tuplesPerPredicate": {
+        "ex:p0": 2,
+        "ex:p1": 3
+      }
+    },
+	{
+      "distinctSubjects": 1,
+      "tuplesPerPredicate": {
+        "ex:p0": 1
+      }
+    },
+	{
+      "distinctSubjects": 1,
+      "tuplesPerPredicate": {
+        "ex:p2": 1
+      }
+    }
+  ]
+}
