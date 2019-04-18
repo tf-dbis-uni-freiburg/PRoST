@@ -11,14 +11,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import scala.collection.Iterator;
@@ -64,11 +62,7 @@ public class DatabaseStatistics {
 		final Gson gson = new Gson();
 		try {
 			final BufferedReader br = new BufferedReader(new FileReader(path));
-			final Type type = new TypeToken<HashMap<String, PropertyStatistics>>() {
-			}.getType();
-
-
-			final DatabaseStatistics ds2 = gson.fromJson(br, type);
+			final DatabaseStatistics ds2 = gson.fromJson(br, DatabaseStatistics.class);
 			this.databaseName = ds2.databaseName;
 			this.tuplesNumber = ds2.tuplesNumber;
 			this.properties = ds2.properties;
