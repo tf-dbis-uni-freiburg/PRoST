@@ -33,7 +33,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File triplesWithMoreThanThreeRes = new File(
 				classLoader.getResource("triplesWithMoreThanThreeRes.nt").getFile());
-		HdfsUtilities.putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\triplesWithMoreThanThreeRes", jsc());
+		HdfsUtilities.putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(), System.getProperty("user.dir") +
+				"\\target\\test_output\\triplesWithMoreThanThreeRes", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithMoreThanThreeRes_db CASCADE");
 

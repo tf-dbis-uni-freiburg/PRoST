@@ -1,0 +1,4 @@
+ex:s0 ex:p0 ex:r0 .
+ex:s1 ex:p1 ex:r0 .
+ex:r0 ex:p2 ex:o0 .
+ex:r0 ex:p3 ex:o1 .
