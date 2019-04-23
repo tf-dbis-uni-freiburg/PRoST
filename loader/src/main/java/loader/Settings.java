@@ -31,7 +31,9 @@ public class Settings {
 	private boolean generateWPT = false;
 	private boolean generateVP = false;
 	private boolean generateIWPT = false;
-	private boolean generateJWPT = false;
+	private boolean generateJWPTOuter = false;
+	private boolean generateJWPTInner = false;
+	private boolean generateJWPTLeftOuter = false;
 	// options for physical partitioning
 	private boolean ttPartitionedByPredicate = false;
 	private boolean ttPartitionedBySubject = false;
@@ -56,7 +58,9 @@ public class Settings {
 			this.generateWPT = settings.get("logicalPartitioning", "WPT", boolean.class);
 			this.generateVP = settings.get("logicalPartitioning", "VP", boolean.class);
 			this.generateIWPT = settings.get("logicalPartitioning", "IWPT", boolean.class);
-			this.generateJWPT = settings.get("logicalPartitioning", "JWPT", boolean.class);
+			this.generateJWPTOuter = settings.get("logicalPartitioning", "JWPT_outer", boolean.class);
+			this.generateJWPTInner = settings.get("logicalPartitioning", "JWPT_inner", boolean.class);
+			this.generateJWPTLeftOuter = settings.get("logicalPartitioning", "JWPT_WPT_outer", boolean.class);
 
 			this.ttPartitionedByPredicate = settings.get("physicalPartitioning", "ttp", boolean.class);
 			this.ttPartitionedBySubject = settings.get("physicalPartitioning", "tts", boolean.class);
@@ -75,7 +79,8 @@ public class Settings {
 			throw new Exception("Missing database name.");
 		}
 
-		if (!generateTT && !generateWPT && !generateVP && !generateIWPT && !generateJWPT) {
+		if (!generateTT && !generateWPT && !generateVP && !generateIWPT && !generateJWPTOuter
+				&& !generateJWPTInner && !generateJWPTLeftOuter) {
 			throw new Exception("Invalid settings");
 		}
 
@@ -153,8 +158,14 @@ public class Settings {
 		if (generateIWPT) {
 			enabledLogicalPartitioningStrategies.add("IWPT");
 		}
-		if (generateJWPT) {
-			enabledLogicalPartitioningStrategies.add("JWPT");
+		if (generateJWPTOuter) {
+			enabledLogicalPartitioningStrategies.add("JWPT (outer join)");
+		}
+		if (generateJWPTInner) {
+			enabledLogicalPartitioningStrategies.add("JWPT (inner join)");
+		}
+		if (generateJWPTLeftOuter) {
+			enabledLogicalPartitioningStrategies.add("JWPT (WPT left outer join IWPT)");
 		}
 		logger.info("Logical Partitioning Strategies: " + String.join(", ", enabledLogicalPartitioningStrategies));
 
@@ -220,8 +231,16 @@ public class Settings {
 		return generateIWPT;
 	}
 
-	public boolean isGeneratingJWPT() {
-		return generateJWPT;
+	public boolean isGeneratingJWPTOuter() {
+		return generateJWPTOuter;
+	}
+
+	public boolean isGeneratingJWPTInner() {
+		return generateJWPTInner;
+	}
+
+	public boolean isGeneratingJWPTLeftOuter() {
+		return generateJWPTLeftOuter;
 	}
 
 	public boolean isTtPartitionedByPredicate() {

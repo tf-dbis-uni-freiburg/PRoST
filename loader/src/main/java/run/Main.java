@@ -4,8 +4,8 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.stream.IntStream;
 
-import loader.InverseWidePropertyTable;
-import loader.JoinedWidePropertyTable;
+import loader.InverseWidePropertyTableLoader;
+import loader.JoinedWidePropertyTableLoader;
 import loader.Settings;
 import loader.TripleTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -82,20 +82,38 @@ public class Main {
 
 		if (settings.isGeneratingIWPT()) {
 			startTime = System.currentTimeMillis();
-			final InverseWidePropertyTable iwptLoader = new InverseWidePropertyTable(settings.getDatabaseName(), spark,
+			final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(settings.getDatabaseName(), spark,
 					settings.isWptPartitionedBySubject());
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("Time in ms to build the Inverse Property Table: " + executionTime);
 		}
 
-		if (settings.isGeneratingJWPT()) {
+		if (settings.isGeneratingJWPTOuter()) {
 			startTime = System.currentTimeMillis();
-			final JoinedWidePropertyTable jwptLoader = new JoinedWidePropertyTable(settings.getDatabaseName(), spark,
-					settings.isWptPartitionedBySubject());
+			final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings.getDatabaseName(), spark,
+					settings.isWptPartitionedBySubject(), JoinedWidePropertyTableLoader.JoinType.outer);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("Time in ms to build the Joined Property Table: " + executionTime);
+			logger.info("Time in ms to build the Joined Property Table (outer join): " + executionTime);
+		}
+
+		if (settings.isGeneratingJWPTOuter()) {
+			startTime = System.currentTimeMillis();
+			final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings.getDatabaseName(), spark,
+					settings.isWptPartitionedBySubject(), JoinedWidePropertyTableLoader.JoinType.inner);
+			jwptLoader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Joined Property Table (inner join): " + executionTime);
+		}
+
+		if (settings.isGeneratingJWPTOuter()) {
+			startTime = System.currentTimeMillis();
+			final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings.getDatabaseName(), spark,
+					settings.isWptPartitionedBySubject(), JoinedWidePropertyTableLoader.JoinType.leftouter);
+			jwptLoader.load();
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("Time in ms to build the Joined Property Table (WPT left inner join IWPT): " + executionTime);
 		}
 
 		if (settings.isGeneratingVP()) {

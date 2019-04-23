@@ -6,12 +6,12 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-public class InverseWidePropertyTable extends PropertyTableLoader {
+public class InverseWidePropertyTableLoader extends PropertyTableLoader {
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "inverse_properties";
 	private static final String IWPT_TABLE_NAME = "inverse_wide_property_table";
 
-	public InverseWidePropertyTable(final String databaseName,
-									final SparkSession spark, final boolean isPartitioned) {
+	public InverseWidePropertyTableLoader(final String databaseName,
+										  final SparkSession spark, final boolean isPartitioned) {
 		super(databaseName, spark, isPartitioned, IWPT_TABLE_NAME);
 	}
 
