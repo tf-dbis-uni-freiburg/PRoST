@@ -8,6 +8,7 @@ import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.explode;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,6 +45,12 @@ public class DatabaseStatistics {
 		this.characteristicSets = new ArrayList<>();
 	}
 
+	public static DatabaseStatistics loadFromFile(final String path) throws FileNotFoundException {
+		final Gson gson = new Gson();
+		final BufferedReader br = new BufferedReader(new FileReader(path));
+		return gson.fromJson(br, DatabaseStatistics.class);
+	}
+
 	public void saveToFile(final String path) {
 
 		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -52,22 +59,6 @@ public class DatabaseStatistics {
 			final FileWriter writer = new FileWriter(path);
 			writer.write(json);
 			writer.close();
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	//TODO use a builder to construct this object
-	public void loadFromFile(final String path) {
-		final Gson gson = new Gson();
-		try {
-			final BufferedReader br = new BufferedReader(new FileReader(path));
-			final DatabaseStatistics ds2 = gson.fromJson(br, DatabaseStatistics.class);
-			this.databaseName = ds2.databaseName;
-			this.tuplesNumber = ds2.tuplesNumber;
-			this.properties = ds2.properties;
-			this.characteristicSets = ds2.characteristicSets;
-
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}

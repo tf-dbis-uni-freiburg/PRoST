@@ -1,5 +1,6 @@
 package query.run;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
@@ -15,11 +16,10 @@ public class NodePriorityTest {
 	 * tests the use of characteristic sets to calculate node priorities.
 	 */
 	@Test
-	public void computeNodesPriorities() {
+	public void computeNodesPriorities() throws FileNotFoundException {
 		final ClassLoader classLoader = getClass().getClassLoader();
 
-		final DatabaseStatistics statistics = new DatabaseStatistics();
-		statistics.loadFromFile(classLoader.getResource("nodePriority.json").getPath());
+		final DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(classLoader.getResource("nodePriority.json").getPath());
 
 
 		final PrefixMapping prefixes = PrefixMapping.Factory.create();

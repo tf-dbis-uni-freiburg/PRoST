@@ -42,8 +42,7 @@ public class Main {
 			EmergentSchema.getInstance().readSchema(settings.getEmergentSchemaPath());
 		}
 
-		DatabaseStatistics statistics = new DatabaseStatistics();
-		statistics.loadFromFile(settings.getStatsPath());
+		DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getStatsPath());
 
 		final File file = new File(settings.getInputPath());
 
