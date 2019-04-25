@@ -60,56 +60,48 @@ public class PTNode extends MVNode {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
+		final ArrayList<String> selectElements = new ArrayList<>();
+		final ArrayList<String> whereElements = new ArrayList<>();
+		final ArrayList<String> explodedElements = new ArrayList<>();
 
-		final StringBuilder query = new StringBuilder("SELECT ");
-		final ArrayList<String> whereConditions = new ArrayList<>();
-		final ArrayList<String> explodedColumns = new ArrayList<>();
-
-		// subject
 		if (tripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-			query.append("s AS ").append(Utils.removeQuestionMark(tripleGroup.get(0).subject)).append(",");
+			selectElements.add("s AS " + Utils.removeQuestionMark(tripleGroup.get(0).subject));
+		} else {
+			whereElements.add("s='" + tripleGroup.get(0).subject + "'");
 		}
 
-		// objects
 		for (final TriplePattern t : tripleGroup) {
 			final String columnName = statistics.getProperties().get(t.predicate).getInternalName();
 			if (columnName == null) {
-				System.err.println("This column does not exists: " + t.predicate);
+				System.err.println("This property does not exists: " + t.predicate);
 				return;
-			}
-			if (t.subjectType == ElementType.CONSTANT) {
-				whereConditions.add("s='" + t.subject + "'");
 			}
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.object + "')");
+					whereElements.add("array_contains(" + columnName + ", '" + t.object + "')");
 				} else {
-					whereConditions.add(columnName + "='" + t.object + "'");
+					whereElements.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object))
-						.append(",");
-				explodedColumns.add(columnName);
+				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.object));
+				explodedElements.add("\nlateral view explode(" + columnName + ") exploded" + columnName
+						+ " AS P" + columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ").append(Utils.removeQuestionMark(t.object))
-						.append(",");
-				whereConditions.add(columnName + " IS NOT NULL");
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.object));
+				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
 
-		// delete last comma
-		query.deleteCharAt(query.length() - 1);
-		query.append(" FROM ").append(this.tableName).append(" ");
-		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(").append(explodedColumn).append(") exploded").append(explodedColumn)
-					.append(" AS P").append(explodedColumn);
+		String query = "SELECT " + String.join(", ", selectElements);
+		query += " FROM " + tableName;
+		if (!explodedElements.isEmpty()) {
+			query += " " + String.join(" ", explodedElements);
+		}
+		if (!whereElements.isEmpty()) {
+			query += " WHERE " + String.join(" AND ", whereElements);
 		}
 
-		if (!whereConditions.isEmpty()) {
-			query.append(" WHERE ");
-			query.append(String.join(" AND ", whereConditions));
-		}
-		sparkNodeData = sqlContext.sql(query.toString());
+		sparkNodeData = sqlContext.sql(query);
 	}
 
 	@Override

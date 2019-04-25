@@ -3,38 +3,27 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import utils.Utils;
 
-/*
- * A node of the JoinTree that refers to the Vertical Partitioning.
+/**
+ * A node of the JoinTree that refers to the Vertical Partitioning. Does not support patterns containing a variable
+ * predicate.
  */
 public class VPNode extends Node {
-
-	private static final Logger logger = Logger.getLogger("PRoST");
-	public TriplePattern triplePattern;
+	private final TriplePattern triplePattern;
 	private final String tableName;
 
-
-	/*
-	 * The node contains a single triple pattern.
-	 */
 	public VPNode(final TriplePattern triplePattern, final String tableName, final DatabaseStatistics statistics) {
 		super(statistics);
+		//TODO tableName should be retrieved from the statistics file based on the triple pattern predicate instead
+		// of being given by an argument
 		this.tableName = tableName;
 		this.triplePattern = triplePattern;
-	}
-
-	/*
-	 * The node contains a single triple pattern.
-	 */
-	public VPNode(final Node parent, final TriplePattern triplePattern, final String tableName,
-				  final DatabaseStatistics statistics) {
-		super(parent, statistics);
-		this.tableName = tableName;
-		this.triplePattern = triplePattern;
+		if (triplePattern.predicateType == ElementType.VARIABLE) {
+			System.err.println("Vertical partitioning nodes do not support patterns with variable predicates");
+		}
 	}
 
 	@Override
@@ -44,43 +33,33 @@ public class VPNode extends Node {
 			return;
 		}
 
-		final StringBuilder query = new StringBuilder("SELECT ");
+		final ArrayList<String> selectElements = new ArrayList<>();
+		final ArrayList<String> whereElements = new ArrayList<>();
 
-		// SELECT
-		if (triplePattern.subjectType == ElementType.VARIABLE && triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject)).append(", o AS ").append(Utils.removeQuestionMark(triplePattern.object)).append(" ");
-		} else if (triplePattern.subjectType == ElementType.VARIABLE) {
-			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject));
-		} else if (triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("o AS ").append(Utils.removeQuestionMark(triplePattern.object));
+		if (triplePattern.subjectType == ElementType.VARIABLE) {
+			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+		} else {
+			whereElements.add("s='" + triplePattern.subject + "'");
+		}
+		if (triplePattern.objectType == ElementType.VARIABLE) {
+			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.object));
+		} else {
+			whereElements.add("o='" + triplePattern.object + "'");
 		}
 
-		// FROM
-		query.append(" FROM ");
-		// when partition by subject
-		//query.append("par_vp_" + tableName);
-		query.append("vp_").append(tableName);
-
-		// WHERE
-		if (triplePattern.objectType == ElementType.CONSTANT || triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" WHERE ");
+		String query = "SELECT " + String.join(", ", selectElements);
+		// TODO variable tableName is not really the table name if 'vp_' still needs to be attached to it. Fix all
+		//  calls to VPNode to give the actual tableName
+		query += " FROM vp_" + tableName;
+		if (!whereElements.isEmpty()) {
+			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-		if (triplePattern.objectType == ElementType.CONSTANT) {
-			query.append(" o='").append(triplePattern.object).append("' ");
-		}
-
-		if (triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" s='").append(triplePattern.subject).append("' ");
-		}
-		sparkNodeData = sqlContext.sql(query.toString());
+		sparkNodeData = sqlContext.sql(query);
 	}
 
 	@Override
 	public String toString() {
-		final String str = "{" + "VP node: "
-				+ triplePattern.toString()
-				+ " }";
-		return str;
+		return "{VP node: " + triplePattern.toString() + " }";
 	}
 
 	@Override
