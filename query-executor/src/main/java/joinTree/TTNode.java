@@ -35,44 +35,35 @@ public class TTNode extends Node {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-
-		final StringBuilder query = new StringBuilder("SELECT ");
-
-		// SELECT
-		if (triplePattern.subjectType == ElementType.VARIABLE && triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject)).append(", o AS ").append(Utils.removeQuestionMark(triplePattern.object)).append(" ");
-		} else if (triplePattern.subjectType == ElementType.VARIABLE) {
-			query.append("s AS ").append(Utils.removeQuestionMark(triplePattern.subject));
-		} else if (triplePattern.objectType == ElementType.VARIABLE) {
-			query.append("o AS ").append(Utils.removeQuestionMark(triplePattern.object));
+		final ArrayList<String> selectElements = new ArrayList<>();
+		final ArrayList<String> whereElements = new ArrayList<>();
+		if (triplePattern.subjectType == ElementType.VARIABLE) {
+			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+		} else {
+			whereElements.add("s='" + triplePattern.subject + "'");
+		}
+		if (triplePattern.predicateType == ElementType.VARIABLE) {
+			selectElements.add("p as " + Utils.removeQuestionMark(triplePattern.predicate));
+		} else {
+			whereElements.add("p='<" + triplePattern.predicate + ">'");
+		}
+		if (triplePattern.objectType == ElementType.VARIABLE) {
+			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.object));
+		} else {
+			whereElements.add("o='" + triplePattern.object + "'");
 		}
 
-		// FROM
-		query.append(" FROM ");
-		query.append("tripletable");
-		//query.append("par_tripletable");
-		query.append(" WHERE ");
-		query.append(" p='<").append(triplePattern.predicate).append(">' ");
-		// WHERE
-		if (triplePattern.objectType == ElementType.CONSTANT || triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" AND ");
+		String query = "SELECT " + String.join(", ", selectElements);
+		query += " FROM tripletable";
+		if (!whereElements.isEmpty()) {
+			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-		if (triplePattern.objectType == ElementType.CONSTANT) {
-			query.append(" o='").append(triplePattern.object).append("' ");
-		}
-
-		if (triplePattern.subjectType == ElementType.CONSTANT) {
-			query.append(" s='").append(triplePattern.subject).append("' ");
-		}
-		sparkNodeData = sqlContext.sql(query.toString());
+		sparkNodeData = sqlContext.sql(query);
 	}
 
 	@Override
 	public String toString() {
-		final String str = "{" + "TT node: "
-				+ triplePattern.toString()
-				+ " }";
-		return str;
+		return  "{" + "TT node: " + triplePattern.toString() + " }";
 	}
 
 	@Override
