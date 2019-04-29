@@ -14,12 +14,12 @@ import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 import joinTree.ElementType;
-import joinTree.IPTNode;
-import joinTree.JPTNode;
+import joinTree.IWPTNode;
+import joinTree.JWPTNode;
 import joinTree.JoinNode;
 import joinTree.JoinTree;
 import joinTree.Node;
-import joinTree.PTNode;
+import joinTree.WPTNode;
 import joinTree.TTNode;
 import joinTree.TriplePattern;
 import joinTree.VPNode;
@@ -252,7 +252,7 @@ public class Translator {
 							emergentSchemaSubjectGroups.get(tableName);
 					for (final String subject : emergentSubjectGroups.keySet()) {
 						final List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
-						nodesQueue.add(new PTNode(subjectTriples, prefixes, tableName, statistics));
+						nodesQueue.add(new WPTNode(subjectTriples, prefixes, tableName, statistics));
 					}
 				}
 			} else {
@@ -300,10 +300,10 @@ public class Translator {
 		if (triples.size() >= settings.getMinGroupSize()) {
 			switch (nodeType) {
 				case WPT:
-					nodesQueue.add(new PTNode(triples, prefixes, statistics));
+					nodesQueue.add(new WPTNode(triples, prefixes, statistics));
 					break;
 				case IWPT:
-					nodesQueue.add(new IPTNode(triples, prefixes, statistics));
+					nodesQueue.add(new IWPTNode(triples, prefixes, statistics));
 					break;
 				case JWPT:
 					throw new RuntimeException("Tried to create a JWPT, but no JoinedTriplesGroup was given");
@@ -328,7 +328,7 @@ public class Translator {
 	 */
 	private void createNodes(final JoinedTriplesGroup joinedGroup, final PriorityQueue<Node> nodesQueue) {
 		if (joinedGroup.size() >= settings.getMinGroupSize()) {
-			nodesQueue.add(new JPTNode(joinedGroup, prefixes, statistics));
+			nodesQueue.add(new JWPTNode(joinedGroup, prefixes, statistics));
 		} else {
 			createVpNodes(new ArrayList<>(joinedGroup.getWptGroup()), nodesQueue);
 			// avoids repeating vp nodes for patterns with same subject and object, i.e ?v

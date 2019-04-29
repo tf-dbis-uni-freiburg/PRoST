@@ -12,7 +12,7 @@ import utils.Utils;
 /**
  * A node of the JoinTree that refers to the Property Table.
  */
-public class PTNode extends MVNode {
+public class WPTNode extends MVNode {
 
 	/**
 	 * The default value is "wide_property_table" when only one PT exists. If an
@@ -27,7 +27,7 @@ public class PTNode extends MVNode {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
+	public WPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
 		super(statistics);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		tripleGroup = triplePatterns;
@@ -41,8 +41,8 @@ public class PTNode extends MVNode {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public PTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName,
-				  final DatabaseStatistics statistics) {
+	public WPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final String tableName,
+				   final DatabaseStatistics statistics) {
 		this(jenaTriples, prefixes, statistics);
 		this.tableName = tableName;
 	}

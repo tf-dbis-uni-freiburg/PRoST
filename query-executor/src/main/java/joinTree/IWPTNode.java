@@ -12,7 +12,7 @@ import utils.Utils;
 /**
  * A node that uses an Inverse Wide Property Table.
  */
-public class IPTNode extends MVNode {
+public class IWPTNode extends MVNode {
 	private static final String OBJECT_COLUMN_NAME = "o";
 	private static final String TABLE_NAME = "inverse_wide_property_table";
 
@@ -26,7 +26,7 @@ public class IPTNode extends MVNode {
 	 * @param jenaTriples list of Triples referring to the same object.
 	 * @param prefixes    prefix mapping of the properties.
 	 */
-	public IPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
+	public IWPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
 		super(statistics);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {

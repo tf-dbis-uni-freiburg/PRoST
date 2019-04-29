@@ -13,7 +13,7 @@ import utils.Utils;
 /**
  * A node that uses a Joined Wide Property Table.
  */
-public class JPTNode extends MVNode {
+public class JWPTNode extends MVNode {
 
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
@@ -23,8 +23,8 @@ public class JPTNode extends MVNode {
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 
-	public JPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
-				   final DatabaseStatistics statistics) {
+	public JWPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
+					final DatabaseStatistics statistics) {
 
 		super(statistics);
 
