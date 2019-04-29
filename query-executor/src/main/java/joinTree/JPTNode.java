@@ -13,8 +13,8 @@ import utils.Utils;
 /**
  * A node that uses a Joined Wide Property Table.
  */
-public class JPTNode extends MVNode  {
-	
+public class JPTNode extends MVNode {
+
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
@@ -62,24 +62,28 @@ public class JPTNode extends MVNode  {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		final StringBuilder query = new StringBuilder("SELECT ");
-		final ArrayList<String> whereConditions = new ArrayList<>();
-		final ArrayList<String> explodedColumns = new ArrayList<>();
+		final ArrayList<String> whereElements = new ArrayList<>();
+		final ArrayList<String> selectElements = new ArrayList<>();
+		final ArrayList<String> explodedElements = new ArrayList<>();
 
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
 			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
-						.append(Utils.removeQuestionMark(wptTripleGroup.get(0).subject)).append(",");
+				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(wptTripleGroup.get(0).subject));
+			} else {
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + wptTripleGroup.get(0).subject + "'");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
 			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
-				query.append(COLUMN_NAME_COMMON_RESOURCE + " AS ")
-						.append(Utils.removeQuestionMark(iwptTripleGroup.get(0).object)).append(",");
+				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(iwptTripleGroup.get(0).object));
+			} else {
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + iwptTripleGroup.get(0).object + "'");
 			}
 		}
 
-		// wpt
+		// forward patterns
 		for (final TriplePattern t : wptTripleGroup) {
 			final String columnName =
 					WPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
@@ -87,68 +91,56 @@ public class JPTNode extends MVNode  {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
-			if (t.subjectType == ElementType.CONSTANT) {
-				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.subject + "'");
-			}
+
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.object + "')");
+					whereElements.add("array_contains(" + columnName + ", '" + t.object + "')");
 				} else {
-					whereConditions.add(columnName + "='" + t.object + "'");
+					whereElements.add(columnName + "='" + t.object + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName).append(" AS ")
-						.append(Utils.removeQuestionMark(t.object)).append(",");
-				explodedColumns.add(columnName);
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object));
+				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
+						+ " AS P" + columnName);
 			} else {
-				query.append(" ").append(columnName).append(" AS ")
-						.append(Utils.removeQuestionMark(t.object)).append(",");
-				whereConditions.add(columnName + " IS NOT NULL");
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.object));
+				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
 
-		// iwpt
+		// inverse patterns
 		for (final TriplePattern t : iwptTripleGroup) {
 			final String columnName = IWPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
 			if (columnName.equals(IWPT_PREFIX)) {
 				System.err.println("This column does not exists: " + t.predicate);
 				return;
 			}
-			if (t.objectType == ElementType.CONSTANT) {
-				whereConditions.add(COLUMN_NAME_COMMON_RESOURCE + "='" + t.object + "'");
-			}
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
-					whereConditions.add("array_contains(" + columnName + ", '" + t.subject + "')");
+					whereElements.add("array_contains(" + columnName + ", '" + t.subject + "')");
 				} else {
-					whereConditions.add(columnName + "='" + t.subject + "'");
+					whereElements.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				query.append(" P").append(columnName)
-						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
-				explodedColumns.add(columnName);
+				selectElements.add(" P" + columnName + " AS ");
+				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
+						+ " AS P" + columnName);
 			} else {
-				query.append(" ").append(columnName)
-						.append(" AS ").append(Utils.removeQuestionMark(t.subject)).append(",");
-				whereConditions.add(columnName + " IS NOT NULL");
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.subject));
+				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
 
-		// delete last comma
-		query.deleteCharAt(query.length() - 1);
-
-		query.append(" FROM ").append(JOINED_TABLE_NAME).append(" ");
-		for (final String explodedColumn : explodedColumns) {
-			query.append("\n lateral view explode(").append(explodedColumn)
-					.append(") exploded").append(explodedColumn).append(" AS P").append(explodedColumn);
+		String query = "SELECT " + String.join(",", selectElements);
+		query += " FROM " + JOINED_TABLE_NAME;
+		if (!explodedElements.isEmpty()) {
+			query += " " + String.join(" ", explodedElements);
+		}
+		if (!whereElements.isEmpty()) {
+			query += " WHERE " + String.join(" AND ", whereElements);
 		}
 
-		if (!whereConditions.isEmpty()) {
-			query.append(" WHERE ");
-			query.append(String.join(" AND ", whereConditions));
-		}
-
-		sparkNodeData = sqlContext.sql(query.toString());
+		sparkNodeData = sqlContext.sql(query);
 	}
 
 	@Override
