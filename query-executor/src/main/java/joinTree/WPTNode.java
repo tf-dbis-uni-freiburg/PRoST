@@ -7,6 +7,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
+import stats.PropertyStatistics;
 import utils.Utils;
 
 /**
@@ -60,6 +61,14 @@ public class WPTNode extends MVNode {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
+		if (tripleGroup.size() == 1 && tripleGroup.get(0).predicateType.equals(ElementType.VARIABLE)) {
+			computeVariablePredicateNodeData(sqlContext);
+		} else {
+			computeConstantPredicateNodeData(sqlContext);
+		}
+	}
+
+	private void computeConstantPredicateNodeData(final SQLContext sqlContext) {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> whereElements = new ArrayList<>();
 		final ArrayList<String> explodedElements = new ArrayList<>();
@@ -100,8 +109,60 @@ public class WPTNode extends MVNode {
 		if (!whereElements.isEmpty()) {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-
 		sparkNodeData = sqlContext.sql(query);
+	}
+
+	//assumes a single pattern in the triples groups
+	private void computeVariablePredicateNodeData(final SQLContext sqlContext) {
+		final List<String> properties = new ArrayList<>();
+		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+			properties.add(propertyStatistics.getInternalName());
+		}
+		final TriplePattern triple = tripleGroup.get(0);
+
+		for (final String property : properties) {
+			final ArrayList<String> selectElements = new ArrayList<>();
+			final ArrayList<String> whereElements = new ArrayList<>();
+			final ArrayList<String> explodedElements = new ArrayList<>();
+
+			if (triple.subjectType == ElementType.VARIABLE) {
+				selectElements.add("s AS " + Utils.removeQuestionMark(triple.subject));
+			} else {
+				whereElements.add("s='" + triple.subject + "'");
+			}
+
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+
+			if (triple.objectType == ElementType.CONSTANT) {
+				if (triple.isComplex) {
+					whereElements.add("array_contains(" + property + ", '" + triple.object + "')");
+				} else {
+					whereElements.add(property + "='" + triple.object + "'");
+				}
+			} else if (triple.isComplex) {
+				selectElements.add("P" + property + " AS " + Utils.removeQuestionMark(triple.object));
+				explodedElements.add("\nlateral view explode(" + property + ") exploded" + property
+						+ " AS P" + property);
+			} else {
+				selectElements.add(property + " AS " + Utils.removeQuestionMark(triple.object));
+				whereElements.add(property + " IS NOT NULL");
+			}
+
+			String query = "SELECT " + String.join(", ", selectElements);
+			query += " FROM " + tableName;
+			if (!explodedElements.isEmpty()) {
+				query += " " + String.join(" ", explodedElements);
+			}
+			if (!whereElements.isEmpty()) {
+				query += " WHERE " + String.join(" AND ", whereElements);
+			}
+
+			if (sparkNodeData == null) {
+				sparkNodeData = sqlContext.sql(query);
+			} else {
+				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+			}
+		}
 	}
 
 	@Override
