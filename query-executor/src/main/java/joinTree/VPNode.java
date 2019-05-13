@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
+import stats.PropertyStatistics;
 import utils.Utils;
 
 /**
@@ -13,26 +14,31 @@ import utils.Utils;
  */
 public class VPNode extends Node {
 	private final TriplePattern triplePattern;
-	private final String tableName;
 
-	public VPNode(final TriplePattern triplePattern, final String tableName, final DatabaseStatistics statistics) {
+	public VPNode(final TriplePattern triplePattern, final DatabaseStatistics statistics) {
 		super(statistics);
-		//TODO tableName should be retrieved from the statistics file based on the triple pattern predicate instead
-		// of being given by an argument
-		this.tableName = tableName;
 		this.triplePattern = triplePattern;
-		if (triplePattern.predicateType == ElementType.VARIABLE) {
-			System.err.println("Vertical partitioning nodes do not support patterns with variable predicates");
-		}
 	}
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		if (tableName == null) {
-			System.err.println("The predicate does not have a VP table: " + triplePattern.predicate);
-			return;
+		if (triplePattern.predicateType.equals(ElementType.CONSTANT)) {
+			final String tableName = "vp_" + statistics.getProperties().get(triplePattern.predicate).getInternalName();
+			sparkNodeData = sqlContext.sql(createSQLQuery(tableName));
+		} else {
+			for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+				final String tableName =
+						"vp_" + propertyStatistics.getInternalName();
+				if (sparkNodeData == null) {
+					sparkNodeData = sqlContext.sql(createSQLQuery(tableName));
+				} else {
+					sparkNodeData = sparkNodeData.union(sqlContext.sql(createSQLQuery(tableName)));
+				}
+			}
 		}
+	}
 
+	private String createSQLQuery(final String vpTableName) {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> whereElements = new ArrayList<>();
 
@@ -48,13 +54,11 @@ public class VPNode extends Node {
 		}
 
 		String query = "SELECT " + String.join(", ", selectElements);
-		// TODO variable tableName is not really the table name if 'vp_' still needs to be attached to it. Fix all
-		//  calls to VPNode to give the actual tableName
-		query += " FROM vp_" + tableName;
+		query += " FROM " + vpTableName;
 		if (!whereElements.isEmpty()) {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-		sparkNodeData = sqlContext.sql(query);
+		return query;
 	}
 
 	@Override

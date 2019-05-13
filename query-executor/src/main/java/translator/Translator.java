@@ -363,13 +363,9 @@ public class Translator {
 	private void createVpNodes(final List<Triple> unassignedTriples, final PriorityQueue<Node> nodesQueue) {
 		final List<Triple> triples = new ArrayList<>(unassignedTriples);
 		for (final Triple t : triples) {
-			if (!t.getPredicate().isVariable()) {
-				final String tableName =
-						statistics.getProperties().get(t.getPredicate().toString()).getInternalName();
-				final Node newNode = new VPNode(new TriplePattern(t, prefixes), tableName, statistics);
-				nodesQueue.add(newNode);
-				unassignedTriples.remove(t);
-			}
+			final Node newNode = new VPNode(new TriplePattern(t, prefixes), statistics);
+			nodesQueue.add(newNode);
+			unassignedTriples.remove(t);
 		}
 	}
 
