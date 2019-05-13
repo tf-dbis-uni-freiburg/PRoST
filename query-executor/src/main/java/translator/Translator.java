@@ -152,43 +152,84 @@ public class Translator {
 
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
-		final List<Triple> unassignedTriples = new ArrayList<>(triples);
+		final List<Triple> unassignedTriples = new ArrayList<>();
+		final List<Triple> unassignedTriplesWithVariablePredicate = new ArrayList<>();
+
+		for (final Triple triple : triples) {
+			if (triple.getPredicate().isVariable()) {
+				unassignedTriplesWithVariablePredicate.add(triple);
+			} else {
+				unassignedTriples.add(triple);
+			}
+		}
 
 		logger.info("Triple patterns without nodes: " + unassignedTriples.size());
 		if (settings.isUsingJWPT()) {
 			logger.info("Creating JWPT nodes... ");
 			addJWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		}
 		if (settings.isUsingWPT() && settings.isUsingIWPT() && settings.isGroupingTriples()) {
 			logger.info("Creating WPT and IWPT nodes...");
 			addMixedPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		} else if (settings.isUsingWPT()) {
 			logger.info("Creating WPT nodes...");
 			addWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		} else if (settings.isUsingIWPT()) {
 			logger.info("Creating IWPT nodes...");
 			addIWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		}
 		if (settings.isUsingVP()) {
 			// VP only
 			logger.info("Creating VP nodes...");
 			createVpNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		}
 		if (settings.isUsingTT()) {
 			logger.info("Creating TT nodes...");
 			createTTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size());
+			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size());
 		}
-		if (unassignedTriples.size() > 0) {
+
+		//create nodes for patterns with variable predicates
+		for (final Triple triple : new ArrayList<>(unassignedTriplesWithVariablePredicate)) {
+			final ArrayList<Triple> tripleAsList = new ArrayList<>(); // list is needed as argument to node creation
+			// methods
+			tripleAsList.add(triple);
+			//first try to find best PT node type for the given pattern
+			if (settings.isUsingWPT() && !triple.getSubject().isVariable()) {
+				nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
+				unassignedTriplesWithVariablePredicate.remove(triple);
+			} else {
+				//no best pt node type, uses general best option
+				if (settings.isUsingTT()) {
+					createTTNodes(tripleAsList, nodesQueue);
+					unassignedTriplesWithVariablePredicate.remove(triple);
+				} else if (settings.isUsingVP()) {
+					createVpNodes(tripleAsList, nodesQueue);
+					unassignedTriplesWithVariablePredicate.remove(triple);
+				} else if (settings.isUsingWPT()) {
+					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
+					unassignedTriplesWithVariablePredicate.remove(triple);
+				}
+			}
+		}
+
+		if (unassignedTriples.size() > 0 || unassignedTriplesWithVariablePredicate.size() > 0) {
 			throw new RuntimeException("Cannot generate nodes queue. Some triple patterns are not assigned to a node.");
 		} else {
 			return nodesQueue;
 		}
+
 
 	}
 
