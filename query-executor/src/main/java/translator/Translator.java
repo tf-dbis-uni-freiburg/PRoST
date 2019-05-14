@@ -206,8 +206,17 @@ public class Translator {
 			// methods
 			tripleAsList.add(triple);
 			//first try to find best PT node type for the given pattern
-			if (settings.isUsingWPT() && !triple.getSubject().isVariable()) {
+			if (settings.isUsingWPT() && triple.getSubject().isConcrete()) {
 				nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
+				unassignedTriplesWithVariablePredicate.remove(triple);
+			} else if (settings.isUsingIWPT() && triple.getObject().isConcrete()) {
+				nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
+				unassignedTriplesWithVariablePredicate.remove(triple);
+			} else if (settings.isUsingJWPT()
+					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
+				final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
+				tripleAsJoinedGroup.getWptGroup().add(triple);
+				nodesQueue.add(new JWPTNode(tripleAsJoinedGroup, prefixes, statistics));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else {
 				//no best pt node type, uses general best option
@@ -220,6 +229,14 @@ public class Translator {
 				} else if (settings.isUsingWPT()) {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
 					unassignedTriplesWithVariablePredicate.remove(triple);
+				} else if (settings.isUsingJWPT()) {
+					final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
+					tripleAsJoinedGroup.getWptGroup().add(triple);
+					nodesQueue.add(new JWPTNode(tripleAsJoinedGroup, prefixes, statistics));
+					unassignedTriplesWithVariablePredicate.remove(triple);
+				} else if (settings.isUsingIWPT()) {
+					nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
+					unassignedTriplesWithVariablePredicate.remove(triple);
 				}
 			}
 		}
@@ -229,8 +246,6 @@ public class Translator {
 		} else {
 			return nodesQueue;
 		}
-
-
 	}
 
 	/**

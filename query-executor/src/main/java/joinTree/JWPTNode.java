@@ -7,6 +7,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
+import stats.PropertyStatistics;
 import translator.JoinedTriplesGroup;
 import utils.Utils;
 
@@ -33,6 +34,7 @@ public class JWPTNode extends MVNode {
 		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			wptTriplePatterns.add(tp);
+			tripleGroup.add(tp);
 		}
 
 		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
@@ -40,6 +42,7 @@ public class JWPTNode extends MVNode {
 		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTriplePatterns.add(tp);
+			tripleGroup.add(tp);
 		}
 		setIsComplex();
 	}
@@ -62,6 +65,19 @@ public class JWPTNode extends MVNode {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
+		final TriplePattern triple = tripleGroup.get(0);
+		if (tripleGroup.size() == 1 && triple.predicateType.equals(ElementType.VARIABLE)) {
+			if (triple.subjectType.equals(ElementType.CONSTANT) || triple.objectType.equals(ElementType.VARIABLE)) {
+				computeForwardVariablePredicateNodeData(sqlContext);
+			} else {
+				computeInverseVariablePredicateNodeData(sqlContext);
+			}
+		} else {
+			computeConstantPredicateNodeData(sqlContext);
+		}
+	}
+
+	private void computeConstantPredicateNodeData(final SQLContext sqlContext) {
 		final ArrayList<String> whereElements = new ArrayList<>();
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> explodedElements = new ArrayList<>();
@@ -87,10 +103,7 @@ public class JWPTNode extends MVNode {
 		for (final TriplePattern t : wptTripleGroup) {
 			final String columnName =
 					WPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
-			if (columnName.equals(WPT_PREFIX)) {
-				System.err.println("This column does not exists: " + t.predicate);
-				return;
-			}
+			assert !columnName.equals(WPT_PREFIX) : "This column does not exists: " + columnName;
 
 			if (t.objectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
@@ -111,10 +124,8 @@ public class JWPTNode extends MVNode {
 		// inverse patterns
 		for (final TriplePattern t : iwptTripleGroup) {
 			final String columnName = IWPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
-			if (columnName.equals(IWPT_PREFIX)) {
-				System.err.println("This column does not exists: " + t.predicate);
-				return;
-			}
+			assert !columnName.equals(IWPT_PREFIX) : "This column does not exists: " + columnName;
+
 			if (t.subjectType == ElementType.CONSTANT) {
 				if (t.isComplex) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.subject + "')");
@@ -141,6 +152,122 @@ public class JWPTNode extends MVNode {
 		}
 
 		sparkNodeData = sqlContext.sql(query);
+	}
+
+	//assumes a single pattern in the triples groups, uses the forward part of the table
+	private void computeForwardVariablePredicateNodeData(final SQLContext sqlContext) {
+		assert tripleGroup.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
+
+		final List<String> properties = new ArrayList<>();
+		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+			properties.add(propertyStatistics.getInternalName());
+		}
+		final TriplePattern triple = tripleGroup.get(0);
+
+		for (final String property : properties) {
+			final ArrayList<String> selectElements = new ArrayList<>();
+			final ArrayList<String> whereElements = new ArrayList<>();
+			final ArrayList<String> explodedElements = new ArrayList<>();
+
+			if (triple.subjectType == ElementType.VARIABLE) {
+				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(triple.subject));
+			} else {
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.subject + "'");
+			}
+
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+
+			final String columnName = WPT_PREFIX.concat(property);
+
+			if (triple.objectType == ElementType.CONSTANT) {
+				if (triple.isComplex) {
+					whereElements.add("array_contains(" + columnName + ", '" + triple.object + "')");
+				} else {
+					whereElements.add(columnName + "='" + triple.object + "'");
+				}
+			} else if (triple.isComplex) {
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(triple.object));
+				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
+						+ " AS P" + columnName);
+			} else {
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.object));
+				whereElements.add(columnName + " IS NOT NULL");
+			}
+
+			String query = "SELECT " + String.join(",", selectElements);
+			query += " FROM " + JOINED_TABLE_NAME;
+			if (!explodedElements.isEmpty()) {
+				query += " " + String.join(" ", explodedElements);
+			}
+			if (!whereElements.isEmpty()) {
+				query += " WHERE " + String.join(" AND ", whereElements);
+			}
+
+			if (sparkNodeData == null) {
+				sparkNodeData = sqlContext.sql(query);
+			} else {
+				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+			}
+		}
+	}
+
+	//assumes a single pattern in the triples groups, uses the forward part of the table
+	private void computeInverseVariablePredicateNodeData(final SQLContext sqlContext) {
+		assert tripleGroup.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
+
+		final List<String> properties = new ArrayList<>();
+		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+			properties.add(propertyStatistics.getInternalName());
+		}
+		final TriplePattern triple = tripleGroup.get(0);
+
+		for (final String property : properties) {
+			final ArrayList<String> selectElements = new ArrayList<>();
+			final ArrayList<String> whereElements = new ArrayList<>();
+			final ArrayList<String> explodedElements = new ArrayList<>();
+
+			if (triple.objectType == ElementType.VARIABLE) {
+				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
+						+ Utils.removeQuestionMark(triple.object));
+			} else {
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.object + "'");
+			}
+
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+
+			final String columnName = IWPT_PREFIX.concat(property);
+
+			if (triple.subjectType == ElementType.CONSTANT) {
+				if (triple.isComplex) {
+					whereElements.add("array_contains(" + columnName + ", '" + triple.subject + "')");
+				} else {
+					whereElements.add(columnName + "='" + triple.subject + "'");
+				}
+			} else if (triple.isComplex) {
+				selectElements.add(" P" + columnName + " AS ");
+				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
+						+ " AS P" + columnName);
+			} else {
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.subject));
+				whereElements.add(columnName + " IS NOT NULL");
+			}
+
+			String query = "SELECT " + String.join(",", selectElements);
+			query += " FROM " + JOINED_TABLE_NAME;
+			if (!explodedElements.isEmpty()) {
+				query += " " + String.join(" ", explodedElements);
+			}
+			if (!whereElements.isEmpty()) {
+				query += " WHERE " + String.join(" AND ", whereElements);
+			}
+
+			if (sparkNodeData == null) {
+				sparkNodeData = sqlContext.sql(query);
+			} else {
+				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+			}
+		}
 	}
 
 	@Override
