@@ -19,8 +19,8 @@ import org.ini4j.Ini;
  * Contains methods for loading and validating settings profiles for the loader module.
  */
 public class Settings {
-	private static final String DEFAULT_SETTINGS_FILE = "loader_default.ini";
 
+	private static final String DEFAULT_SETTINGS_FILE = "loader_default.ini";
 	private String inputPath;
 	private String settingsPath;
 	private String databaseName;
@@ -38,6 +38,8 @@ public class Settings {
 	private boolean ttPartitionedByPredicate = false;
 	private boolean ttPartitionedBySubject = false;
 	private boolean wptPartitionedBySubject = false;
+	private boolean iwptPartitionedByObject = false;
+	private boolean jwptPartitionedByResource = false;
 	private boolean vpPartitionedBySubject = false;
 
 	public Settings(final String[] args) throws Exception {
@@ -65,12 +67,18 @@ public class Settings {
 			this.ttPartitionedByPredicate = settings.get("physicalPartitioning", "ttp", boolean.class);
 			this.ttPartitionedBySubject = settings.get("physicalPartitioning", "tts", boolean.class);
 			this.wptPartitionedBySubject = settings.get("physicalPartitioning", "wpts", boolean.class);
+			this.iwptPartitionedByObject = settings.get("physicalPartitioning", "iwpto", boolean.class);
+			this.jwptPartitionedByResource = settings.get("physicalPartitioning", "jwptr", boolean.class);
 			this.vpPartitionedBySubject = settings.get("physicalPartitioning", "vps", boolean.class);
 		} else if (!settingsPath.equals(DEFAULT_SETTINGS_FILE)) {
 			throw new FileNotFoundException();
 		}
 		validate();
 		printLoggerInformation();
+	}
+
+	private Settings() {
+
 	}
 
 	//TODO not everything is being tested
@@ -255,7 +263,74 @@ public class Settings {
 		return wptPartitionedBySubject;
 	}
 
+	public boolean isIwptPartitionedByObject() {
+		return iwptPartitionedByObject;
+	}
+
+	public boolean isJwptPartitionedByResource() {
+		return jwptPartitionedByResource;
+	}
+
 	public boolean isVpPartitionedBySubject() {
 		return vpPartitionedBySubject;
+	}
+
+	public static class Builder {
+		private String databaseName;
+		private String inputPath = "/";
+		private boolean ttPartitionedBySubject = false;
+		private boolean ttPartitionedByPredicate = false;
+		private boolean jwptPartitionedByResource = false;
+		private boolean dropDuplicateTriples = false;
+		private boolean computeCharacteristicSets = false;
+
+
+		public Builder(String databaseName) {
+			this.databaseName = databaseName;
+		}
+
+		public Builder withInputPath(String inputPath) {
+			this.inputPath = inputPath;
+			return this;
+		}
+
+		public Builder withTTPartitionedBySubject() {
+			this.ttPartitionedBySubject = true;
+			return this;
+		}
+
+		public Builder withTTPartitionedByPredicate() {
+			this.ttPartitionedByPredicate = true;
+			return this;
+		}
+
+		public Builder withJWPTPartitionedByResource(){
+			this.jwptPartitionedByResource = true;
+			return this;
+		}
+
+		public Builder droppingDuplicateTriples() {
+			this.dropDuplicateTriples = true;
+			return this;
+		}
+
+		public Builder computingCharacteristicSets() {
+			this.computeCharacteristicSets = true;
+			return this;
+		}
+
+		public Settings build() {
+			Settings settings = new Settings();
+			settings.databaseName = this.databaseName;
+			settings.inputPath = this.inputPath;
+			settings.ttPartitionedBySubject = this.ttPartitionedBySubject;
+			settings.ttPartitionedByPredicate = this.ttPartitionedByPredicate;
+			settings.jwptPartitionedByResource = this.jwptPartitionedByResource;
+			settings.dropDuplicateTriples = this.dropDuplicateTriples;
+			settings.computeCharacteristicSets = this.computeCharacteristicSets;
+
+			return settings;
+		}
+
 	}
 }

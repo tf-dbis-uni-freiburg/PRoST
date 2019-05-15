@@ -38,8 +38,10 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithMoreThanThreeRes_db CASCADE");
 
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithMoreThanThreeRes").replace('\\', '/'),
-				"triplesWithMoreThanThreeRes_db", spark(), false, false, true, false);
+		final Settings settings = new Settings.Builder("triplesWithMoreThanThreeRes_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithMoreThanThreeRes").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -96,8 +98,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(incompleteTriples.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\incompleteTriples", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS incompleteTriples_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\incompleteTriples").replace('\\', '/'), "incompleteTriples_db", spark(),
-				false, false, true, false);
+
+		final Settings settings = new Settings.Builder("incompleteTriples_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\incompleteTriples").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -136,8 +141,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(triplesWithEmptyLines.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\triplesWithEmptyLines", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithEmptyLines_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithEmptyLines").replace('\\', '/'), "triplesWithEmptyLines_db",
-				spark(), false, false, true, false);
+
+		final Settings settings = new Settings.Builder("triplesWithEmptyLines_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithEmptyLines").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -176,8 +184,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(caseInsensitivePredicates.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\caseInsensitivePredicates", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS caseInsensitivePredicates_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\caseInsensitivePredicates").replace('\\', '/'),
-				"caseInsensitivePredicates_db", spark(), false, false, true, false);
+
+		final Settings settings = new Settings.Builder("caseInsensitivePredicates_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\caseInsensitivePredicates").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -223,8 +234,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(triplesWithDotsInLiterals.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDotsInLiterals", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDotsInLiterals_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDotsInLiterals").replace('\\', '/'),
-				"triplesWithDotsInLiterals_db", spark(), false, false, true, false);
+
+		final Settings settings = new Settings.Builder("triplesWithDotsInLiterals_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithDotsInLiterals").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -288,8 +302,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(triplesWithDuplicates.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDuplicates", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithDuplicates_db CASCADE");
-		TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/'), "triplesWithDuplicates_db",
-				spark(), false, false, true, false);
+
+		Settings settings = new Settings.Builder("triplesWithDuplicates_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:
@@ -347,8 +364,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 
 		// Now with duplicates
 		spark().sql("DROP TABLE tripletable");
-		tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/'), "triplesWithDuplicates_db", spark(), false, false,
-				false, false);
+
+		settings = new Settings.Builder("triplesWithDuplicates_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/')).build();
+
+		tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		expectedTT = spark().createDataset(triplesListWithDuplicates, triplesEncoder).select("s", "p", "o").orderBy("s",
@@ -370,8 +390,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(emptyFile.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\emptyFile", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS emptyFile_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\emptyFile").replace('\\', '/'), "emptyFile_db", spark(), false, false, true, false);
+
+		final Settings settings = new Settings.Builder("emptyFile_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\emptyFile").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 	}
 
@@ -383,8 +406,11 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		HdfsUtilities.putFileToHDFS(triplesWithPrefixes.getAbsolutePath(), System.getProperty("user.dir") + "\\target\\test_output\\triplesWithPrefixes", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS triplesWithPrefixes_db CASCADE");
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\triplesWithPrefixes").replace('\\', '/'), "triplesWithPrefixes_db", spark(),
-				false, false, true, false);
+
+		final Settings settings = new Settings.Builder("triplesWithPrefixes_db").withInputPath((System.getProperty(
+				"user.dir") + "\\target\\test_output\\triplesWithPrefixes").replace('\\', '/')).droppingDuplicateTriples().build();
+
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
 		tt_loader.load();
 
 		// Expected value:

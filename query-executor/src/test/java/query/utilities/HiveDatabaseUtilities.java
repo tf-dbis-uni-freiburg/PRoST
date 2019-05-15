@@ -45,4 +45,15 @@ public class HiveDatabaseUtilities {
 		triples.write().saveAsTable(HiveDatabaseUtilities.tt);
 		//We create the stats file:		
 	}
+
+	public static void writeTriplesToDatabase(final String databaseName, final Dataset<TripleBean> triples,
+											  final SparkSession spark, final String tableName) {
+		// First we drop the database
+		//spark.sql("DROP  DATABASE IF EXISTS " + databaseName + " CASCADE");
+		spark.sql("CREATE DATABASE IF NOT EXISTS " + databaseName);
+		spark.sql("USE " + databaseName);
+
+		triples.write().saveAsTable(tableName);
+		//We create the stats file:
+	}
 }

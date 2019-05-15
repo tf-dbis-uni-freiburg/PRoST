@@ -11,9 +11,9 @@ public class WidePropertyTableLoader extends PropertyTableLoader {
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "properties";
 	private static final String WPT_TABLE_NAME = "wide_property_table";
 
-	public WidePropertyTableLoader(final String databaseName,
-								   final SparkSession spark, final boolean isPartitioned) {
-		super(databaseName, spark, isPartitioned, WPT_TABLE_NAME);
+	public WidePropertyTableLoader(final Settings settings,
+								   final SparkSession spark) {
+		super(settings.getDatabaseName(), spark, settings.isWptPartitionedBySubject(), WPT_TABLE_NAME);
 	}
 
 	@Override

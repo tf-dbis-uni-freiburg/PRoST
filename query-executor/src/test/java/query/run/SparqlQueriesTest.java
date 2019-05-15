@@ -40,7 +40,9 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File singleTripleQuery1 = new File(classLoader.getResource("singleTripleQuery1.q").getFile());
-		final File statsSingleTripleQuery1 = new File(classLoader.getResource("singletripledb.stats").getFile());
+
+		// TODO need new .json statistics file
+		//final File statsSingleTripleQuery1 = new File(classLoader.getResource("singletripledb.stats").getFile());
 
 
 		//TODO need new json statistics
@@ -53,4 +55,5 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\result");
 		executor.execute(jt);*/
 	}
+
 }

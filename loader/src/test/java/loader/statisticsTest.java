@@ -33,9 +33,10 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		spark().sql("DROP DATABASE IF EXISTS charset_db CASCADE");
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("charset_db");
+		final Settings settings = new Settings.Builder("charset_db").withInputPath((System.getProperty("user.dir") +
+				"\\target\\test_output\\charset").replace('\\', '/')).droppingDuplicateTriples().computingCharacteristicSets().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader((System.getProperty("user.dir") + "\\target\\test_output\\charset").replace('\\', '/'),
-				"charset_db", spark(), false, false, true, true, statistics);
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		/*statistics.saveToFile(System.getProperty("user.dir") + "\\target\\test_output\\charset"

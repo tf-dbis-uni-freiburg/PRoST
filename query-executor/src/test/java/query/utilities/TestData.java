@@ -33,6 +33,18 @@ public class TestData {
 		return testDataTriples;
 	}
 
+	public static List<TripleBean> createMultipleSequentialTestData(final int n) {
+		final List<TripleBean> testDataTriples = new ArrayList<>();
+		for (int id = 0; id < n; id++) {
+			final TripleBean singleTriple = new TripleBean();
+			singleTriple.setS("<" + id + ">");
+			singleTriple.setP("<property>");
+			singleTriple.setO("\"data\"");
+			testDataTriples.add(singleTriple);
+		}
+		return testDataTriples;
+	}
+
 
 	public static List<Triple> loadTriplesFromQueryFile(final String path) {
 		final Query query = QueryFactory.read("file:" + path);

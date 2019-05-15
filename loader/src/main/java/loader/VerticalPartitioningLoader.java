@@ -20,16 +20,15 @@ import stats.PropertyStatistics;
 public class VerticalPartitioningLoader extends Loader {
 	private final boolean isPartitioning;
 
-	public VerticalPartitioningLoader(final String databaseName, final SparkSession spark,
-									  final boolean isPartitioning) {
-		super(databaseName, spark);
-		this.isPartitioning = isPartitioning;
+	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark) {
+		super(settings.getDatabaseName(), spark);
+		this.isPartitioning = settings.isVpPartitionedBySubject();
 	}
 
-	public VerticalPartitioningLoader(final String databaseName, final SparkSession spark,
-									  final boolean isPartitioning, final DatabaseStatistics statistics) {
-		super(databaseName, spark, statistics);
-		this.isPartitioning = isPartitioning;
+	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark,
+									  final DatabaseStatistics statistics) {
+		super(settings.getDatabaseName(), spark, statistics);
+		this.isPartitioning = settings.isVpPartitionedBySubject();
 	}
 
 	@Override
@@ -42,6 +41,8 @@ public class VerticalPartitioningLoader extends Loader {
 
 		for (final String property : getPropertiesNames()) {
 			final String createVPTableFixed;
+
+			spark.sql("DROP TABLE IF EXISTS " + "vp_" + getValidHiveName(property));
 			if (!isPartitioning) {
 				createVPTableFixed = String.format("CREATE TABLE IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING) STORED "
 								+ "AS PARQUET",
@@ -68,16 +69,12 @@ public class VerticalPartitioningLoader extends Loader {
 			}
 			spark.sql(populateVPTable);
 
-			// calculate stats
-			final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
-
 			if (statistics != null) {
+				final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 				statistics.getProperties().put(property, new PropertyStatistics(vpTableDataset,
 						getValidHiveName(property)));
 			}
 			logger.info("Created VP table for the property: " + property);
-			final List<Row> sampledRowsList = vpTableDataset.limit(3).collectAsList();
-			logger.info("First 3 rows sampled (or less if there are less): " + sampledRowsList);
 		}
 		logger.info("Vertical Partitioning completed. Loaded " + getPropertiesNames().length + " tables.");
 	}

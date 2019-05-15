@@ -34,6 +34,12 @@ public class DatabaseStatistics {
 	private HashMap<String, PropertyStatistics> properties;
 	private ArrayList<CharacteristicSetStatistics> characteristicSets;
 
+	private Boolean hasTT;
+	private Boolean hasVPTables;
+	private Boolean hasWPT;
+	private Boolean hasIWPT;
+	private Boolean hasJWPT;
+
 	public DatabaseStatistics() {
 
 	}
@@ -116,5 +122,45 @@ public class DatabaseStatistics {
 
 	public void setTuplesNumber(final Long tuplesNumber) {
 		this.tuplesNumber = tuplesNumber;
+	}
+
+	public Boolean hasTripletable() {
+		return hasTT;
+	}
+
+	public void setHasTT(final Boolean hasTT) {
+		this.hasTT = hasTT;
+	}
+
+	public Boolean hasVPTables() {
+		return hasVPTables;
+	}
+
+	public void setHasVPTables(final Boolean hasVPTables) {
+		this.hasVPTables = hasVPTables;
+	}
+
+	public Boolean hasWPT() {
+		return hasWPT;
+	}
+
+	public void setHasWPT(final Boolean hasWPT) {
+		this.hasWPT = hasWPT;
+	}
+
+	public Boolean hasIWPT() {
+		return hasIWPT;
+	}
+
+	public void setHasIWPT(final Boolean hasIWPT) {
+		this.hasIWPT = hasIWPT;
+	}
+
+	public Boolean hasJWPT() {
+		return hasJWPT;
+	}
+
+	public void setHasJWPT(final Boolean hasJWPT) {
+		this.hasJWPT = hasJWPT;
 	}
 }

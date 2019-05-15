@@ -66,10 +66,6 @@ public abstract class Loader {
 		logger.info("Using the database: " + databaseName);
 	}
 
-	String getDatabaseName() {
-		return databaseName;
-	}
-
 	String[] getPropertiesNames() {
 		return propertiesNames;
 	}

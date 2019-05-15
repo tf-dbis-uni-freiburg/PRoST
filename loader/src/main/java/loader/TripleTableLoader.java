@@ -24,27 +24,22 @@ public class TripleTableLoader extends Loader {
 	protected final String hdfsInputDirectory;
 	protected final boolean computingCharacteristicSets;
 
-	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
-							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
-							 final boolean dropDuplicates, final boolean computingCharacteristicSets) {
-		super(databaseName, spark);
-		this.hdfsInputDirectory = hdfsInputDirectory;
-		this.ttPartitionedBySubject = ttPartitionedBySubject;
-		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
-		this.dropDuplicates = dropDuplicates;
-		this.computingCharacteristicSets = computingCharacteristicSets;
+	public TripleTableLoader(final Settings settings, final SparkSession spark) {
+		super(settings.getDatabaseName(), spark);
+		this.hdfsInputDirectory = settings.getInputPath();
+		this.ttPartitionedBySubject = settings.isTtPartitionedBySubject();
+		this.ttPartitionedByPredicate = settings.isTtPartitionedByPredicate();
+		this.dropDuplicates = settings.isDroppingDuplicateTriples();
+		this.computingCharacteristicSets = settings.isComputingCharacteristicSets();
 	}
 
-	public TripleTableLoader(final String hdfsInputDirectory, final String databaseName, final SparkSession spark,
-							 final boolean ttPartitionedBySubject, final boolean ttPartitionedByPredicate,
-							 final boolean dropDuplicates, final boolean computingCharacteristicSets,
-							 final DatabaseStatistics statistics) {
-		super(databaseName, spark, statistics);
-		this.hdfsInputDirectory = hdfsInputDirectory;
-		this.ttPartitionedBySubject = ttPartitionedBySubject;
-		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
-		this.dropDuplicates = dropDuplicates;
-		this.computingCharacteristicSets = computingCharacteristicSets;
+	public TripleTableLoader(final Settings settings, final SparkSession spark, final DatabaseStatistics statistics) {
+		super(settings.getDatabaseName(), spark, statistics);
+		this.hdfsInputDirectory = settings.getInputPath();
+		this.ttPartitionedBySubject = settings.isTtPartitionedBySubject();
+		this.ttPartitionedByPredicate = settings.isTtPartitionedByPredicate();
+		this.dropDuplicates = settings.isDroppingDuplicateTriples();
+		this.computingCharacteristicSets = settings.isComputingCharacteristicSets();
 	}
 
 	@Override

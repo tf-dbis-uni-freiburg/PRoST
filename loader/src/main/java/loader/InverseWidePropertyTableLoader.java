@@ -10,9 +10,8 @@ public class InverseWidePropertyTableLoader extends PropertyTableLoader {
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "inverse_properties";
 	private static final String IWPT_TABLE_NAME = "inverse_wide_property_table";
 
-	public InverseWidePropertyTableLoader(final String databaseName,
-										  final SparkSession spark, final boolean isPartitioned) {
-		super(databaseName, spark, isPartitioned, IWPT_TABLE_NAME);
+	public InverseWidePropertyTableLoader(final Settings settings, final SparkSession spark) {
+		super(settings.getDatabaseName(), spark, settings.isIwptPartitionedByObject(), IWPT_TABLE_NAME);
 	}
 
 	@Override

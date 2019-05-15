@@ -5,6 +5,7 @@ import java.util.Collections;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.PropertyStatistics;
 
 /**
  * Builds wide property tables obtained from the join of a WPT with a IWPT on a common resource.
@@ -15,24 +16,37 @@ public class JoinedWidePropertyTableLoader extends PropertyTableLoader {
 	private static final String WPT_PREFIX = "o_";
 	private static final String JWPT_TABLE_NAME = "joined_wide_property_table";
 	private final String joinType;
+	private final Settings settings;
 
-	public JoinedWidePropertyTableLoader(final String databaseName, final SparkSession spark,
-										 final boolean isPartitioned, final JoinType joinType) {
-		super(databaseName, spark, isPartitioned, JWPT_TABLE_NAME + "_" + joinType.toString());
+	public JoinedWidePropertyTableLoader(final Settings settings, final SparkSession spark, final JoinType joinType) {
+		super(settings.getDatabaseName(), spark, settings.isJwptPartitionedByResource(),
+				JWPT_TABLE_NAME + "_" + joinType.toString());
 		this.joinType = joinType.toString();
+		this.settings = settings;
 	}
 
 	Dataset<Row> loadDataset() {
-		final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(getDatabaseName(), spark,
-				isPartitioned);
-		Dataset<Row> iwptDataset = iwptLoader.loadDataset();
-		for (final String property : iwptLoader.getPropertiesNames()) {
-			iwptDataset = iwptDataset.withColumnRenamed(property, IWPT_PREFIX.concat(property));
+		Dataset<Row> iwptDataset;
+		Dataset<Row> wptDataset;
+		if (settings.isGeneratingWPT()) {
+			wptDataset = spark.sql("SELECT * FROM wide_property_table");
+		} else {
+			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(settings, spark);
+			wptDataset = wptLoader.loadDataset();
 		}
 
-		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(getDatabaseName(), spark, isPartitioned);
-		Dataset<Row> wptDataset = wptLoader.loadDataset();
-		for (final String property : wptLoader.getPropertiesNames()) {
+		if (settings.isGeneratingIWPT()) {
+			iwptDataset = spark.sql("SELECT * FROM inverse_wide_property_table");
+		} else {
+			final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(settings, spark);
+			iwptDataset = iwptLoader.loadDataset();
+		}
+
+		assert statistics.getProperties().size() > 0 : "No properties information found in statistics. Cannot create "
+				+ "JWPT";
+		for (final PropertyStatistics stats : statistics.getProperties().values()) {
+			String property = stats.getInternalName();
+			iwptDataset = iwptDataset.withColumnRenamed(property, IWPT_PREFIX.concat(property));
 			wptDataset = wptDataset.withColumnRenamed(property, WPT_PREFIX.concat(property));
 		}
 
