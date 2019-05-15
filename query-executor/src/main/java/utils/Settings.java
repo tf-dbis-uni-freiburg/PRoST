@@ -13,6 +13,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import stats.DatabaseStatistics;
 
 /**
  * Loads and validates initialization options for the query-executor component.
@@ -81,14 +82,22 @@ public class Settings {
 		printLoggerInformation();
 	}
 
-	private void validate() throws Exception {
-		if (databaseName == null) {
-			throw new Exception("Missing database name.");
-		}
+	private void validate() {
+		assert databaseName != null && !databaseName.equals("") : "Missing database name";
+		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPT) : "At least one node type must be enabled";
+	}
 
-		if (!usingTT && !usingVP && !usingWPT && !usingIWPT && !usingJWPT) {
-			throw new Exception("At least one node type must be enabled");
-		}
+	/**
+	 * Checks in the statistics file if the data models enabled in the settings were created in the database.
+	 *
+	 * @param statistics database statistics file.
+	 */
+	public void checkTablesAvailability(final DatabaseStatistics statistics) {
+		assert (!this.isUsingTT() || statistics.hasTT()) : "TT enabled, but database does not have a TT";
+		assert (!this.isUsingVP() || statistics.hasVPTables()) : "VP enabled, but database does not have VP tables";
+		assert (!this.isUsingWPT() || statistics.hasWPT()) : "WPT enabled, but database does not have a WPT";
+		assert (!this.isUsingIWPT() || statistics.hasIWPT()) : "IWPT enabled, but database does not have a IWPT";
+		assert (!this.isUsingJWPT() || statistics.hasJWPT()) : "JWPT enabled, but database does not have a JWPT";
 	}
 
 	private void parseArguments(final String[] args) {

@@ -40,10 +40,6 @@ public class DatabaseStatistics {
 	private Boolean hasIWPT;
 	private Boolean hasJWPT;
 
-	public DatabaseStatistics() {
-
-	}
-
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
 		this.tuplesNumber = Long.valueOf("0");
@@ -124,7 +120,7 @@ public class DatabaseStatistics {
 		this.tuplesNumber = tuplesNumber;
 	}
 
-	public Boolean hasTripletable() {
+	public Boolean hasTT() {
 		return hasTT;
 	}
 

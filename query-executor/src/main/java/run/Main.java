@@ -43,6 +43,7 @@ public class Main {
 		}
 
 		DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getStatsPath());
+		settings.checkTablesAvailability(statistics);
 
 		final File file = new File(settings.getInputPath());
 
