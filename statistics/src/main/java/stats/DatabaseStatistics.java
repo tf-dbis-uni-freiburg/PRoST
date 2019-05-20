@@ -18,6 +18,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import scala.collection.Iterator;
@@ -38,7 +39,9 @@ public class DatabaseStatistics {
 	private Boolean hasVPTables;
 	private Boolean hasWPT;
 	private Boolean hasIWPT;
-	private Boolean hasJWPT;
+	private Boolean hasJWPTOuter;
+	private Boolean hasJWPTInner;
+	private Boolean hasJWPTLeftOuter;
 
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
@@ -47,14 +50,18 @@ public class DatabaseStatistics {
 		this.characteristicSets = new ArrayList<>();
 	}
 
-	public static DatabaseStatistics loadFromFile(final String path) throws FileNotFoundException {
+	public static DatabaseStatistics loadFromFile(final String path) {
 		final Gson gson = new Gson();
-		final BufferedReader br = new BufferedReader(new FileReader(path));
-		return gson.fromJson(br, DatabaseStatistics.class);
+		try {
+			final BufferedReader br = new BufferedReader(new FileReader(path));
+			return gson.fromJson(br, DatabaseStatistics.class);
+		} catch (final FileNotFoundException e) {
+
+			return new DatabaseStatistics(path.substring(0, path.length() - 5));//remove the substring ".json"
+		}
 	}
 
 	public void saveToFile(final String path) {
-
 		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		final String json = gson.toJson(this);
 		try {
@@ -152,11 +159,27 @@ public class DatabaseStatistics {
 		this.hasIWPT = hasIWPT;
 	}
 
-	public Boolean hasJWPT() {
-		return hasJWPT;
+	public Boolean hasJWPTOuter() {
+		return hasJWPTOuter;
 	}
 
-	public void setHasJWPT(final Boolean hasJWPT) {
-		this.hasJWPT = hasJWPT;
+	public void setHasJWPTOuter(final Boolean hasJWPTOuter) {
+		this.hasJWPTOuter = hasJWPTOuter;
+	}
+
+	public Boolean hasJWPTInner() {
+		return hasJWPTInner;
+	}
+
+	public void setHasJWPTInner(final Boolean hasJWPTInner) {
+		this.hasJWPTInner = hasJWPTInner;
+	}
+
+	public Boolean hasJWPTLeftOuter() {
+		return hasJWPTLeftOuter;
+	}
+
+	public void setHasJWPTLeftOuter(final Boolean hasJWPTLeftOuter) {
+		this.hasJWPTLeftOuter = hasJWPTLeftOuter;
 	}
 }

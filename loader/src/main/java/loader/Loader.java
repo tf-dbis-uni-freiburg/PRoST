@@ -22,7 +22,7 @@ public abstract class Loader {
 
 	protected final SparkSession spark;
 	private final String databaseName;
-	DatabaseStatistics statistics;
+	private DatabaseStatistics statistics;
 	private String[] propertiesNames;
 
 	public Loader(final String databaseName, final SparkSession spark) {
@@ -63,7 +63,7 @@ public abstract class Loader {
 	private void useOutputDatabase() {
 		spark.sql("CREATE DATABASE IF NOT EXISTS " + databaseName);
 		spark.sql("USE " + databaseName);
-		logger.info("Using the database: " + databaseName);
+		//logger.info("Using the database: " + databaseName);
 	}
 
 	String[] getPropertiesNames() {
@@ -72,5 +72,9 @@ public abstract class Loader {
 
 	void setPropertiesNames(final String[] propertiesNames) {
 		this.propertiesNames = propertiesNames;
+	}
+
+	DatabaseStatistics getStatistics() {
+		return statistics;
 	}
 }

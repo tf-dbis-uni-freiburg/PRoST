@@ -36,7 +36,7 @@ public class PropertiesAggregateFunction extends UserDefinedAggregateFunction {
 	// string used to distinguish between two values inside a single column
 	private final String columns_separator;
 
-	public PropertiesAggregateFunction(final String[] allProperties, final String separator) {
+	PropertiesAggregateFunction(final String[] allProperties, final String separator) {
 		this.allProperties = allProperties;
 		columns_separator = separator;
 	}

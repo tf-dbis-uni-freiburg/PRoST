@@ -15,10 +15,13 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import scala.Tuple2;
 
+/**
+ * Abstracts the loading of (I/J)wide property tables.
+ */
 abstract class PropertyTableLoader extends Loader {
 
 	private static final String COLUMNS_SEPARATOR = "\\$%";
-	final boolean isPartitioned;
+	private final boolean isPartitioned;
 	private final String ptTableName;
 
 	PropertyTableLoader(final String databaseName, final SparkSession spark, final boolean isPartitioned,
@@ -79,9 +82,9 @@ abstract class PropertyTableLoader extends Loader {
 
 		final List<Tuple2<String, Integer>> cleanedPropertiesList = cleanedProperties
 				.as(Encoders.tuple(Encoders.STRING(), Encoders.INT())).collectAsList();
-		if (cleanedPropertiesList.size() > 0) {
+		/*if (cleanedPropertiesList.size() > 0) {
 			logger.info("Clean Properties (stored): " + cleanedPropertiesList);
-		}
+		}*/
 		return cleanedProperties;
 	}
 
@@ -104,9 +107,16 @@ abstract class PropertyTableLoader extends Loader {
 	 */
 	private void saveTable(final Dataset<Row> dataset, final String tableName, final Boolean isPartitioned) {
 		if (isPartitioned) {
-			dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).partitionBy(COLUMN_NAME_SUBJECT)
-					.saveAsTable(tableName);
-			logger.info("Saved table: " + tableName + ", partitioned by : " + COLUMN_NAME_SUBJECT);
+			if (this instanceof JoinedWidePropertyTableLoader) {
+				dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).partitionBy("r")
+						.saveAsTable(tableName);
+				logger.info("Saved table: " + tableName + ", partitioned by : " + "r");
+			} else {
+				dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).partitionBy(COLUMN_NAME_SUBJECT)
+						.saveAsTable(tableName);
+				logger.info("Saved table: " + tableName + ", partitioned by : " + COLUMN_NAME_SUBJECT);
+			}
+
 		} else {
 			dataset.write().mode(SaveMode.Overwrite).format(TABLE_FORMAT).saveAsTable(tableName);
 			logger.info("Saved table: " + tableName);
@@ -205,7 +215,7 @@ abstract class PropertyTableLoader extends Loader {
 			propertiesList.add(newProperty);
 		}
 
-		logger.info("Columns of  Property Table: " + propertiesList);
+		//logger.info("Columns of  Property Table: " + propertiesList);
 
 		return grouped.selectExpr(propertiesList.toArray(new String[0]));
 	}

@@ -97,7 +97,7 @@ public class Settings {
 		assert (!this.isUsingVP() || statistics.hasVPTables()) : "VP enabled, but database does not have VP tables";
 		assert (!this.isUsingWPT() || statistics.hasWPT()) : "WPT enabled, but database does not have a WPT";
 		assert (!this.isUsingIWPT() || statistics.hasIWPT()) : "IWPT enabled, but database does not have a IWPT";
-		assert (!this.isUsingJWPT() || statistics.hasJWPT()) : "JWPT enabled, but database does not have a JWPT";
+		assert (!this.isUsingJWPT() || statistics.hasJWPTOuter()) : "JWPT enabled, but database does not have a JWPT";
 	}
 
 	private void parseArguments(final String[] args) {

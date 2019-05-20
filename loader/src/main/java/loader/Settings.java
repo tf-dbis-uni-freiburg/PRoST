@@ -82,18 +82,11 @@ public class Settings {
 	}
 
 	//TODO not everything is being tested
-	private void validate() throws Exception {
-		if (databaseName == null) {
-			throw new Exception("Missing database name.");
-		}
+	private void validate() {
+		assert databaseName != null && !databaseName.equals("") : "Missing database name.";
 
-		if (!generateTT && !generateWPT && !generateVP && !generateIWPT && !generateJWPTOuter
-				&& !generateJWPTInner && !generateJWPTLeftOuter) {
-			throw new Exception("Invalid settings");
-		}
-
-		if (generateTT && inputPath == null) {
-			throw new Exception("Cannot generate TT without the input path");
+		if (generateTT) {
+			assert inputPath != null && !inputPath.equals("") : "Cannot generate TT without the input path";
 		}
 	}
 
@@ -110,14 +103,14 @@ public class Settings {
 		databaseOption.setRequired(true);
 		options.addOption(databaseOption);
 
-		final Option settingsPathOption = new Option("pref", "preferences", true, "Path to settings profile file.");
+		final Option settingsPathOption = new Option("pref", "preferences", true, "[OPTIONAL] Path to settings "
+				+ "profile file.");
 		settingsPathOption.setRequired(false);
 		options.addOption(settingsPathOption);
 
-		final Option helpOption = new Option("h", "help", false, "Print this help.");
+		final Option helpOption = new Option("h", "help", false, "[OPTIONAL] Print this help.");
 		helpOption.setRequired(false);
 		options.addOption(helpOption);
-
 
 		final HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -125,15 +118,15 @@ public class Settings {
 			cmd = parser.parse(options, args);
 		} catch (final MissingOptionException e) {
 			formatter.printHelp("JAR", "Load an RDF graph", options, "", true);
-			return;
+			System.exit(0);
 		} catch (final ParseException e) {
 			e.printStackTrace();
 		}
 
 		assert cmd != null;
 		if (cmd.hasOption("help")) {
-			formatter.printHelp("JAR", "Load an RDF graph as Property Table using SparkSQL", options, "", true);
-			return;
+			formatter.printHelp("JAR", "Load an RDF graph", options, "", true);
+			System.exit(0);
 		}
 		if (cmd.hasOption("input")) {
 			inputPath = cmd.getOptionValue("input");
@@ -275,6 +268,9 @@ public class Settings {
 		return vpPartitionedBySubject;
 	}
 
+	/**
+	 * Builder for the loader settings file.
+	 */
 	public static class Builder {
 		private String databaseName;
 		private String inputPath = "/";
@@ -285,11 +281,11 @@ public class Settings {
 		private boolean computeCharacteristicSets = false;
 
 
-		public Builder(String databaseName) {
+		public Builder(final String databaseName) {
 			this.databaseName = databaseName;
 		}
 
-		public Builder withInputPath(String inputPath) {
+		public Builder withInputPath(final String inputPath) {
 			this.inputPath = inputPath;
 			return this;
 		}
@@ -304,7 +300,7 @@ public class Settings {
 			return this;
 		}
 
-		public Builder withJWPTPartitionedByResource(){
+		public Builder withJWPTPartitionedByResource() {
 			this.jwptPartitionedByResource = true;
 			return this;
 		}

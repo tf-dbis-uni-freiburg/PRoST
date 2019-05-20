@@ -9,6 +9,9 @@ import stats.PropertyStatistics;
 
 /**
  * Builds wide property tables obtained from the join of a WPT with a IWPT on a common resource.
+ * The tables may be joined with either a outer, inner, or left outer join operation, and are named accordingly
+ * (joined_wide_property_table_outer, joined_wide_property_table_inner, or joined_wide_property_table_leftouter)
+ * Schema: r|o_&lt p_0 &gt |... |o_&lt p_n &gt|s_&lt p_0 &gt |... |s_&lt p_n &gt
  */
 public class JoinedWidePropertyTableLoader extends PropertyTableLoader {
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
@@ -42,10 +45,10 @@ public class JoinedWidePropertyTableLoader extends PropertyTableLoader {
 			iwptDataset = iwptLoader.loadDataset();
 		}
 
-		assert statistics.getProperties().size() > 0 : "No properties information found in statistics. Cannot create "
-				+ "JWPT";
-		for (final PropertyStatistics stats : statistics.getProperties().values()) {
-			String property = stats.getInternalName();
+		assert this.getStatistics().getProperties().size() > 0
+				: "No properties information found in statistics. Cannot create JWPT";
+		for (final PropertyStatistics stats : this.getStatistics().getProperties().values()) {
+			final String property = stats.getInternalName();
 			iwptDataset = iwptDataset.withColumnRenamed(property, IWPT_PREFIX.concat(property));
 			wptDataset = wptDataset.withColumnRenamed(property, WPT_PREFIX.concat(property));
 		}
