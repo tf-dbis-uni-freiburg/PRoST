@@ -18,13 +18,13 @@ import stats.DatabaseStatistics;
  * @author Victor Anthony Arrascue Ayala
  */
 public class TripleTableLoader extends Loader {
-	protected final boolean ttPartitionedBySubject;
-	protected final boolean ttPartitionedByPredicate;
-	protected final boolean dropDuplicates;
-	protected final String hdfsInputDirectory;
-	protected final boolean computingCharacteristicSets;
+	private final boolean ttPartitionedBySubject;
+	private final boolean ttPartitionedByPredicate;
+	private final boolean dropDuplicates;
+	private final String hdfsInputDirectory;
+	private final boolean computingCharacteristicSets;
 
-	public TripleTableLoader(final Settings settings, final SparkSession spark) {
+	TripleTableLoader(final Settings settings, final SparkSession spark) {
 		super(settings.getDatabaseName(), spark);
 		this.hdfsInputDirectory = settings.getInputPath();
 		this.ttPartitionedBySubject = settings.isTtPartitionedBySubject();
@@ -44,7 +44,6 @@ public class TripleTableLoader extends Loader {
 
 	@Override
 	public void load() throws Exception {
-		logger.info("PHASE 1: loading all triples to a generic table...");
 		final String queryDropTripleTable = String.format("DROP TABLE IF EXISTS %s", TRIPLETABLE_NAME);
 		String createTripleTableFixed = null;
 		String repairTripleTableFixed = null;
@@ -60,11 +59,8 @@ public class TripleTableLoader extends Loader {
 				hdfsInputDirectory);
 		spark.sql(createTripleTableRaw);
 
-		if (!ttPartitionedBySubject && !ttPartitionedByPredicate) {
-			createTripleTableFixed = String.format(
-					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
-					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT);
-		} else if (ttPartitionedBySubject) {
+
+		if (ttPartitionedBySubject) {
 			createTripleTableFixed = String.format(
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%3$s STRING, %4$s STRING) "
 							+ "PARTITIONED BY (%2$s STRING) STORED AS PARQUET",
@@ -74,6 +70,10 @@ public class TripleTableLoader extends Loader {
 					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %4$s STRING) "
 							+ "PARTITIONED BY (%3$s STRING) STORED AS PARQUET",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT);
+		} else {
+			createTripleTableFixed = String.format(
+					"CREATE TABLE  IF NOT EXISTS  %1$s(%2$s STRING, %3$s STRING, %4$s STRING) STORED AS PARQUET",
+					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT);
 		}
 		spark.sql(createTripleTableFixed);
 
@@ -82,18 +82,7 @@ public class TripleTableLoader extends Loader {
 			distinctStatement = "DISTINCT";
 		}
 
-		if (!ttPartitionedBySubject && !ttPartitionedByPredicate) {
-			repairTripleTableFixed = String.format(
-					"INSERT OVERWRITE TABLE %1$s  " + "SELECT " + distinctStatement + " %2$s, %3$s, trim(%4$s)  "
-							+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
-							+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$')"
-							+ " AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND " + "NOT(%4$s RLIKE '^\\s*<.*<.*>')  "
-							+ "AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)"
-							+ "\"') AND "
-							+ "LENGTH(%3$s) < %6$s",
-					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
-					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
-		} else if (ttPartitionedBySubject) {
+		if (ttPartitionedBySubject) {
 			repairTripleTableFixed = String.format(
 					"INSERT OVERWRITE TABLE %1$s PARTITION (%2$s) " + "SELECT " + distinctStatement
 							+ " %3$s, trim(%4$s), %2$s " + "FROM %5$s "
@@ -118,11 +107,22 @@ public class TripleTableLoader extends Loader {
 							+ "LENGTH(%3$s) < %6$s",
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
 					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
-		}
+		} else {
+		repairTripleTableFixed = String.format(
+				"INSERT OVERWRITE TABLE %1$s  " + "SELECT " + distinctStatement + " %2$s, %3$s, trim(%4$s)  "
+						+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
+						+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$')"
+						+ " AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND " + "NOT(%4$s RLIKE '^\\s*<.*<.*>')  "
+						+ "AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)"
+						+ "\"') AND "
+						+ "LENGTH(%3$s) < %6$s",
+				TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
+				TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
+	}
 		spark.sql(repairTripleTableFixed);
 
-		logger.info("Created tripletable with: " + createTripleTableRaw);
-		logger.info("Cleaned tripletable created with: " + repairTripleTableFixed);
+		//logger.info("Created tripletable with: " + createTripleTableRaw);
+		//logger.info("Cleaned tripletable created with: " + repairTripleTableFixed);
 
 		final String queryRawTriples = String.format("SELECT * FROM %s", TRIPLETABLE_NAME + "_ext");
 		final String queryAllTriples = String.format("SELECT * FROM %s", TRIPLETABLE_NAME);
@@ -139,11 +139,11 @@ public class TripleTableLoader extends Loader {
 			logger.info("Total number of triples loaded: " + tuplesCount);
 		}
 
-		if (statistics != null) {
-			statistics.setTuplesNumber(tuplesCount);
+		if (this.getStatistics() != null) {
+			this.getStatistics().setTuplesNumber(tuplesCount);
 			// compute statistics about characteristic sets
 			if (computingCharacteristicSets) {
-				statistics.computeCharacteristicSetsStatistics(allTriples);
+				this.getStatistics().computeCharacteristicSetsStatistics(allTriples);
 			}
 		}
 
@@ -213,6 +213,6 @@ public class TripleTableLoader extends Loader {
 			}
 		}
 		final List<Row> cleanedList = allTriples.limit(10).collectAsList();
-		logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
+		// logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
 	}
 }

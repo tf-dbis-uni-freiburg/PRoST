@@ -6,6 +6,10 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+/**
+ * Loads a WPT named wide_property_table.
+ * Schema: s|&lt p_0 &gt |... |&lt p_n &gt
+ */
 public class WidePropertyTableLoader extends PropertyTableLoader {
 
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "properties";

@@ -33,8 +33,6 @@ public class VerticalPartitioningLoader extends Loader {
 
 	@Override
 	public void load() {
-		logger.info("PHASE 3: creating the VP tables...");
-
 		if (getPropertiesNames() == null) {
 			setPropertiesNames(extractProperties());
 		}
@@ -69,16 +67,15 @@ public class VerticalPartitioningLoader extends Loader {
 			}
 			spark.sql(populateVPTable);
 
-			if (statistics != null) {
+			if (this.getStatistics() != null) {
 				final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
-				statistics.getProperties().put(property, new PropertyStatistics(vpTableDataset,
+				this.getStatistics().getProperties().put(property, new PropertyStatistics(vpTableDataset,
 						getValidHiveName(property)));
 			}
-			logger.info("Created VP table for the property: " + property);
+			//logger.info("Created VP table for the property: " + property);
 		}
 		logger.info("Vertical Partitioning completed. Loaded " + getPropertiesNames().length + " tables.");
 	}
-
 
 	private String[] extractProperties() {
 		final List<Row> props = spark
