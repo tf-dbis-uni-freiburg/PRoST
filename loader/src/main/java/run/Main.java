@@ -49,6 +49,9 @@ public class Main {
 		long executionTime;
 
 		if (settings.isGeneratingTT()) {
+			statistics.setHasTT(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING TT...");
 			startTime = System.currentTimeMillis();
 			final TripleTableLoader tt_loader =
@@ -57,10 +60,15 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("TT LOADED!");
 			logger.info("Time in ms to build the Tripletable: " + executionTime);
+
 			statistics.setHasTT(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingVP()) {
+			statistics.setHasVPTables(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING VP TABLES...");
 			startTime = System.currentTimeMillis();
 			final VerticalPartitioningLoader vp_loader;
@@ -71,10 +79,15 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("VP TABLES LOADED!");
 			logger.info("Time in ms to build the Vertical partitioning: " + executionTime);
+
 			statistics.setHasVPTables(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingWPT()) {
+			statistics.setHasWPT(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING WPT...");
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader pt_loader =
@@ -84,9 +97,13 @@ public class Main {
 			logger.info("WPT LOADED!");
 			logger.info("Time in ms to build the Property Table: " + executionTime);
 			statistics.setHasWPT(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingIWPT()) {
+			statistics.setHasIWPT(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING IWPT...");
 			startTime = System.currentTimeMillis();
 			final InverseWidePropertyTableLoader iwptLoader =
@@ -95,10 +112,15 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("IWPT LOADED!");
 			logger.info("Time in ms to build the Inverse Property Table: " + executionTime);
+
 			statistics.setHasIWPT(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingJWPTOuter()) {
+			statistics.setHasJWPTOuter(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING JWPT_OUTER...");
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
@@ -108,10 +130,15 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_OUTER LOADED!");
 			logger.info("Time in ms to build the Joined Property Table (outer join): " + executionTime);
+
 			statistics.setHasJWPTOuter(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingJWPTInner()) {
+			statistics.setHasJWPTInner(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING JWPT_INNER...");
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
@@ -121,10 +148,15 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_INNER LOADED!");
 			logger.info("Time in ms to build the Joined Property Table (inner join): " + executionTime);
+
 			statistics.setHasJWPTInner(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
 		if (settings.isGeneratingJWPTLeftOuter()) {
+			statistics.setHasJWPTLeftOuter(false);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+
 			logger.info("LOADING JWPT_LEFTOUTER...");
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
@@ -134,14 +166,13 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_LEFTOUTER LOADED!");
 			logger.info("Time in ms to build the Joined Property Table (WPT left inner join IWPT): " + executionTime);
+
 			statistics.setHasJWPTLeftOuter(true);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
-		// save statistics if needed
-		if (settings.isComputingStatistics()) {
-			statistics.saveToFile(settings.getDatabaseName() + ".json");
-			logger.info("Created statistics file: : " + settings.getDatabaseName() + ".json");
-		}
+
+		logger.info("Statistics file: : " + settings.getDatabaseName() + ".json");
 
 		// compute spark statistics for each table
 		computeTableStatistics(spark);

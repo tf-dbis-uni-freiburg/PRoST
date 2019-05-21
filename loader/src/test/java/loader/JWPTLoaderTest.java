@@ -22,7 +22,7 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 
 		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(),statistics);
@@ -53,7 +53,7 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 
@@ -85,7 +85,7 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(), statistics);

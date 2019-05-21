@@ -99,17 +99,17 @@ public class TripleTableLoader extends Loader {
 					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
 					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
 		} else {
-		repairTripleTableFixed = String.format(
-				"INSERT OVERWRITE TABLE %1$s  " + "SELECT " + distinctStatement + " %2$s, %3$s, trim(%4$s)  "
-						+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
-						+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$')"
-						+ " AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND " + "NOT(%4$s RLIKE '^\\s*<.*<.*>')  "
-						+ "AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)"
-						+ "\"') AND "
-						+ "LENGTH(%3$s) < %6$s",
-				TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
-				TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
-	}
+			repairTripleTableFixed = String.format(
+					"INSERT OVERWRITE TABLE %1$s  " + "SELECT " + distinctStatement + " %2$s, %3$s, trim(%4$s)  "
+							+ "FROM %5$s " + "WHERE %2$s is not null AND %3$s is not null AND %4$s is not null AND "
+							+ "NOT(%2$s RLIKE '^\\s*\\.\\s*$')  AND NOT(%3$s RLIKE '^\\s*\\.\\s*$')"
+							+ " AND NOT(%4$s RLIKE '^\\s*\\.\\s*$') AND " + "NOT(%4$s RLIKE '^\\s*<.*<.*>')  "
+							+ "AND NOT(%4$s RLIKE '(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)\".*(?<!\\u005C\\u005C)"
+							+ "\"') AND "
+							+ "LENGTH(%3$s) < %6$s",
+					TRIPLETABLE_NAME, COLUMN_NAME_SUBJECT, COLUMN_NAME_PREDICATE, COLUMN_NAME_OBJECT,
+					TRIPLETABLE_NAME + "_ext", MAX_LENGTH_COL_NAME);
+		}
 		spark.sql(repairTripleTableFixed);
 
 		//logger.info("Created tripletable with: " + createTripleTableRaw);
@@ -130,12 +130,10 @@ public class TripleTableLoader extends Loader {
 			logger.info("Total number of triples loaded: " + tuplesCount);
 		}
 
-		if (this.getStatistics() != null) {
-			this.getStatistics().setTuplesNumber(tuplesCount);
-			// compute statistics about characteristic sets
-			if (computingCharacteristicSets) {
-				this.getStatistics().computeCharacteristicSetsStatistics(allTriples);
-			}
+		this.getStatistics().setTuplesNumber(tuplesCount);
+
+		if (computingCharacteristicSets) {
+			this.getStatistics().computeCharacteristicSetsStatistics(allTriples);
 		}
 
 		// The following part just outputs to the log in case there have been

@@ -19,11 +19,13 @@ import stats.PropertyStatistics;
  */
 public class VerticalPartitioningLoader extends Loader {
 	private final boolean isPartitioning;
+	private final boolean computingPropertyStatistics;
 
 	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark,
 									  final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, statistics);
 		this.isPartitioning = settings.isVpPartitionedBySubject();
+		this.computingPropertyStatistics = settings.isComputingPropertyStatistics();
 	}
 
 	@Override
@@ -62,7 +64,7 @@ public class VerticalPartitioningLoader extends Loader {
 			}
 			spark.sql(populateVPTable);
 
-			if (this.getStatistics() != null) {
+			if (computingPropertyStatistics){
 				final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 				this.getStatistics().getProperties().put(property, new PropertyStatistics(vpTableDataset,
 						getValidHiveName(property)));

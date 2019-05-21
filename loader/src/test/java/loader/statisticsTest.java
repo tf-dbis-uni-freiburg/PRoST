@@ -34,7 +34,7 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("charset_db");
 		final Settings settings = new Settings.Builder("charset_db").withInputPath((System.getProperty("user.dir") +
-				"\\target\\test_output\\charset").replace('\\', '/')).droppingDuplicateTriples().computingCharacteristicSets().build();
+				"\\target\\test_output\\charset").replace('\\', '/')).droppingDuplicateTriples().computeCharacteristicSets().build();
 
 		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();

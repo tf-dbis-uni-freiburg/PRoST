@@ -24,7 +24,7 @@ public class Settings {
 	private String inputPath;
 	private String settingsPath;
 	private String databaseName;
-	private boolean computeStatistics = false;
+	private boolean computePropertyStatistics = false;
 	private boolean dropDuplicateTriples = false;
 	private boolean computeCharacteristicSets = false;
 	private boolean generateTT = false;
@@ -52,7 +52,7 @@ public class Settings {
 		if (file.exists()) {
 			//noinspection MismatchedQueryAndUpdateOfCollection
 			final Ini settings = new Ini(file);
-			this.computeStatistics = settings.get("postprocessing", "computeStatistics", boolean.class);
+			this.computePropertyStatistics = settings.get("postprocessing", "computePropertyStatistics", boolean.class);
 			this.dropDuplicateTriples = settings.get("postprocessing", "dropDuplicates", boolean.class);
 			this.computeCharacteristicSets = settings.get("postprocessing", "computeCharacteristicSets", boolean.class);
 
@@ -186,7 +186,7 @@ public class Settings {
 		if (dropDuplicateTriples) {
 			enabledPostProcessingOptions.add("Removing duplicate triples");
 		}
-		if (computeStatistics) {
+		if (computePropertyStatistics) {
 			enabledPostProcessingOptions.add("Updating statistics file");
 		}
 		if (computeCharacteristicSets) {
@@ -204,8 +204,8 @@ public class Settings {
 		return databaseName;
 	}
 
-	public boolean isComputingStatistics() {
-		return computeStatistics;
+	public boolean isComputingPropertyStatistics() {
+		return computePropertyStatistics;
 	}
 
 	public boolean isDroppingDuplicateTriples() {
@@ -278,7 +278,7 @@ public class Settings {
 		private boolean ttPartitionedByPredicate = false;
 		private boolean jwptPartitionedByResource = false;
 		private boolean dropDuplicateTriples = false;
-		private boolean computeStatistics = false;
+		private boolean computePropertyStatistics = false;
 		private boolean computeCharacteristicSets = false;
 
 
@@ -311,18 +311,18 @@ public class Settings {
 			return this;
 		}
 
-		public Builder computingCharacteristicSets() {
+		public Builder computeCharacteristicSets() {
 			this.computeCharacteristicSets = true;
 			return this;
 		}
 
-		public Builder computingStatistics() {
-			this.computeStatistics = true;
+		public Builder computePropertyStatistics() {
+			this.computePropertyStatistics = true;
 			return this;
 		}
 
 		public Settings build() {
-			Settings settings = new Settings();
+			final Settings settings = new Settings();
 			settings.databaseName = this.databaseName;
 			settings.inputPath = this.inputPath;
 			settings.ttPartitionedBySubject = this.ttPartitionedBySubject;
@@ -330,6 +330,7 @@ public class Settings {
 			settings.jwptPartitionedByResource = this.jwptPartitionedByResource;
 			settings.dropDuplicateTriples = this.dropDuplicateTriples;
 			settings.computeCharacteristicSets = this.computeCharacteristicSets;
+			settings.computePropertyStatistics = this.computePropertyStatistics;
 
 			return settings;
 		}
