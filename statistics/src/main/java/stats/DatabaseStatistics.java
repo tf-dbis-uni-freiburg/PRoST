@@ -42,6 +42,14 @@ public class DatabaseStatistics {
 	private Boolean hasJWPTInner;
 	private Boolean hasJWPTLeftOuter;
 
+	private Boolean ttPartitionedByPredicate;
+	private Boolean ttPartitionedBySubject;
+	private Boolean wptPartitionedBySubject;
+	private Boolean iwptPartitionedByObject;
+	private Boolean jwptPartitionedByResource;
+	private Boolean vpPartitionedBySubject;
+
+
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
 		this.tuplesNumber = Long.valueOf("0");
@@ -180,5 +188,29 @@ public class DatabaseStatistics {
 
 	public void setHasJWPTLeftOuter(final Boolean hasJWPTLeftOuter) {
 		this.hasJWPTLeftOuter = hasJWPTLeftOuter;
+	}
+
+	public void setTtPartitionedByPredicate(final Boolean ttPartitionedByPredicate) {
+		this.ttPartitionedByPredicate = ttPartitionedByPredicate;
+	}
+
+	public void setTtPartitionedBySubject(final Boolean ttPartitionedBySubject) {
+		this.ttPartitionedBySubject = ttPartitionedBySubject;
+	}
+
+	public void setWptPartitionedBySubject(final Boolean wptPartitionedBySubject) {
+		this.wptPartitionedBySubject = wptPartitionedBySubject;
+	}
+
+	public void setIwptPartitionedByObject(final Boolean iwptPartitionedByObject) {
+		this.iwptPartitionedByObject = iwptPartitionedByObject;
+	}
+
+	public void setJwptPartitionedByResource(final Boolean jwptPartitionedByResource) {
+		this.jwptPartitionedByResource = jwptPartitionedByResource;
+	}
+
+	public void setVpPartitionedBySubject(final Boolean vpPartitionedBySubject) {
+		this.vpPartitionedBySubject = vpPartitionedBySubject;
 	}
 }

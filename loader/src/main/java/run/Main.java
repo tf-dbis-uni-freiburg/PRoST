@@ -65,6 +65,8 @@ public class Main {
 			logger.info("Time in ms to build the Tripletable: " + executionTime);
 
 			statistics.setHasTT(true);
+			statistics.setTtPartitionedBySubject(settings.isTtPartitionedBySubject());
+			statistics.setTtPartitionedByPredicate(settings.isTtPartitionedByPredicate());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -84,6 +86,7 @@ public class Main {
 			logger.info("Time in ms to build the Vertical partitioning: " + executionTime);
 
 			statistics.setHasVPTables(true);
+			statistics.setVpPartitionedBySubject(settings.isVpPartitionedBySubject());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -100,6 +103,7 @@ public class Main {
 			logger.info("WPT LOADED!");
 			logger.info("Time in ms to build the Property Table: " + executionTime);
 			statistics.setHasWPT(true);
+			statistics.setWptPartitionedBySubject(settings.isWptPartitionedBySubject());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -117,6 +121,7 @@ public class Main {
 			logger.info("Time in ms to build the Inverse Property Table: " + executionTime);
 
 			statistics.setHasIWPT(true);
+			statistics.setIwptPartitionedByObject(settings.isIwptPartitionedByObject());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -135,6 +140,7 @@ public class Main {
 			logger.info("Time in ms to build the Joined Property Table (outer join): " + executionTime);
 
 			statistics.setHasJWPTOuter(true);
+			statistics.setJwptPartitionedByResource(settings.isJwptPartitionedByResource());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -153,6 +159,7 @@ public class Main {
 			logger.info("Time in ms to build the Joined Property Table (inner join): " + executionTime);
 
 			statistics.setHasJWPTInner(true);
+			statistics.setJwptPartitionedByResource(settings.isJwptPartitionedByResource());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -171,6 +178,7 @@ public class Main {
 			logger.info("Time in ms to build the Joined Property Table (WPT left inner join IWPT): " + executionTime);
 
 			statistics.setHasJWPTLeftOuter(true);
+			statistics.setJwptPartitionedByResource(settings.isJwptPartitionedByResource());
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
