@@ -32,6 +32,7 @@ public class Main {
 
 	public static void main(final String[] args) throws Exception {
 		logger.info("INITIALIZING LOADER");
+		final SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
 
 		final InputStream inStream = Main.class.getClassLoader().getResourceAsStream(loj4jFileName);
 		final Properties props = new Properties();
@@ -39,11 +40,13 @@ public class Main {
 		PropertyConfigurator.configure(props);
 
 		final Settings settings = new Settings(args);
-
-		final DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getDatabaseName() + ".json");
-
-		// Set the loader from the inputFile to the outputDB
-		final SparkSession spark = SparkSession.builder().appName("PRoST-Loader").enableHiveSupport().getOrCreate();
+		final DatabaseStatistics statistics;
+		if (settings.isDroppingDB()) {
+			spark.sql("DROP DATABASE " + settings.getDatabaseName() + " CASCADE");
+			statistics = new DatabaseStatistics(settings.getDatabaseName());
+		} else {
+			statistics = DatabaseStatistics.loadFromFile(settings.getDatabaseName() + ".json");
+		}
 
 		long startTime;
 		long executionTime;
@@ -170,7 +173,6 @@ public class Main {
 			statistics.setHasJWPTLeftOuter(true);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
-
 
 		logger.info("Statistics file: : " + settings.getDatabaseName() + ".json");
 

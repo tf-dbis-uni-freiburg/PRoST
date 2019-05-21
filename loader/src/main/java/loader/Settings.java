@@ -41,6 +41,8 @@ public class Settings {
 	private boolean iwptPartitionedByObject = false;
 	private boolean jwptPartitionedByResource = false;
 	private boolean vpPartitionedBySubject = false;
+	//misc options
+	private boolean droppingDB = false;
 
 	public Settings(final String[] args) throws Exception {
 		parseArguments(args);
@@ -70,6 +72,8 @@ public class Settings {
 			this.iwptPartitionedByObject = settings.get("physicalPartitioning", "iwpto", boolean.class);
 			this.jwptPartitionedByResource = settings.get("physicalPartitioning", "jwptr", boolean.class);
 			this.vpPartitionedBySubject = settings.get("physicalPartitioning", "vps", boolean.class);
+
+			this.droppingDB = settings.get("misc", "dropDB", boolean.class);
 		} else if (!settingsPath.equals(DEFAULT_SETTINGS_FILE)) {
 			throw new FileNotFoundException();
 		}
@@ -266,6 +270,10 @@ public class Settings {
 
 	public boolean isVpPartitionedBySubject() {
 		return vpPartitionedBySubject;
+	}
+
+	public boolean isDroppingDB(){
+		return droppingDB;
 	}
 
 	/**
