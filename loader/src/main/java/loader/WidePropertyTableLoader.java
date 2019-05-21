@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.DatabaseStatistics;
 
 /**
  * Loads a WPT named wide_property_table.
@@ -16,8 +17,8 @@ public class WidePropertyTableLoader extends PropertyTableLoader {
 	private static final String WPT_TABLE_NAME = "wide_property_table";
 
 	public WidePropertyTableLoader(final Settings settings,
-								   final SparkSession spark) {
-		super(settings.getDatabaseName(), spark, settings.isWptPartitionedBySubject(), WPT_TABLE_NAME);
+								   final SparkSession spark, final DatabaseStatistics statistics) {
+		super(settings.getDatabaseName(), spark, settings.isWptPartitionedBySubject(), WPT_TABLE_NAME, statistics);
 	}
 
 	@Override

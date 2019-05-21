@@ -5,6 +5,7 @@ import java.util.Collections;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
 
 /**
@@ -21,9 +22,10 @@ public class JoinedWidePropertyTableLoader extends PropertyTableLoader {
 	private final String joinType;
 	private final Settings settings;
 
-	public JoinedWidePropertyTableLoader(final Settings settings, final SparkSession spark, final JoinType joinType) {
+	public JoinedWidePropertyTableLoader(final Settings settings, final SparkSession spark, final JoinType joinType,
+										 final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, settings.isJwptPartitionedByResource(),
-				JWPT_TABLE_NAME + "_" + joinType.toString());
+				JWPT_TABLE_NAME + "_" + joinType.toString(), statistics);
 		this.joinType = joinType.toString();
 		this.settings = settings;
 	}
@@ -34,18 +36,20 @@ public class JoinedWidePropertyTableLoader extends PropertyTableLoader {
 		if (settings.isGeneratingWPT()) {
 			wptDataset = spark.sql("SELECT * FROM wide_property_table");
 		} else {
-			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(settings, spark);
+			final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(settings, spark,
+					this.getStatistics());
 			wptDataset = wptLoader.loadDataset();
 		}
 
 		if (settings.isGeneratingIWPT()) {
 			iwptDataset = spark.sql("SELECT * FROM inverse_wide_property_table");
 		} else {
-			final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(settings, spark);
+			final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(settings, spark,
+					this.getStatistics());
 			iwptDataset = iwptLoader.loadDataset();
 		}
 
-		assert this.getStatistics().getProperties().size() > 0
+		assert this.getStatistics().getProperties().values().size() > 0
 				: "No properties information found in statistics. Cannot create JWPT";
 		for (final PropertyStatistics stats : this.getStatistics().getProperties().values()) {
 			final String property = stats.getInternalName();

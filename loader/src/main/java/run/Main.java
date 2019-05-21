@@ -64,11 +64,9 @@ public class Main {
 			logger.info("LOADING VP TABLES...");
 			startTime = System.currentTimeMillis();
 			final VerticalPartitioningLoader vp_loader;
-			if (settings.isComputingStatistics()) {
-				vp_loader = new VerticalPartitioningLoader(settings, spark, statistics);
-			} else {
-				vp_loader = new VerticalPartitioningLoader(settings, spark);
-			}
+
+			vp_loader = new VerticalPartitioningLoader(settings, spark, statistics);
+
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("VP TABLES LOADED!");
@@ -80,7 +78,7 @@ public class Main {
 			logger.info("LOADING WPT...");
 			startTime = System.currentTimeMillis();
 			final WidePropertyTableLoader pt_loader =
-					new WidePropertyTableLoader(settings, spark);
+					new WidePropertyTableLoader(settings, spark, statistics);
 			pt_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("WPT LOADED!");
@@ -92,7 +90,7 @@ public class Main {
 			logger.info("LOADING IWPT...");
 			startTime = System.currentTimeMillis();
 			final InverseWidePropertyTableLoader iwptLoader =
-					new InverseWidePropertyTableLoader(settings, spark);
+					new InverseWidePropertyTableLoader(settings, spark, statistics);
 			iwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("IWPT LOADED!");
@@ -104,7 +102,8 @@ public class Main {
 			logger.info("LOADING JWPT_OUTER...");
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
-					new JoinedWidePropertyTableLoader(settings, spark, JoinedWidePropertyTableLoader.JoinType.outer);
+					new JoinedWidePropertyTableLoader(settings, spark, JoinedWidePropertyTableLoader.JoinType.outer,
+							statistics);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_OUTER LOADED!");
@@ -116,7 +115,8 @@ public class Main {
 			logger.info("LOADING JWPT_INNER...");
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
-					new JoinedWidePropertyTableLoader(settings, spark, JoinedWidePropertyTableLoader.JoinType.inner);
+					new JoinedWidePropertyTableLoader(settings, spark, JoinedWidePropertyTableLoader.JoinType.inner,
+							statistics);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_INNER LOADED!");
@@ -129,7 +129,7 @@ public class Main {
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
 					new JoinedWidePropertyTableLoader(settings, spark,
-							JoinedWidePropertyTableLoader.JoinType.leftouter);
+							JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 			jwptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("JWPT_LEFTOUTER LOADED!");

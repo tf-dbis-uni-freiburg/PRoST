@@ -278,6 +278,7 @@ public class Settings {
 		private boolean ttPartitionedByPredicate = false;
 		private boolean jwptPartitionedByResource = false;
 		private boolean dropDuplicateTriples = false;
+		private boolean computeStatistics = false;
 		private boolean computeCharacteristicSets = false;
 
 
@@ -312,6 +313,11 @@ public class Settings {
 
 		public Builder computingCharacteristicSets() {
 			this.computeCharacteristicSets = true;
+			return this;
+		}
+
+		public Builder computingStatistics() {
+			this.computeStatistics = true;
 			return this;
 		}
 

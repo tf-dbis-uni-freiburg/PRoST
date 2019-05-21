@@ -11,6 +11,7 @@ import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.junit.Test;
+import stats.DatabaseStatistics;
 
 /**
  * This class tests the parsing of the NT triples file and the building of the
@@ -40,8 +41,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 
 		final Settings settings = new Settings.Builder("triplesWithMoreThanThreeRes_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithMoreThanThreeRes").replace('\\', '/')).droppingDuplicateTriples().build();
-
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("triplesWithMoreThanThreeRes_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -102,7 +103,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("incompleteTriples_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\incompleteTriples").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("incompleteTriples_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -145,7 +147,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("triplesWithEmptyLines_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithEmptyLines").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("triplesWithEmptyLines_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -188,7 +191,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("caseInsensitivePredicates_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\caseInsensitivePredicates").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("caseInsensitivePredicates_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -238,7 +242,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("triplesWithDotsInLiterals_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithDotsInLiterals").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("triplesWithDotsInLiterals_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -306,7 +311,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		Settings settings = new Settings.Builder("triplesWithDuplicates_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("triplesWithDuplicates_db");
+		TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:
@@ -368,7 +374,7 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		settings = new Settings.Builder("triplesWithDuplicates_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithDuplicates").replace('\\', '/')).build();
 
-		tt_loader = new TripleTableLoader(settings, spark());
+		tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		expectedTT = spark().createDataset(triplesListWithDuplicates, triplesEncoder).select("s", "p", "o").orderBy("s",
@@ -394,7 +400,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("emptyFile_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\emptyFile").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("emptyFile_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 	}
 
@@ -410,7 +417,8 @@ public class TripleTableLoaderDefaultPartTest extends JavaDataFrameSuiteBase imp
 		final Settings settings = new Settings.Builder("triplesWithPrefixes_db").withInputPath((System.getProperty(
 				"user.dir") + "\\target\\test_output\\triplesWithPrefixes").replace('\\', '/')).droppingDuplicateTriples().build();
 
-		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("triplesWithPrefixes_db");
+		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
 		// Expected value:

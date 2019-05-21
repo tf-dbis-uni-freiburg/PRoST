@@ -7,6 +7,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import stats.DatabaseStatistics;
 
 class LoaderTest {
 	private static SparkSession spark;
@@ -41,7 +42,8 @@ class LoaderTest {
 	@Test
 	void propertyTableTest() {
 		final Settings settings = new Settings.Builder("testingDB").build();
-		final WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(settings, spark);
+		final DatabaseStatistics statistics = new DatabaseStatistics("testingDB");
+		final WidePropertyTableLoader pt_loader = new WidePropertyTableLoader(settings, spark, statistics);
 		pt_loader.load();
 		final Dataset<Row> propertyTable = spark.sql("SELECT * FROM property_table");
 
@@ -57,7 +59,8 @@ class LoaderTest {
 	@Test
 	void verticalPartitioningTest() {
 		final Settings settings = new Settings.Builder("testingDB").build();
-		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(settings, spark);
+		final DatabaseStatistics statistics = new DatabaseStatistics("testingDB");
+		final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(settings, spark, statistics);
 		vp_loader.load();
 		final Dataset<Row> tables_list = spark.sql("SHOW tables");
 

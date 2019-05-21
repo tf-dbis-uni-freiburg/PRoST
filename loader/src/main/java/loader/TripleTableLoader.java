@@ -24,15 +24,6 @@ public class TripleTableLoader extends Loader {
 	private final String hdfsInputDirectory;
 	private final boolean computingCharacteristicSets;
 
-	TripleTableLoader(final Settings settings, final SparkSession spark) {
-		super(settings.getDatabaseName(), spark);
-		this.hdfsInputDirectory = settings.getInputPath();
-		this.ttPartitionedBySubject = settings.isTtPartitionedBySubject();
-		this.ttPartitionedByPredicate = settings.isTtPartitionedByPredicate();
-		this.dropDuplicates = settings.isDroppingDuplicateTriples();
-		this.computingCharacteristicSets = settings.isComputingCharacteristicSets();
-	}
-
 	public TripleTableLoader(final Settings settings, final SparkSession spark, final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, statistics);
 		this.hdfsInputDirectory = settings.getInputPath();

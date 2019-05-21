@@ -20,11 +20,6 @@ import stats.PropertyStatistics;
 public class VerticalPartitioningLoader extends Loader {
 	private final boolean isPartitioning;
 
-	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark) {
-		super(settings.getDatabaseName(), spark);
-		this.isPartitioning = settings.isVpPartitionedBySubject();
-	}
-
 	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark,
 									  final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, statistics);

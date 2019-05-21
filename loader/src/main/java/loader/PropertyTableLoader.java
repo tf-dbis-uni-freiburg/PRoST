@@ -14,6 +14,7 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import scala.Tuple2;
+import stats.DatabaseStatistics;
 
 /**
  * Abstracts the loading of (I/J)wide property tables.
@@ -25,8 +26,8 @@ abstract class PropertyTableLoader extends Loader {
 	private final String ptTableName;
 
 	PropertyTableLoader(final String databaseName, final SparkSession spark, final boolean isPartitioned,
-						final String tableName) {
-		super(databaseName, spark);
+						final String tableName, DatabaseStatistics statistics) {
+		super(databaseName, spark, statistics);
 		this.isPartitioned = isPartitioned;
 		this.ptTableName = tableName;
 	}

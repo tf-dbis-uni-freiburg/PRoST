@@ -6,6 +6,7 @@ import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
 import loader.utilities.HdfsUtilities;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import stats.DatabaseStatistics;
 
 public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 	//TODO complete tests
@@ -21,13 +22,19 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
+		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 
-		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark());
+		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(),statistics);
 		ttLoader.load();
 
+		//TODO when statistics can be loaded from any model, vp will not be needed anymore. (It's only loaded to
+		// compute statistics
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(settings, spark(), statistics);
+		vpLoader.load();
+
 		final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings, spark(),
-				JoinedWidePropertyTableLoader.JoinType.outer);
+				JoinedWidePropertyTableLoader.JoinType.outer,statistics);
 		jwptLoader.load();
 
 
@@ -46,13 +53,20 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
 
-		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
+
+		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(),statistics);
 		ttLoader.load();
 
+		//TODO when statistics can be loaded from any model, vp will not be needed anymore. (It's only loaded to
+		// compute statistics
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(settings, spark(), statistics);
+		vpLoader.load();
+
 		final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings, spark(),
-				JoinedWidePropertyTableLoader.JoinType.inner);
+				JoinedWidePropertyTableLoader.JoinType.inner, statistics);
 		jwptLoader.load();
 
 
@@ -71,13 +85,19 @@ public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
 		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().build();
+				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computingStatistics().build();
 
-		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark());
+		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
+		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(), statistics);
 		ttLoader.load();
 
+		//TODO when statistics can be loaded from any model, vp will not be needed anymore. (It's only loaded to
+		// compute statistics
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(settings, spark(), statistics);
+		vpLoader.load();
+
 		final JoinedWidePropertyTableLoader jwptLoader = new JoinedWidePropertyTableLoader(settings, spark(),
-				JoinedWidePropertyTableLoader.JoinType.leftouter);
+				JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLoader.load();
 		jwptLoader.load();
 

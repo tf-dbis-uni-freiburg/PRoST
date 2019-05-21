@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import stats.DatabaseStatistics;
 
 /**
  * Loads an IWPT named inverse_wide_property_table.
@@ -14,8 +15,8 @@ public class InverseWidePropertyTableLoader extends PropertyTableLoader {
 	private static final String PROPERTIES_CARDINALITIES_TABLE_NAME = "inverse_properties";
 	private static final String IWPT_TABLE_NAME = "inverse_wide_property_table";
 
-	public InverseWidePropertyTableLoader(final Settings settings, final SparkSession spark) {
-		super(settings.getDatabaseName(), spark, settings.isIwptPartitionedByObject(), IWPT_TABLE_NAME);
+	public InverseWidePropertyTableLoader(final Settings settings, final SparkSession spark, DatabaseStatistics statistics) {
+		super(settings.getDatabaseName(), spark, settings.isIwptPartitionedByObject(), IWPT_TABLE_NAME, statistics);
 	}
 
 	@Override
