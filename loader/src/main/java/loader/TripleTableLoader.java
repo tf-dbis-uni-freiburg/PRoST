@@ -1,7 +1,5 @@
 package loader;
 
-import java.util.List;
-
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -33,6 +31,7 @@ public class TripleTableLoader extends Loader {
 		this.computingCharacteristicSets = settings.isComputingCharacteristicSets();
 	}
 
+	@SuppressWarnings("CheckStyle")
 	@Override
 	public void load() throws Exception {
 		final String queryDropTripleTable = String.format("DROP TABLE IF EXISTS %s", TRIPLETABLE_NAME);
@@ -201,7 +200,7 @@ public class TripleTableLoader extends Loader {
 				logger.info("---of which " + longPredicates.count() + " have predicates with more than 128 characters");
 			}
 		}
-		final List<Row> cleanedList = allTriples.limit(10).collectAsList();
+		// final List<Row> cleanedList = allTriples.limit(10).collectAsList();
 		// logger.info("First 10 cleaned triples (less if there are less): " + cleanedList);
 	}
 }

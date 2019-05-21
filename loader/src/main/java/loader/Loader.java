@@ -22,25 +22,10 @@ public abstract class Loader {
 
 	protected final SparkSession spark;
 	private final String databaseName;
-	private DatabaseStatistics statistics;
+	private final DatabaseStatistics statistics;
 	private String[] propertiesNames;
 
-	public Loader(final String databaseName, final SparkSession spark) {
-		this.databaseName = databaseName;
-		this.spark = spark;
-		/*
-		 Configurations (they should be working but they are not in Cloudera). Change hive-site.xml.
-		 spark.sql("SET hive.exec.dynamic.partition = true");
-		 spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
-		 spark.sql("SET hive.exec.max.dynamic.partitions = 4000");
-		 spark.sql("SET hive.exec.max.dynamic.partitions.pernode = 2000");
-		 from now on, set the right database
-		*/
-
-		useOutputDatabase();
-	}
-
-	public Loader(final String databaseName, final SparkSession spark, final DatabaseStatistics statistics) {
+	Loader(final String databaseName, final SparkSession spark, final DatabaseStatistics statistics) {
 		this.databaseName = databaseName;
 		this.spark = spark;
 		this.statistics = statistics;

@@ -8,7 +8,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import stats.DatabaseStatistics;
 
-public class JWPTLoaderTest extends JavaDataFrameSuiteBase {
+class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 	//TODO complete tests
 
 	public void outerJWPT() throws Exception {

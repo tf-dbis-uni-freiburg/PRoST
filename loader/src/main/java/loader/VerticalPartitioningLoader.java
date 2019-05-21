@@ -64,7 +64,7 @@ public class VerticalPartitioningLoader extends Loader {
 			}
 			spark.sql(populateVPTable);
 
-			if (computingPropertyStatistics){
+			if (computingPropertyStatistics) {
 				final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 				this.getStatistics().getProperties().put(property, new PropertyStatistics(vpTableDataset,
 						getValidHiveName(property)));

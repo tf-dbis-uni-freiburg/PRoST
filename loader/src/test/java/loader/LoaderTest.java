@@ -11,7 +11,7 @@ import stats.DatabaseStatistics;
 
 class LoaderTest {
 	private static SparkSession spark;
-	private static String INPUT_TEST_GRAPH = "test_dataset/100k.nt";
+	private static final String INPUT_TEST_GRAPH = "test_dataset/100k.nt";
 	private static long numberSubjects;
 	private static long numberPredicates;
 

@@ -18,9 +18,6 @@ public class HdfsUtilities {
 	 * applications working on top of Hadoop. In case the HDFS folder passed as
 	 * argument exists, this will be deleted.
 	 *
-	 * @param localPath
-	 * @param hdfsFolderPath
-	 * @throws IOException
 	 */
 	public static void putFileToHDFS(final String localPath, final String hdfsFolderPath, final JavaSparkContext jsc) throws IOException {
 		// TODO: improve. Using the Hadoop API didn't work (see commented code).

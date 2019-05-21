@@ -26,7 +26,7 @@ abstract class PropertyTableLoader extends Loader {
 	private final String ptTableName;
 
 	PropertyTableLoader(final String databaseName, final SparkSession spark, final boolean isPartitioned,
-						final String tableName, DatabaseStatistics statistics) {
+						final String tableName, final DatabaseStatistics statistics) {
 		super(databaseName, spark, statistics);
 		this.isPartitioned = isPartitioned;
 		this.ptTableName = tableName;
@@ -127,7 +127,7 @@ abstract class PropertyTableLoader extends Loader {
 	/**
 	 * This method handles the problem when two predicate are the same in a
 	 * case-insensitive context but different in a case-sensitive one. For instance:
-	 * <http://example.org/somename> and <http://example.org/someName>. Since Hive
+	 * &lt;http://example.org/somename&gt; and &lt;http://example.org/someName&gt;. Since Hive
 	 * is case insensitive the problem will be solved removing one of the entries
 	 * from the list of predicates.
 	 */

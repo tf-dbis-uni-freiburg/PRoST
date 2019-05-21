@@ -30,7 +30,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * This method tests if triples with more than three elements are ignored
 	 * when parsing the file.
 	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void parsingTriplesWithMoreThanThreeRes() throws Exception {
@@ -95,7 +94,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * This methods verifies that triples which are not complete are ignored and
 	 * skipped.
 	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void parsingIncompleteTriples() throws Exception {
@@ -140,7 +138,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * This method verifies that a file which contains empty lines is parsed by
 	 * ignoring those lines.
 	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void parsingEmptyLines() throws Exception {
@@ -185,7 +182,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * This test shows that TT parses all triples even when predicates are case
 	 * insensitive equal.
 	 *
-	 * @throws Exception
 	 */
 	@Ignore("There seems to be a bug in the library. The data is correctly uploaded in the cluster and it works for other partitioning strategies.")
 	@Test
@@ -238,7 +234,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * the parsing, this test verifies that other dots, e.g. those present in
 	 * literals are not removed.
 	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void parsingLiteralsWithDots() throws Exception {
@@ -309,7 +304,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	 * argument in the class TripleTableLoader (if true, duplicates are removed,
 	 * if false duplicates are kept).
 	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void parsingDuplicates() throws Exception {
@@ -402,7 +396,6 @@ public class TripleTableLoaderPartByPredTest extends JavaDataFrameSuiteBase impl
 	/**
 	 * This test verifies an Exception is thrown when an empty file is parsed.
 	 *
-	 * @throws Exception
 	 */
 	@Test(expected = Exception.class)
 	public void parsingEmptyFile() throws Exception {

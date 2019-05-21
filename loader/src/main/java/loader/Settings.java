@@ -89,9 +89,7 @@ public class Settings {
 	private void validate() {
 		assert databaseName != null && !databaseName.equals("") : "Missing database name.";
 
-		if (generateTT) {
-			assert inputPath != null && !inputPath.equals("") : "Cannot generate TT without the input path";
-		}
+		assert !generateTT || inputPath != null && !inputPath.equals("") : "Cannot generate TT without the input path";
 	}
 
 	//TODO allow old arguments to override settings from the initialization file
@@ -272,7 +270,7 @@ public class Settings {
 		return vpPartitionedBySubject;
 	}
 
-	public boolean isDroppingDB(){
+	public boolean isDroppingDB() {
 		return droppingDB;
 	}
 
@@ -280,7 +278,7 @@ public class Settings {
 	 * Builder for the loader settings file.
 	 */
 	public static class Builder {
-		private String databaseName;
+		private final String databaseName;
 		private String inputPath = "/";
 		private boolean ttPartitionedBySubject = false;
 		private boolean ttPartitionedByPredicate = false;
