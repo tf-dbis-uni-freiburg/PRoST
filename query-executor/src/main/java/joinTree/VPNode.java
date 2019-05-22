@@ -23,6 +23,8 @@ public class VPNode extends Node {
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
 		if (triplePattern.predicateType.equals(ElementType.CONSTANT)) {
+			assert statistics.getProperties().get(triplePattern.predicate) != null
+					: "Property " + triplePattern.predicate + " not found in the statistics file";
 			final String tableName = "vp_" + statistics.getProperties().get(triplePattern.predicate).getInternalName();
 			sparkNodeData = sqlContext.sql(createSQLQuery(tableName));
 		} else {

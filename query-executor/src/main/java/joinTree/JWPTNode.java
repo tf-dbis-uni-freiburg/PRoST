@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
@@ -15,14 +16,13 @@ import utils.Utils;
  * A node that uses a Joined Wide Property Table.
  */
 public class JWPTNode extends MVNode {
-
+	private static final Logger logger = Logger.getLogger("PRoST");
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
-	private static final String JOINED_TABLE_NAME = "joined_wide_property_table";
 	private static final String WPT_PREFIX = "o_";
 	private static final String IWPT_PREFIX = "s_";
-
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
+	private String JOINED_TABLE_NAME = "joined_wide_property_table_outer";
 
 	public JWPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
 					final DatabaseStatistics statistics) {
@@ -39,6 +39,7 @@ public class JWPTNode extends MVNode {
 
 		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
 		iwptTripleGroup = iwptTriplePatterns;
+
 		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTriplePatterns.add(tp);
@@ -133,7 +134,7 @@ public class JWPTNode extends MVNode {
 					whereElements.add(columnName + "='" + t.subject + "'");
 				}
 			} else if (t.isComplex) {
-				selectElements.add(" P" + columnName + " AS ");
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {

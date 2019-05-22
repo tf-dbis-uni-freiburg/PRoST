@@ -17,9 +17,6 @@ public class IWPTNode extends MVNode {
 	private static final String OBJECT_COLUMN_NAME = "o";
 	private static final String TABLE_NAME = "inverse_wide_property_table";
 
-	private final List<TriplePattern> tripleGroup;
-
-
 	/**
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns with the same object.

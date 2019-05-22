@@ -1,5 +1,6 @@
 package joinTree;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import stats.DatabaseStatistics;
@@ -17,6 +18,7 @@ public abstract class MVNode extends Node {
 
 	public MVNode(final DatabaseStatistics statistics) {
 		super(statistics);
+		tripleGroup = new ArrayList<>();
 	}
 
 	@Override

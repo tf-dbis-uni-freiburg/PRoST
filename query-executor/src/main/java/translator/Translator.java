@@ -36,7 +36,6 @@ import utils.Settings;
  * @author Polina Koleva
  */
 public class Translator {
-
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private final DatabaseStatistics statistics;
 	private final Settings settings;
@@ -164,40 +163,40 @@ public class Translator {
 		}
 
 		logger.info("Triple patterns without nodes: " + unassignedTriples.size());
-		if (settings.isUsingJWPT()) {
-			logger.info("Creating JWPT nodes... ");
+		if (settings.isUsingJWPTOuter()) {
+			logger.info("Creating JWPT_outer nodes... ");
 			addJWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		}
 		if (settings.isUsingWPT() && settings.isUsingIWPT() && settings.isGroupingTriples()) {
 			logger.info("Creating WPT and IWPT nodes...");
 			addMixedPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		} else if (settings.isUsingWPT()) {
 			logger.info("Creating WPT nodes...");
 			addWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		} else if (settings.isUsingIWPT()) {
 			logger.info("Creating IWPT nodes...");
 			addIWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		}
 		if (settings.isUsingVP()) {
 			// VP only
 			logger.info("Creating VP nodes...");
 			createVpNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		}
 		if (settings.isUsingTT()) {
 			logger.info("Creating TT nodes...");
 			createTTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size());
+			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
+					+ unassignedTriplesWithVariablePredicate.size()));
 		}
 
 		//create nodes for patterns with variable predicates
@@ -212,7 +211,7 @@ public class Translator {
 			} else if (settings.isUsingIWPT() && triple.getObject().isConcrete()) {
 				nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
 				unassignedTriplesWithVariablePredicate.remove(triple);
-			} else if (settings.isUsingJWPT()
+			} else if (settings.isUsingJWPTOuter()
 					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
 				final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
 				tripleAsJoinedGroup.getWptGroup().add(triple);
@@ -229,7 +228,7 @@ public class Translator {
 				} else if (settings.isUsingWPT()) {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
 					unassignedTriplesWithVariablePredicate.remove(triple);
-				} else if (settings.isUsingJWPT()) {
+				} else if (settings.isUsingJWPTOuter()) {
 					final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
 					tripleAsJoinedGroup.getWptGroup().add(triple);
 					nodesQueue.add(new JWPTNode(tripleAsJoinedGroup, prefixes, statistics));
@@ -320,7 +319,7 @@ public class Translator {
 
 			// create nodes
 			if (largestObjectGroupSize > largestSubjectGroupSize
-					&& largestObjectGroupSize > settings.getMinGroupSize()) {
+					&& largestObjectGroupSize >= settings.getMinGroupSize()) {
 				// create and add the iwpt
 				final List<Triple> largestObjectGroupTriples = objectGroups.get(largestObjectGroupKey);
 				nodesQueue.add(new IWPTNode(largestObjectGroupTriples, prefixes, statistics));
@@ -337,7 +336,7 @@ public class Translator {
 					}
 				}
 				objectGroups.remove(largestObjectGroupKey);
-			} else if (largestSubjectGroupSize > settings.getMinGroupSize()) {
+			} else if (largestSubjectGroupSize >= settings.getMinGroupSize()) {
 				/// create and add the wpt
 				final List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
 				nodesQueue.add(new WPTNode(largestSubjectGroupTriples, prefixes, statistics));
@@ -382,7 +381,7 @@ public class Translator {
 		} else {
 			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
 			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				if (triplesGroup.size() > settings.getMinGroupSize() || !settings.isGroupingTriples()) {
+				if (triplesGroup.size() >= settings.getMinGroupSize() || !settings.isGroupingTriples()) {
 					nodesQueue.add(new WPTNode(triplesGroup, prefixes, statistics));
 					triples.removeAll(triplesGroup);
 				} else {
@@ -401,7 +400,7 @@ public class Translator {
 	private void addIWPTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
 		for (final List<Triple> triplesGroup : objectGroups.values()) {
-			if (triplesGroup.size() > settings.getMinGroupSize() || !settings.isGroupingTriples()) {
+			if (triplesGroup.size() >= settings.getMinGroupSize() || !settings.isGroupingTriples()) {
 				nodesQueue.add(new IWPTNode(triplesGroup, prefixes, statistics));
 				triples.removeAll(triplesGroup);
 			} else {

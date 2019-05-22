@@ -34,12 +34,13 @@ public class Settings {
 	private boolean usingVP = false;
 	private boolean usingWPT = false;
 	private boolean usingIWPT = false;
-	private boolean usingJWPT = false;
+	private boolean usingJWPTOuter = false;
+	private boolean usingJWPTInner = false;
+	private boolean usingJWPTLeftOuter = false;
 	private boolean usingEmergentSchema = false;
 	private String emergentSchemaPath;
 
 	// Translator options
-	private int joinTreeMaximumWidth = -1;
 	private boolean groupingTriples = true;
 	private int minGroupSize = 2;
 
@@ -53,7 +54,7 @@ public class Settings {
 			settingsPath = DEFAULT_SETTINGS_FILE;
 		}
 		if (statsPath == null) {
-			statsPath = databaseName + ".stats";
+			statsPath = databaseName + ".json";
 		}
 
 		final File file = new File(settingsPath);
@@ -64,11 +65,12 @@ public class Settings {
 			this.usingVP = settings.get("nodeTypes", "VP", boolean.class);
 			this.usingWPT = settings.get("nodeTypes", "WPT", boolean.class);
 			this.usingIWPT = settings.get("nodeTypes", "IWPT", boolean.class);
-			this.usingJWPT = settings.get("nodeTypes", "JWPT", boolean.class);
+			this.usingJWPTOuter = settings.get("nodeTypes", "JWPT_outer", boolean.class);
+			this.usingJWPTInner = settings.get("nodeTypes", "JWPT_inner", boolean.class);
+			this.usingJWPTLeftOuter = settings.get("nodeTypes", "JWPT_leftouter", boolean.class);
 
 			this.groupingTriples = settings.get("translator", "groupingTriples", boolean.class);
 			this.minGroupSize = settings.get("translator", "minGroupSize", int.class);
-			this.joinTreeMaximumWidth = settings.get("translator", "maxWidth", int.class);
 
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
 			this.savingBenchmarkFile = settings.get("executor", "savingBenchmarkFile", boolean.class);
@@ -84,7 +86,7 @@ public class Settings {
 
 	private void validate() {
 		assert databaseName != null && !databaseName.equals("") : "Missing database name";
-		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPT) : "At least one node type must be enabled";
+		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPTOuter) : "At least one node type must be enabled";
 	}
 
 	/**
@@ -97,7 +99,17 @@ public class Settings {
 		assert (!this.isUsingVP() || statistics.hasVPTables()) : "VP enabled, but database does not have VP tables";
 		assert (!this.isUsingWPT() || statistics.hasWPT()) : "WPT enabled, but database does not have a WPT";
 		assert (!this.isUsingIWPT() || statistics.hasIWPT()) : "IWPT enabled, but database does not have a IWPT";
-		assert (!this.isUsingJWPT() || statistics.hasJWPTOuter()) : "JWPT enabled, but database does not have a JWPT";
+		assert (!this.isUsingJWPTOuter() || statistics.hasJWPTOuter()) : "JWPT_outer enabled, but database does not "
+				+ "have a JWPT";
+		assert (!this.isUsingJWPTInner() || statistics.hasJWPTInner()) : "JWPT_inner enabled, but database does not "
+				+ "have a JWPT";
+		assert (!this.isUsingJWPTOuter() || statistics.hasJWPTOuter()) : "JWPT_leftouter enabled, but database does "
+				+ "not have a JWPT";
+		if (this.isUsingJWPTInner()) {
+			assert (isUsingTT() || isUsingVP() || isUsingWPT()
+					|| isUsingIWPT() || isUsingJWPTOuter() || isUsingJWPTLeftouter())
+					: "JWPT_inner cannot execute all query types by itself";
+		}
 	}
 
 	private void parseArguments(final String[] args) {
@@ -142,7 +154,7 @@ public class Settings {
 			cmd = parser.parse(options, args);
 		} catch (final MissingOptionException e) {
 			formatter.printHelp("JAR", "Execute a  SPARQL query with Spark", options, "", true);
-			return;
+			System.exit(0);
 		} catch (final ParseException e) {
 			e.printStackTrace();
 		}
@@ -150,7 +162,7 @@ public class Settings {
 		assert cmd != null;
 		if (cmd.hasOption("help")) {
 			formatter.printHelp("JAR", "Execute a  SPARQL query with Spark", options, "", true);
-			return;
+			System.exit(0);
 		}
 		if (cmd.hasOption("DB")) {
 			databaseName = cmd.getOptionValue("DB");
@@ -203,8 +215,14 @@ public class Settings {
 		if (usingIWPT) {
 			enabledNodeTypes.add("IWPT");
 		}
-		if (usingJWPT) {
-			enabledNodeTypes.add("JWPT");
+		if (usingJWPTOuter) {
+			enabledNodeTypes.add("JWPT_outer");
+		}
+		if (usingJWPTInner) {
+			enabledNodeTypes.add("JWPT_inner");
+		}
+		if (usingJWPTLeftOuter) {
+			enabledNodeTypes.add("JWPT_leftouter");
 		}
 		logger.info("Enabled node types: " + String.join(", ", enabledNodeTypes));
 
@@ -213,11 +231,6 @@ public class Settings {
 		}
 
 		logger.info("#TRANSLATOR OPTIONS#");
-		if (joinTreeMaximumWidth == -1) {
-			logger.info("Maximum width: heuristically computed.");
-		} else {
-			logger.info("Maximum width: " + joinTreeMaximumWidth);
-		}
 		if (groupingTriples) {
 			logger.info("Grouping of triples enabled");
 		} else {
@@ -251,14 +264,17 @@ public class Settings {
 		if (usingIWPT) {
 			csvFilenameElements.add("IWPT");
 		}
-		if (usingJWPT) {
-			csvFilenameElements.add("JWPT");
+		if (usingJWPTOuter) {
+			csvFilenameElements.add("JWPT_outer");
+		}
+		if (usingJWPTInner) {
+			csvFilenameElements.add("JWPT_inner");
+		}
+		if (usingJWPTLeftOuter) {
+			csvFilenameElements.add("JWPT_leftouter");
 		}
 		if (usingEmergentSchema) {
 			csvFilenameElements.add("EmergentSchema");
-		}
-		if (joinTreeMaximumWidth != -1) {
-			csvFilenameElements.add("maxWidth-" + joinTreeMaximumWidth);
 		}
 		if (!groupingTriples) {
 			csvFilenameElements.add("nonGrouped");
@@ -307,8 +323,16 @@ public class Settings {
 		return usingIWPT;
 	}
 
-	public boolean isUsingJWPT() {
-		return usingJWPT;
+	public boolean isUsingJWPTOuter() {
+		return usingJWPTOuter;
+	}
+
+	public boolean isUsingJWPTInner() {
+		return usingJWPTInner;
+	}
+
+	public boolean isUsingJWPTLeftouter() {
+		return usingJWPTLeftOuter;
 	}
 
 	public boolean isUsingEmergentSchema() {
@@ -317,10 +341,6 @@ public class Settings {
 
 	public String getEmergentSchemaPath() {
 		return emergentSchemaPath;
-	}
-
-	public int getJoinTreeMaximumWidth() {
-		return joinTreeMaximumWidth;
 	}
 
 	public boolean isGroupingTriples() {

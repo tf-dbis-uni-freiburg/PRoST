@@ -148,7 +148,7 @@ public class Executor {
 	 */
 	public void saveResultsCsv(final String fileName) {
 		try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
-				StandardOpenOption.APPEND);
+				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			 final CSVPrinter csvPrinter = new CSVPrinter(writer,
 					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"))) {
 			for (final String[] res : this.queryTimeResults) {
@@ -163,9 +163,5 @@ public class Executor {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void clearHistory() {
-		queryTimeResults.clear();
 	}
 }

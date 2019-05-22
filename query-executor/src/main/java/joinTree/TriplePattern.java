@@ -24,7 +24,7 @@ public class TriplePattern {
 			subject = triple.getSubject().toString();
 		} else {
 			subjectType = ElementType.CONSTANT;
-			logger.info("Subject of the triple:" + triple.getSubject());
+			//logger.info("Subject of the triple: " + triple.getSubject());
 			if (triple.getSubject().isLiteral()) {
 				subject = triple.getSubject().toString();
 			} else {
@@ -34,7 +34,7 @@ public class TriplePattern {
 
 		// extract and set the predicate
 		predicateType = ElementType.CONSTANT;
-		predicate = triple.getPredicate().toString();
+		predicate = "<" + triple.getPredicate().toString() + ">";
 
 		// extract and set the object
 		if (triple.getObject().isVariable()) {
@@ -42,7 +42,7 @@ public class TriplePattern {
 			object = triple.getObject().toString(prefixes);
 		} else {
 			objectType = ElementType.CONSTANT;
-			logger.info("Object of the triple :" + triple.getObject());
+			//logger.info("Object of the triple: " + triple.getObject());
 			if (triple.getObject().isLiteral()) {
 				object = triple.getObject().toString();
 			} else {

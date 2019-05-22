@@ -42,7 +42,7 @@ public class Main {
 			EmergentSchema.getInstance().readSchema(settings.getEmergentSchemaPath());
 		}
 
-		DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getStatsPath());
+		final DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getStatsPath());
 		settings.checkTablesAvailability(statistics);
 
 		final File file = new File(settings.getInputPath());
@@ -87,8 +87,8 @@ public class Main {
 				executor.execute(translatedQuery);
 			}
 
-			// if benchmark file is presented, save results
 			if (settings.isSavingBenchmarkFile()) {
+				logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
 		}
