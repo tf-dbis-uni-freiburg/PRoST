@@ -134,15 +134,12 @@ public class Executor {
 		try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
 				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			 final CSVPrinter csvPrinter = new CSVPrinter(writer,
-					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"))) {
+					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
+							 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
+							 "VP Nodes",	"WPT Nodes", "IWPT Nodes", "JWPT Nodes"))) {
 			for (final Statistics statistics : this.executionStatistics) {
 				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
-						statistics.getResultsCount());
-			}
-			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
-					"VP Nodes",	"WPT Nodes", "IWPT Nodes", "JWPT Nodes");
-			for (final Statistics statistics : this.executionStatistics) {
-				csvPrinter.printRecord(statistics.getQueryName(), statistics.getJoinsCount(),
+						statistics.getResultsCount(), statistics.getJoinsCount(),
 						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
 						statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
 						statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
