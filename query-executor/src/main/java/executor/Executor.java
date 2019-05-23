@@ -73,7 +73,7 @@ public class Executor {
 		logger.info("Total execution time: " + totalExecutionTime);
 
 		if (settings.isSavingBenchmarkFile()) {
-			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.queryName);
+			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.getQueryName());
 			statisticsBuilder.executionTime(executionTime);
 			statisticsBuilder.resultsCount(results.count());
 

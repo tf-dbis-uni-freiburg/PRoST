@@ -40,14 +40,8 @@ public class Translator {
 	private final DatabaseStatistics statistics;
 	private final Settings settings;
 	private final String queryPath;
-	// minimum number of triple patterns with the same subject to form a group
-	// (property table)
 	private PrefixMapping prefixes;
 
-	// TODO check this, if you do not specify the treeWidth in the input parameters
-	// when you are running the jar, its default value is -1.
-
-	// TODO Move this logic to the translator
 	public Translator(final Settings settings, final DatabaseStatistics statistics, final String queryPath) {
 		this.settings = settings;
 		this.statistics = statistics;
@@ -83,10 +77,10 @@ public class Translator {
 		//		}
 		// final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
 
-		final JoinTree tree = new JoinTree(rootNode, null, queryPath);
+		final JoinTree tree = new JoinTree(rootNode, queryPath);
 
 		// set filter
-		tree.filter = mainTree.getFilter();
+		tree.setFilter(mainTree.getFilter());
 
 		// set projections
 		if (projectionVariables != null) {
