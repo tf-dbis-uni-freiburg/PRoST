@@ -7,7 +7,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
-import org.junit.Test;
 import query.utilities.HiveDatabaseUtilities;
 import query.utilities.TestData;
 import query.utilities.TripleBean;
@@ -15,7 +14,6 @@ import query.utilities.TripleBean;
 public class JoinOrderTest extends JavaDataFrameSuiteBase {
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
-	@Test
 	public void queryWithJoins() {
 		List<TripleBean> triplesList = TestData.createMultipleSequentialTestData(10);
 		Dataset<TripleBean> data = spark().createDataset(triplesList, triplesEncoder);
