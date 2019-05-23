@@ -27,17 +27,10 @@ public class JoinTree {
 	// TODO fix optional tree
 	// private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
-	// number of VpNodes and MVNodes
-	private int vpLeavesCount = 0;
-	private int wptLeavesCount = 0;
-
 
 	public JoinTree(final Node root, final List<Node> optionalTreeRoots, final String queryName) {
 		this.query_name = queryName;
 		this.root = root;
-
-		// calculate number of vp and wpt nodes for the tree
-		// findLeaves();
 
 		// TODO fix optional tree
 		// this.optionalTreeRoots = optionalTreeRoots;
@@ -84,7 +77,7 @@ public class JoinTree {
 				: results.filter(this.filter);
 
 		// apply projection as defined in the SPARQL query
-		if (selectedColumns.length>0){
+		if (selectedColumns.length > 0) {
 			results = results.select(selectedColumns);
 		}
 
@@ -180,14 +173,6 @@ public class JoinTree {
 
 	public Node getRoot() {
 		return root;
-	}
-
-	public int getVpLeavesCount() {
-		return vpLeavesCount;
-	}
-
-	public int getWptLeavesCount() {
-		return wptLeavesCount;
 	}
 
 	public void setDistinct(final boolean distinct) {

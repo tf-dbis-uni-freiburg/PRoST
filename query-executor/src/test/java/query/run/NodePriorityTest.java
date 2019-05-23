@@ -21,7 +21,6 @@ public class NodePriorityTest {
 
 		final DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(classLoader.getResource("nodePriority.json").getPath());
 
-
 		final PrefixMapping prefixes = PrefixMapping.Factory.create();
 		final List<Triple> triples_set_p0_p1 =
 				TestData.loadTriplesFromQueryFile(classLoader.getResource("nodePriority0_set_p0_p1.q").getPath());

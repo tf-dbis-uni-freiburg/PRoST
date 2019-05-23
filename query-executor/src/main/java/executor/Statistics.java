@@ -1,5 +1,14 @@
 package executor;
 
+import joinTree.IWPTNode;
+import joinTree.JWPTNode;
+import joinTree.JoinNode;
+import joinTree.JoinTree;
+import joinTree.Node;
+import joinTree.TTNode;
+import joinTree.VPNode;
+import joinTree.WPTNode;
+
 class Statistics {
 	private String queryName;
 
@@ -13,9 +22,8 @@ class Statistics {
 	private int vpNodesCount;
 	private int wptNodesCount;
 	private int iwptNodesCount;
-	private int jwptOuterNodesCount;
-	private int jwptInnerNodesCount;
-	private int jwptLeftOuterNodesCount;
+	private int jwptNodesCount;
+	private int joinNodesCount;
 
 	private Statistics() {
 
@@ -61,16 +69,12 @@ class Statistics {
 		return iwptNodesCount;
 	}
 
-	public int getJwptOuterNodesCount() {
-		return jwptOuterNodesCount;
+	public int getJwptNodesCount() {
+		return jwptNodesCount;
 	}
 
-	public int getJwptInnerNodesCount() {
-		return jwptInnerNodesCount;
-	}
-
-	public int getJwptLeftOuterNodesCount() {
-		return jwptLeftOuterNodesCount;
+	public int getJoinNodesCount() {
+		return joinNodesCount;
 	}
 
 	/**
@@ -89,9 +93,9 @@ class Statistics {
 		private int vpNodesCount = 0;
 		private int wptNodesCount = 0;
 		private int iwptNodesCount = 0;
-		private int jwptOuterNodesCount = 0;
-		private int jwptInnerNodesCount = 0;
-		private int jwptLeftOuterNodesCount = 0;
+		private int jwptNodesCount = 0;
+		private int joinNodesCount = 0;
+
 
 		Builder(final String queryName) {
 			this.queryName = queryName;
@@ -122,40 +126,29 @@ class Statistics {
 			return this;
 		}
 
-		Builder ttNodesCount(final int ttNodesCount) {
-			this.ttNodesCount = ttNodesCount;
+		Builder withCountedNodes(final JoinTree tree) {
+			countNodes(tree.getRoot());
 			return this;
 		}
 
-		Builder vpNodesCount(final int vpNodesCount) {
-			this.vpNodesCount = vpNodesCount;
-			return this;
+		private void countNodes(final Node node) {
+			if (node instanceof JoinNode) {
+				this.joinNodesCount++;
+				countNodes(((JoinNode) node).getLeftChild());
+				countNodes(((JoinNode) node).getRightChild());
+			} else if (node instanceof TTNode) {
+				ttNodesCount++;
+			} else if (node instanceof VPNode) {
+				vpNodesCount++;
+			} else if (node instanceof WPTNode) {
+				wptNodesCount++;
+			} else if (node instanceof IWPTNode) {
+				iwptNodesCount++;
+			} else if (node instanceof JWPTNode) {
+				jwptNodesCount++;
+			}
 		}
 
-		Builder wptNodesCount(final int wptNodesCount) {
-			this.wptNodesCount = wptNodesCount;
-			return this;
-		}
-
-		Builder iwptNodesCount(final int iwptNodesCount) {
-			this.iwptNodesCount = iwptNodesCount;
-			return this;
-		}
-
-		Builder jwptOuterNodesCount(final int jwptOuterNodesCount) {
-			this.jwptOuterNodesCount = jwptOuterNodesCount;
-			return this;
-		}
-
-		Builder jwptInnerNodesCount(final int jwptInnerNodesCount) {
-			this.jwptInnerNodesCount = jwptInnerNodesCount;
-			return this;
-		}
-
-		Builder jwptLeftOuterNodesCount(final int jwptLeftOuterNodesCount) {
-			this.jwptLeftOuterNodesCount = jwptLeftOuterNodesCount;
-			return this;
-		}
 
 		Statistics build() {
 			final Statistics statistics = new Statistics();
@@ -169,9 +162,8 @@ class Statistics {
 			statistics.vpNodesCount = this.vpNodesCount;
 			statistics.wptNodesCount = this.wptNodesCount;
 			statistics.iwptNodesCount = this.iwptNodesCount;
-			statistics.jwptOuterNodesCount = this.jwptOuterNodesCount;
-			statistics.jwptInnerNodesCount = this.jwptInnerNodesCount;
-			statistics.jwptLeftOuterNodesCount = this.jwptLeftOuterNodesCount;
+			statistics.jwptNodesCount = this.jwptNodesCount;
+			statistics.joinNodesCount = this.joinNodesCount;
 			return statistics;
 		}
 	}

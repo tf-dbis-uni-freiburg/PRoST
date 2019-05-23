@@ -73,7 +73,7 @@ public class Executor {
 		logger.info("Total execution time: " + totalExecutionTime);
 
 		if (settings.isSavingBenchmarkFile()) {
-			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.query_name);
+			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.queryName);
 			statisticsBuilder.executionTime(executionTime);
 			statisticsBuilder.resultsCount(results.count());
 
@@ -84,8 +84,7 @@ public class Executor {
 			statisticsBuilder.sortMergeJoinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
 					"SortMergeJoin"));
 
-			statisticsBuilder.vpNodesCount(queryTree.getVpLeavesCount());
-			statisticsBuilder.wptNodesCount(queryTree.getWptLeavesCount());
+			statisticsBuilder.withCountedNodes(queryTree);
 			executionStatistics.add(statisticsBuilder.build());
 		}
 	}
@@ -140,11 +139,13 @@ public class Executor {
 				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
 						statistics.getResultsCount());
 			}
-			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join", "VP Nodes", "WPT Nodes");
+			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
+					"VP Nodes",	"WPT Nodes", "IWPT Nodes", "JWPT Nodes");
 			for (final Statistics statistics : this.executionStatistics) {
 				csvPrinter.printRecord(statistics.getQueryName(), statistics.getJoinsCount(),
 						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
-						statistics.getVpNodesCount(), statistics.getWptNodesCount());
+						statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
+						statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
 			}
 			csvPrinter.flush();
 
