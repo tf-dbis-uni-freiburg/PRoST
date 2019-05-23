@@ -48,7 +48,7 @@ public class Main {
 		final File file = new File(settings.getInputPath());
 
 		// create an executor
-		final Executor executor = new Executor(settings.getDatabaseName());
+		final Executor executor = new Executor(settings);
 
 		// single file
 		if (file.isFile()) {
@@ -57,10 +57,6 @@ public class Main {
 			final JoinTree translatedQuery = translateSingleQuery(settings.getInputPath(),
 					statistics, settings);
 
-			// set result file
-			if (settings.getOutputFilePath() != null) {
-				executor.setOutputFile(settings.getOutputFilePath());
-			}
 			executor.execute(translatedQuery);
 
 			// if benchmark file is presented, save results

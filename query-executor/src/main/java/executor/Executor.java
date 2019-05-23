@@ -18,6 +18,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
+import utils.Settings;
 
 /**
  * Class that reads and executes join trees.
@@ -27,33 +28,25 @@ import org.apache.spark.sql.SparkSession;
  */
 public class Executor {
 	private static final Logger logger = Logger.getLogger("PRoST");
-	SparkSession spark;
-	SQLContext sqlContext;
-	private final String databaseName;
-	private final List<String[]> queryTimeResults;
-	private final List<String[]> queryStatistics;
-	private String outputFile;
+	private final Settings settings;
+	private final SparkSession spark;
+	private final SQLContext sqlContext;
+	private final List<Statistics> executionStatistics;
 
-	public Executor(final String databaseName) {
-
-		this.databaseName = databaseName;
-		this.queryTimeResults = new ArrayList<>();
-		this.queryStatistics = new ArrayList<>();
+	public Executor(final Settings settings) {
+		this.settings = settings;
+		this.executionStatistics = new ArrayList<>();
 
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
 		this.sqlContext = spark.sqlContext();
 
 		// use the selected database
-		this.sqlContext.sql("USE " + databaseName);
-		logger.info("USE " + databaseName);
+		this.sqlContext.sql("USE " + settings.getDatabaseName());
+		//logger.info("USE " + databaseName);
 
 		// only if partition by subject
 		//partitionBySubject();
-	}
-
-	public void setOutputFile(final String outputFile) {
-		this.outputFile = outputFile;
 	}
 
 	/*
@@ -61,48 +54,40 @@ public class Executor {
 	 * performs the Spark computation and measure the time required.
 	 */
 	public void execute(final JoinTree queryTree) {
+		final long executionTime;
 		final long totalStartTime = System.currentTimeMillis();
 
 		final long startTime;
-		final long executionTime;
 		final Dataset<Row> results = queryTree.compute(this.sqlContext);
 
 		startTime = System.currentTimeMillis();
-		long resultCount = -1;
-		// if specified, save the results in HDFS, just count otherwise
-		if (outputFile != null) {
-			results.write().mode(SaveMode.Overwrite).parquet(outputFile);
-		} else {
-			resultCount = results.count();
+
+		if (settings.getOutputFilePath() != null) {
+			results.write().mode(SaveMode.Overwrite).parquet(settings.getOutputFilePath());
 		}
+
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Execution time JOINS: " + executionTime);
 
-		// save the results in the list
-		queryTimeResults
-				.add(new String[]{queryTree.query_name, String.valueOf(executionTime), String.valueOf(resultCount)});
-		// get information from the query and add it to overall statistics
-		computeStatistics(queryTree, results);
-
 		final long totalExecutionTime = System.currentTimeMillis() - totalStartTime;
 		logger.info("Total execution time: " + totalExecutionTime);
-	}
 
-	// TODO add comment
-	private void computeStatistics(final JoinTree queryTree, final Dataset<Row> queryResult) {
-		// get the join type
-		final String queryPlan = queryResult.queryExecution().executedPlan().toString();
-		// count number of joins overall
-		final int joinsCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join");
-		// count number of broadcast joins for a query
-		final int broadcastJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
-				"BroadcastHashJoin");
-		// count number of sort merge joins
-		final int sortMergeJoinCount = org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "SortMergeJoin");
-		// save the statistics
-		queryStatistics.add(new String[]{queryTree.query_name, String.valueOf(joinsCount),
-				String.valueOf(broadcastJoinCount), String.valueOf(sortMergeJoinCount),
-				String.valueOf(queryTree.getVpLeavesCount()), String.valueOf(queryTree.getWptLeavesCount())});
+		if (settings.isSavingBenchmarkFile()) {
+			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.query_name);
+			statisticsBuilder.executionTime(executionTime);
+			statisticsBuilder.resultsCount(results.count());
+
+			final String queryPlan = results.queryExecution().executedPlan().toString();
+			statisticsBuilder.joinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join"));
+			statisticsBuilder.broadcastJoinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
+					"BroadcastHashJoin"));
+			statisticsBuilder.sortMergeJoinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
+					"SortMergeJoin"));
+
+			statisticsBuilder.vpNodesCount(queryTree.getVpLeavesCount());
+			statisticsBuilder.wptNodesCount(queryTree.getWptLeavesCount());
+			executionStatistics.add(statisticsBuilder.build());
+		}
 	}
 
 	/*
@@ -111,7 +96,7 @@ public class Executor {
 	 * produce benefit (only overhead) for queries with large intermediate results.
 	 */
 	public void cacheTables() {
-		sqlContext.sql("USE " + databaseName);
+		sqlContext.sql("USE " + settings.getDatabaseName());
 		final List<Row> tablesNamesRows = sqlContext.sql("SHOW TABLES").collectAsList();
 		for (final Row row : tablesNamesRows) {
 			final String name = row.getString(1);
@@ -151,12 +136,15 @@ public class Executor {
 				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			 final CSVPrinter csvPrinter = new CSVPrinter(writer,
 					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results"))) {
-			for (final String[] res : this.queryTimeResults) {
-				csvPrinter.printRecord(res[0], res[1], res[2]);
+			for (final Statistics statistics : this.executionStatistics) {
+				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
+						statistics.getResultsCount());
 			}
 			csvPrinter.printRecord("Query", "Joins", "Broadcast Joins", "SortMerge Join", "VP Nodes", "WPT Nodes");
-			for (final String[] res : this.queryStatistics) {
-				csvPrinter.printRecord(res[0], res[1], res[2], res[3], res[4], res[5]);
+			for (final Statistics statistics : this.executionStatistics) {
+				csvPrinter.printRecord(statistics.getQueryName(), statistics.getJoinsCount(),
+						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
+						statistics.getVpNodesCount(), statistics.getWptNodesCount());
 			}
 			csvPrinter.flush();
 
