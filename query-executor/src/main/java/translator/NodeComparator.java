@@ -17,8 +17,8 @@ public class NodeComparator implements Comparator<Node> {
 
 	@Override
 	public int compare(final Node node1, final Node node2) {
-		final float priorityNode1 = node1.getPriority();
-		final float priorityNode2 = node2.getPriority();
+		final double priorityNode1 = node1.getPriority();
+		final double priorityNode2 = node2.getPriority();
 
 		// for the smallest to the biggest
 		return (int) Math.ceil(priorityNode1 - priorityNode2);

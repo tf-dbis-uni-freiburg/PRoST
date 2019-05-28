@@ -113,7 +113,7 @@ public class Translator {
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
 			if (relatedNode != null) {
 				// append join node to the queue
-				final JoinNode joinNode = new JoinNode(null, currentNode, relatedNode, statistics);
+				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics);
 				nodesQueue.add(joinNode);
 				// add join node as a parent
 				currentNode.parent = joinNode;

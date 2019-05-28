@@ -23,7 +23,7 @@ public abstract class Node {
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
 	final DatabaseStatistics statistics;
-	private Float priority;
+	private Double priority;
 
 	public Node(final DatabaseStatistics statistics) {
 		this.parent = null;
@@ -53,7 +53,7 @@ public abstract class Node {
 	 *
 	 * @return heuristic score of a node
 	 */
-	public float getPriority() {
+	public double getPriority() {
 		// compute for first time
 		if (this.priority == null) {
 			this.priority = heuristicNodePriority();
@@ -73,7 +73,7 @@ public abstract class Node {
 	 * in a join tree. Note: This heuristic function is valid only for leaves in the
 	 * tree node. For {@link JoinNode}, see the overridden method.
 	 */
-	float heuristicNodePriority() {
+	double heuristicNodePriority() {
 		if (!statistics.getCharacteristicSets().isEmpty()) {
 			return computeStarJoinCardinality();
 		}
@@ -119,13 +119,13 @@ public abstract class Node {
 	"Characteristic sets: Accurate cardinality estimation for RDF queries with multiple joins."
 	2011 IEEE 27th International Conference on Data Engineering. IEEE, 2011.
 	 */
-	private long computeStarJoinCardinality() {
+	private double computeStarJoinCardinality() {
 		final ArrayList<CharacteristicSetStatistics> superSets = computeCharacteristicSupersets(
 				this.computeCharacteristicSet(), statistics);
-		long cardinality = 0;
+		double cardinality = 0;
 		for (final CharacteristicSetStatistics superSet : superSets) {
-			long m = 1;
-			long o = 1;
+			double m = 1;
+			double o = 1;
 			for (final TriplePattern triple : this.collectTriples()) {
 				//m = m * (superSet.getTuplesPerPredicate().get(triple.predicate) / superSet.getDistinctSubjects());
 				if (triple.objectType == ElementType.CONSTANT) {
@@ -133,7 +133,8 @@ public abstract class Node {
 					// min(o,sel(?o=o|?p=p) is sel(?o=o && ?p=p)/sel(?p=p)
 					o = min(o, statistics.getProperties().get(triple.predicate).getBoundObjectEstimatedSelectivity());
 				} else {
-					m = m * (superSet.getTuplesPerPredicate().get(triple.predicate) / superSet.getDistinctSubjects());
+					m = m * ((double) superSet.getTuplesPerPredicate().get(triple.predicate)
+									/ (double) superSet.getDistinctSubjects());
 				}
 			}
 			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;

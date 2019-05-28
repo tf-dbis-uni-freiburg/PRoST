@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import joinTree.JoinNode;
 import joinTree.WPTNode;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class NodePriorityTest {
 				TestData.loadTriplesFromQueryFile(classLoader.getResource("nodePriority4_superset_p1.q").getPath());
 
 		final WPTNode wptNode_set_p0_p1 = new WPTNode(triples_set_p0_p1, prefixes, statistics);
-		Assert.assertEquals(2, wptNode_set_p0_p1.getPriority(), 0);
+		Assert.assertEquals(3, wptNode_set_p0_p1.getPriority(), 0);
 
 		final WPTNode wptNode_set_superset_p0 = new WPTNode(triples_set_superset_p0, prefixes, statistics);
 		Assert.assertEquals(3, wptNode_set_superset_p0.getPriority(), 0);
@@ -46,7 +47,10 @@ public class NodePriorityTest {
 		Assert.assertEquals(0, wptNode_noSet.getPriority(), 0);
 
 		final WPTNode wptNode_superset_p1 = new WPTNode(triples_superset_p1, prefixes, statistics);
-		Assert.assertEquals(2, wptNode_superset_p1.getPriority(), 0);
+		Assert.assertEquals(3, wptNode_superset_p1.getPriority(), 0);
+
+		final JoinNode Jnode = new JoinNode(wptNode_noSet, wptNode_set_p0_p1, statistics);
+		Assert.assertEquals(0, Jnode.getPriority(), 0);
 
 		//TODO tests with bounded objects
 	}

@@ -159,7 +159,7 @@ public class IWPTNode extends MVNode {
 	@Override
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
-		str.append("IWPT node: ");
+		str.append("IWPT node(").append(this.getPriority()).append(": ");
 		for (final TriplePattern tpGroup : tripleGroup) {
 			str.append(tpGroup.toString()).append(", ");
 		}

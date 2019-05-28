@@ -168,7 +168,7 @@ public class WPTNode extends MVNode {
 	@Override
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
-		str.append("WPT node: ");
+		str.append("WPT node (" + this.getPriority() + "): ");
 		for (final TriplePattern tpGroup : tripleGroup) {
 			str.append(tpGroup.toString()).append(", ");
 		}

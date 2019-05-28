@@ -63,7 +63,7 @@ public class TTNode extends Node {
 
 	@Override
 	public String toString() {
-		return  "{" + "TT node: " + triplePattern.toString() + " }";
+		return  "{TT node (" + this.getPriority() + "(: " + triplePattern.toString() + " }";
 	}
 
 	@Override

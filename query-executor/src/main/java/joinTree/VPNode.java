@@ -65,7 +65,7 @@ public class VPNode extends Node {
 
 	@Override
 	public String toString() {
-		return "{VP node: " + triplePattern.toString() + " }";
+		return "{VP node (" + this.getPriority() +"): " + triplePattern.toString() + " }";
 	}
 
 	@Override

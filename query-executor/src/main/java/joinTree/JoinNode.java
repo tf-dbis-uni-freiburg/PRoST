@@ -25,10 +25,9 @@ public class JoinNode extends MVNode {
 	private Node leftChild;
 	private Node rightChild;
 
-	public JoinNode(final Node parent, final Node leftChild, final Node rightChild,
+	public JoinNode(final Node leftChild, final Node rightChild,
 					final DatabaseStatistics statistics) {
 		super(statistics);
-		this.parent = parent;
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
 		this.tripleGroup = getTriples();
@@ -85,28 +84,27 @@ public class JoinNode extends MVNode {
 	 * involved), it is ignored from the multiplication.
 	 */
 	@Override
-	public float heuristicNodePriority() {
-		float priority = 0;
-		final float leftChildPriority = this.leftChild.heuristicNodePriority();
-		final float rightChildPriority = this.rightChild.heuristicNodePriority();
-		if (leftChildPriority == 0.0) {
+	public double heuristicNodePriority() {
+		double priority = 0;
+		final double leftChildPriority = this.leftChild.heuristicNodePriority();
+		final double rightChildPriority = this.rightChild.heuristicNodePriority();
+		/*if (leftChildPriority == 0.0) {
 			return rightChildPriority;
 		} else if (rightChildPriority == 0.0) {
 			return leftChildPriority;
-		} else {
+		} else {*/
 			priority = rightChildPriority * leftChildPriority;
-		}
+		//}
 		return priority;
 	}
 
 	@Override
 	public String toString() {
-		final String str = "{" + "Join node: " + tripleGroup.size()
+		return "{" + "Join node (" + this.getPriority() + "(: " + tripleGroup.size()
 				+ " }"
 				+ " ["
 				+ "\n Left child: " + leftChild.toString()
 				+ "\n Right child: " + rightChild.toString()
 				+ "\n]";
-		return str;
 	}
 }
