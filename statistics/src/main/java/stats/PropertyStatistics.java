@@ -40,7 +40,7 @@ public class PropertyStatistics {
 		return isInverseComplex;
 	}
 
-	public Long getBoundObjectEstimatedSelectivity() {
-		return this.distinctObjects / this.tuplesNumber;
+	public double getBoundObjectEstimatedSelectivity() {
+		return this.distinctObjects.doubleValue() / this.tuplesNumber;
 	}
 }
