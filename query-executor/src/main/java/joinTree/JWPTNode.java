@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
-import translator.JoinedTriplesGroup;
+import translator.triplesGroup.TriplesGroup;
 import utils.Utils;
 
 /**
@@ -24,27 +24,48 @@ public class JWPTNode extends MVNode {
 	private final List<TriplePattern> iwptTripleGroup;
 	private String JOINED_TABLE_NAME = "joined_wide_property_table_outer";
 
-	public JWPTNode(final JoinedTriplesGroup joinedTriplesGroup, final PrefixMapping prefixes,
+	public JWPTNode(final TriplesGroup triplesGroup, final PrefixMapping prefixes,
 					final DatabaseStatistics statistics) {
 
 		super(statistics);
 
-		final ArrayList<TriplePattern> wptTriplePatterns = new ArrayList<>();
-		wptTripleGroup = wptTriplePatterns;
-		for (final Triple t : joinedTriplesGroup.getWptGroup()) {
+		wptTripleGroup = new ArrayList<>();
+		for (final Triple t : triplesGroup.getForwardTriples()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
-			wptTriplePatterns.add(tp);
+			wptTripleGroup.add(tp);
 			tripleGroup.add(tp);
 		}
 
-		final ArrayList<TriplePattern> iwptTriplePatterns = new ArrayList<>();
-		iwptTripleGroup = iwptTriplePatterns;
+		iwptTripleGroup = new ArrayList<>();
 
-		for (final Triple t : joinedTriplesGroup.getIwptGroup()) {
+		for (final Triple t : triplesGroup.getInverseTriples()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
-			iwptTriplePatterns.add(tp);
+			iwptTripleGroup.add(tp);
 			tripleGroup.add(tp);
 		}
+		setIsComplex();
+	}
+
+	public JWPTNode(final Triple triple, final PrefixMapping prefixes,
+					final DatabaseStatistics statistics, boolean tripleAsForwardGroup) {
+
+		super(statistics);
+		if (tripleAsForwardGroup) {
+			wptTripleGroup = new ArrayList<>();
+			final TriplePattern triplePattern = new TriplePattern(triple, prefixes);
+			wptTripleGroup.add(triplePattern);
+			tripleGroup.add(triplePattern);
+
+			iwptTripleGroup = new ArrayList<>();
+		} else {
+			iwptTripleGroup = new ArrayList<>();
+			final TriplePattern triplePattern = new TriplePattern(triple, prefixes);
+			iwptTripleGroup.add(triplePattern);
+			tripleGroup.add(triplePattern);
+
+			wptTripleGroup = new ArrayList<>();
+		}
+
 		setIsComplex();
 	}
 

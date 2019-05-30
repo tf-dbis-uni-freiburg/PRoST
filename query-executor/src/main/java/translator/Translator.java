@@ -25,6 +25,8 @@ import joinTree.VPNode;
 import joinTree.WPTNode;
 import org.apache.log4j.Logger;
 import stats.DatabaseStatistics;
+import translator.triplesGroup.TriplesGroup;
+import translator.triplesGroup.TriplesGroupsMapping;
 import utils.EmergentSchema;
 import utils.Settings;
 
@@ -127,22 +129,6 @@ public class Translator {
 		return currentNode;
 	}
 
-	/**
-	 * Removes an entry with the given key from <code>joinedGroups</code> if its
-	 * element size is 0.
-	 *
-	 * @param joinedGroups a mapping of <code>JoinedTriplesGroup</code>
-	 * @param key          a key from <code>joinedGroups</code>
-	 */
-	private void removeJoinedTriplesGroupIfEmpty(final HashMap<String, JoinedTriplesGroup> joinedGroups,
-												 final String key) {
-		if (joinedGroups.containsKey(key)) {
-			if (joinedGroups.get(key).size() == 0) {
-				joinedGroups.remove(key);
-			}
-		}
-	}
-
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 		final List<Triple> unassignedTriples = new ArrayList<>();
@@ -156,29 +142,26 @@ public class Translator {
 			}
 		}
 
-		logger.info("Triple patterns without nodes: " + unassignedTriples.size());
-		if (settings.isUsingJWPTOuter()) {
-			logger.info("Creating JWPT_outer nodes... ");
-			addJWPTNodes(unassignedTriples, nodesQueue);
+		if (settings.isUsingWPT() || settings.isUsingIWPT() || settings.isUsingJWPTInner()
+				|| settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter()) {
+			logger.info("Creating grouped nodes...");
+			final TriplesGroupsMapping groupsMapping = new TriplesGroupsMapping(unassignedTriples, settings);
+			while (groupsMapping.size() > 0) {
+				final TriplesGroup largestGroup = groupsMapping.extractBestTriplesGroup(settings);
+				if (largestGroup.size() < settings.getMinGroupSize()) {
+					break;
+				}
+				final List<Node> createdNodes = largestGroup.createNodes(settings, statistics, prefixes);
+				if (!createdNodes.isEmpty()) {
+					nodesQueue.addAll(createdNodes);
+					groupsMapping.removeTriples(largestGroup);
+					unassignedTriples.removeAll(largestGroup.getTriples());
+				}
+			}
 			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
 					+ unassignedTriplesWithVariablePredicate.size()));
 		}
-		if (settings.isUsingWPT() && settings.isUsingIWPT() && settings.isGroupingTriples()) {
-			logger.info("Creating WPT and IWPT nodes...");
-			addMixedPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size()));
-		} else if (settings.isUsingWPT()) {
-			logger.info("Creating WPT nodes...");
-			addWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size()));
-		} else if (settings.isUsingIWPT()) {
-			logger.info("Creating IWPT nodes...");
-			addIWPTNodes(unassignedTriples, nodesQueue);
-			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
-					+ unassignedTriplesWithVariablePredicate.size()));
-		}
+
 		if (settings.isUsingVP()) {
 			// VP only
 			logger.info("Creating VP nodes...");
@@ -207,9 +190,7 @@ public class Translator {
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else if (settings.isUsingJWPTOuter()
 					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
-				final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
-				tripleAsJoinedGroup.getWptGroup().add(triple);
-				nodesQueue.add(new JWPTNode(tripleAsJoinedGroup, prefixes, statistics));
+				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else {
 				//no best pt node type, uses general best option
@@ -223,9 +204,7 @@ public class Translator {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingJWPTOuter()) {
-					final JoinedTriplesGroup tripleAsJoinedGroup = new JoinedTriplesGroup();
-					tripleAsJoinedGroup.getWptGroup().add(triple);
-					nodesQueue.add(new JWPTNode(tripleAsJoinedGroup, prefixes, statistics));
+					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingIWPT()) {
 					nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
@@ -238,168 +217,6 @@ public class Translator {
 			throw new RuntimeException("Cannot generate nodes queue. Some triple patterns are not assigned to a node.");
 		} else {
 			return nodesQueue;
-		}
-	}
-
-	/**
-	 * Creates JWPT nodes given the triple patterns.
-	 *
-	 * @param triples    List of triple patterns. Patterns added to a node are removed from the list.
-	 * @param nodesQueue Queue where the nodes are added to.
-	 */
-	private void addJWPTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		final HashMap<String, JoinedTriplesGroup> joinedGroups = getJoinedTriplesGroups(triples);
-		while (!joinedGroups.isEmpty()) {
-			if (settings.isGroupingTriples()) {
-				// get largest group
-				final String largestGroupKey = getLargestGroupKey(joinedGroups);
-				final JoinedTriplesGroup largestJoinedTriplesGroup = joinedGroups.get(largestGroupKey);
-
-				if (largestJoinedTriplesGroup.size() >= settings.getMinGroupSize()) {
-					nodesQueue.add(new JWPTNode(largestJoinedTriplesGroup, prefixes, statistics));
-
-					triples.removeAll(largestJoinedTriplesGroup.getWptGroup());
-					triples.removeAll(largestJoinedTriplesGroup.getIwptGroup());
-
-					// remove triples from smaller groups
-					for (final Triple triple : largestJoinedTriplesGroup.getWptGroup()) {
-						final String object = triple.getObject().toString();
-						if (joinedGroups.get(object) != null) {
-							joinedGroups.get(object).getIwptGroup().remove(triple);
-							removeJoinedTriplesGroupIfEmpty(joinedGroups, object);
-						}
-					}
-					for (final Triple triple : largestJoinedTriplesGroup.getIwptGroup()) {
-						final String subject = triple.getSubject().toString();
-						if (joinedGroups.get(subject) != null) {
-							joinedGroups.get(subject).getWptGroup().remove(triple);
-							removeJoinedTriplesGroupIfEmpty(joinedGroups, subject);
-						}
-					}
-					joinedGroups.remove(largestGroupKey);
-				} else {
-					joinedGroups.clear(); //all available groups are smaller than the minimum group size
-				}
-			} else { // if grouping is disabled, all JoinedGroups contain only one triple, and each triple is in at
-				// most one groups
-				for (final JoinedTriplesGroup group : joinedGroups.values()) {
-					nodesQueue.add(new JWPTNode(group, prefixes, statistics));
-					triples.removeAll(group.getWptGroup());
-					triples.removeAll(group.getIwptGroup());
-				}
-				joinedGroups.clear(); // avoid concurrent modifications
-			}
-		}
-	}
-
-	/**
-	 * Given a list of triples, adds valid WPT and IWPT nodes to the queue.
-	 *
-	 * @param triples    The list of available triple patterns. Patterns assigned to nodes are removed.
-	 * @param nodesQueue Priority queue where the nodes are added to.
-	 */
-	private void addMixedPTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
-		final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-
-		// repeats until there are no unassigned triple patterns left
-		while (objectGroups.size() != 0 && subjectGroups.size() != 0) {
-			// Calculate largest group by object
-			final String largestObjectGroupKey = getLargestGroupKey(objectGroups);
-			final int largestObjectGroupSize = objectGroups.get(largestObjectGroupKey).size();
-			// calculate biggest group by subject
-			final String largestSubjectGroupKey = getLargestGroupKey(subjectGroups);
-			final int largestSubjectGroupSize = subjectGroups.get(largestSubjectGroupKey).size();
-
-			// create nodes
-			if (largestObjectGroupSize > largestSubjectGroupSize
-					&& largestObjectGroupSize >= settings.getMinGroupSize()) {
-				// create and add the iwpt
-				final List<Triple> largestObjectGroupTriples = objectGroups.get(largestObjectGroupKey);
-				nodesQueue.add(new IWPTNode(largestObjectGroupTriples, prefixes, statistics));
-				triples.removeAll(largestObjectGroupTriples);
-
-				// remove triples from subject group
-				for (final Triple triple : largestObjectGroupTriples) {
-					final String key = triple.getObject().toString();
-					if (subjectGroups.containsKey(key)) {
-						subjectGroups.get(key).remove(triple);
-						if (subjectGroups.get(key).size() == 0) {
-							subjectGroups.remove(key);
-						}
-					}
-				}
-				objectGroups.remove(largestObjectGroupKey);
-			} else if (largestSubjectGroupSize >= settings.getMinGroupSize()) {
-				/// create and add the wpt
-				final List<Triple> largestSubjectGroupTriples = subjectGroups.get(largestSubjectGroupKey);
-				nodesQueue.add(new WPTNode(largestSubjectGroupTriples, prefixes, statistics));
-				triples.removeAll(largestSubjectGroupTriples);
-				// remove triples from object group
-				for (final Triple triple : largestSubjectGroupTriples) {
-					final String key = triple.getSubject().toString();
-					if (objectGroups.containsKey(key)) {
-						objectGroups.get(key).remove(triple);
-						if (objectGroups.get(key).size() == 0) {
-							objectGroups.remove(key);
-						}
-					}
-				}
-				subjectGroups.remove(largestSubjectGroupKey);
-			} else {
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Given a list of triples, adds valid WPT nodes to the queue.
-	 *
-	 * @param triples    The list of available triple patterns. Patterns assigned to nodes are removed.
-	 * @param nodesQueue Priority queue where the nodes are added to.
-	 */
-	private void addWPTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		if (EmergentSchema.isUsed()) {
-			logger.info("Emergent schema is used, group triples based on subject and emergent schema.");
-			final HashMap<String, HashMap<String, List<Triple>>> emergentSchemaSubjectGroups =
-					getEmergentSchemaSubjectGroups(triples);
-			for (final String tableName : emergentSchemaSubjectGroups.keySet()) {
-				final HashMap<String, List<Triple>> emergentSubjectGroups =
-						emergentSchemaSubjectGroups.get(tableName);
-				for (final String subject : emergentSubjectGroups.keySet()) {
-					final List<Triple> subjectTriples = emergentSubjectGroups.get(subject);
-					nodesQueue.add(new WPTNode(subjectTriples, prefixes, tableName, statistics));
-					triples.removeAll(subjectTriples);
-				}
-			}
-		} else {
-			final HashMap<String, List<Triple>> subjectGroups = getSubjectGroups(triples);
-			for (final List<Triple> triplesGroup : subjectGroups.values()) {
-				if (triplesGroup.size() >= settings.getMinGroupSize() || !settings.isGroupingTriples()) {
-					nodesQueue.add(new WPTNode(triplesGroup, prefixes, statistics));
-					triples.removeAll(triplesGroup);
-				} else {
-					break;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Given a list of triples, adds valid IWPT nodes to the queue.
-	 *
-	 * @param triples    The list of available triple patterns. Patterns assigned to nodes are removed.
-	 * @param nodesQueue Priority queue where the nodes are added to.
-	 */
-	private void addIWPTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		final HashMap<String, List<Triple>> objectGroups = getObjectGroups(triples);
-		for (final List<Triple> triplesGroup : objectGroups.values()) {
-			if (triplesGroup.size() >= settings.getMinGroupSize() || !settings.isGroupingTriples()) {
-				nodesQueue.add(new IWPTNode(triplesGroup, prefixes, statistics));
-				triples.removeAll(triplesGroup);
-			} else {
-				break;
-			}
 		}
 	}
 
@@ -429,39 +246,6 @@ public class Translator {
 			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics));
 		}
 		triples.clear();
-	}
-
-	/**
-	 * Groups the input triples by subject. If grouping is disabled, create one list
-	 * with one element for each triple.
-	 *
-	 * @param triples triples to be grouped
-	 * @return HashMap of triples grouped by the subject
-	 */
-	private HashMap<String, List<Triple>> getSubjectGroups(final List<Triple> triples) {
-		final HashMap<String, List<Triple>> subjectGroups = new HashMap<>();
-		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
-		// overwriting values
-		for (final Triple triple : triples) {
-			if (!triple.getPredicate().isVariable()) {
-				if (settings.isGroupingTriples()) {
-					final String subject = triple.getSubject().toString(prefixes);
-					if (subjectGroups.containsKey(subject)) {
-						subjectGroups.get(subject).add(triple);
-					} else { // new entry in the HashMap
-						final List<Triple> subjTriples = new ArrayList<>();
-						subjTriples.add(triple);
-						subjectGroups.put(subject, subjTriples);
-					}
-				} else {
-					final List<Triple> subjTriples = new ArrayList<>();
-					subjTriples.add(triple);
-					subjectGroups.put(String.valueOf(key), subjTriples);
-					key++;
-				}
-			}
-		}
-		return subjectGroups;
 	}
 
 	/**
@@ -503,105 +287,6 @@ public class Translator {
 			}
 		}
 		return subjectGroups;
-	}
-
-	/**
-	 * Groups the input triples by object.
-	 *
-	 * @param triples triples to be grouped
-	 * @return HashMap of triples grouped by the object
-	 */
-	private HashMap<String, List<Triple>> getObjectGroups(final List<Triple> triples) {
-		final HashMap<String, List<Triple>> objectGroups = new HashMap<>();
-		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
-		// overwriting values
-		for (final Triple triple : triples) {
-			if (!triple.getPredicate().isVariable()) {
-				if (settings.isGroupingTriples()) {
-					final String object = triple.getObject().toString(prefixes);
-					if (objectGroups.containsKey(object)) {
-						objectGroups.get(object).add(triple);
-					} else { // new entry in the HashMap
-						final List<Triple> objTriples = new ArrayList<>();
-						objTriples.add(triple);
-						objectGroups.put(object, objTriples);
-					}
-				} else {
-					final List<Triple> objTriples = new ArrayList<>();
-					objTriples.add(triple);
-					objectGroups.put(String.valueOf(key), objTriples);
-					key++;
-				}
-			}
-		}
-		return objectGroups;
-	}
-
-	private HashMap<String, JoinedTriplesGroup> getJoinedTriplesGroups(final List<Triple> triples) {
-		final HashMap<String, JoinedTriplesGroup> joinedGroups = new HashMap<>();
-		int key = 0; // creates a unique key to be used when grouping is disabled, to avoid
-		// overwriting values
-		for (final Triple triple : triples) {
-			if (!triple.getPredicate().isVariable()) { //only patterns without a variable predicate can be grouped
-				if (settings.isGroupingTriples()) {
-					final String subject = triple.getSubject().toString(prefixes);
-					final String object = triple.getObject().toString(prefixes);
-
-					// group by subject value
-					if (joinedGroups.containsKey(subject)) {
-						joinedGroups.get(subject).getWptGroup().add(triple);
-					} else {
-						final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
-						newGroup.getWptGroup().add(triple);
-						joinedGroups.put(subject, newGroup);
-					}
-
-					// group by object value
-					if (joinedGroups.containsKey(object)) {
-						joinedGroups.get(object).getIwptGroup().add(triple);
-					} else {
-						final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
-						newGroup.getIwptGroup().add(triple);
-						joinedGroups.put(object, newGroup);
-					}
-				} else {
-					final JoinedTriplesGroup newGroup = new JoinedTriplesGroup();
-					newGroup.getWptGroup().add(triple);
-					joinedGroups.put(String.valueOf(key), newGroup);
-					key++;
-				}
-			}
-		}
-
-		return joinedGroups;
-	}
-
-	/**
-	 * Given a Map with groups, return the key of the largest group.
-	 *
-	 * @param groupsMapping Map with the groups whose size are to be checked.
-	 * @param <T>           Type of the groups. <code>JoinedTriplesGroup</code>
-	 *                      or a list of <code>Triple</code>
-	 * @return Returns the key of the biggest group
-	 */
-	private <T> String getLargestGroupKey(final HashMap<String, T> groupsMapping) {
-		int biggestGroupSize = 0;
-		String biggestGroupKey = null;
-
-		for (final String key : groupsMapping.keySet()) {
-			final T group = groupsMapping.get(key);
-			final int groupSize;
-			if (group instanceof JoinedTriplesGroup) {
-				groupSize = ((JoinedTriplesGroup) group).size();
-			} else {
-				groupSize = ((List<Triple>) group).size();
-			}
-			if (groupSize >= biggestGroupSize) {
-				biggestGroupKey = key;
-				biggestGroupSize = groupSize;
-			}
-		}
-		return biggestGroupKey;
 	}
 
 	/*

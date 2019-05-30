@@ -86,7 +86,20 @@ public class Settings {
 
 	private void validate() {
 		assert databaseName != null && !databaseName.equals("") : "Missing database name";
-		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPTOuter) : "At least one node type must be enabled";
+		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPTOuter)
+				: "At least one data model containing all data must be enabled";
+
+		int jwptCounter = 0;
+		if (usingJWPTInner) {
+			jwptCounter++;
+		}
+		if (usingJWPTLeftOuter) {
+			jwptCounter++;
+		}
+		if (isUsingJWPTOuter()) {
+			jwptCounter++;
+		}
+		assert (jwptCounter <= 1) : "Only one type of JWPT can be used";
 	}
 
 	/**

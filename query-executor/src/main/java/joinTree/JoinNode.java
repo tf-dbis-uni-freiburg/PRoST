@@ -100,7 +100,7 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public String toString() {
-		return "{" + "Join node (" + this.getPriority() + "(: " + tripleGroup.size()
+		return "{" + "Join node (" + this.getPriority() + "): " + tripleGroup.size()
 				+ " }"
 				+ " ["
 				+ "\n Left child: " + leftChild.toString()

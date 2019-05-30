@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -19,6 +20,7 @@ import stats.DatabaseStatistics;
  * @author Polina Koleva
  */
 public abstract class Node {
+	private static final Logger logger = Logger.getLogger("PRoST");
 	public Node parent;
 	// the spark data set containing the data relative to this node
 	public Dataset<Row> sparkNodeData;
@@ -134,7 +136,7 @@ public abstract class Node {
 					o = min(o, statistics.getProperties().get(triple.predicate).getBoundObjectEstimatedSelectivity());
 				} else {
 					m = m * ((double) superSet.getTuplesPerPredicate().get(triple.predicate)
-									/ (double) superSet.getDistinctSubjects());
+							/ (double) superSet.getDistinctSubjects());
 				}
 			}
 			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;
