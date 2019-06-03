@@ -22,13 +22,14 @@ public class VPNode extends Node {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		if (triplePattern.predicateType.equals(ElementType.CONSTANT)) {
-			assert statistics.getProperties().get(triplePattern.predicate) != null
-					: "Property " + triplePattern.predicate + " not found in the statistics file";
-			final String tableName = "vp_" + statistics.getProperties().get(triplePattern.predicate).getInternalName();
+		if (triplePattern.getPredicateType().equals(ElementType.CONSTANT)) {
+			assert this.getStatistics().getProperties().get(triplePattern.getPredicate()) != null
+					: "Property " + triplePattern.getPredicate() + " not found in the statistics file";
+			final String tableName =
+					"vp_" + this.getStatistics().getProperties().get(triplePattern.getPredicate()).getInternalName();
 			this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName)));
 		} else {
-			for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+			for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
 				final String tableName =
 						"vp_" + propertyStatistics.getInternalName();
 				if (this.getSparkNodeData() == null) {
@@ -44,15 +45,15 @@ public class VPNode extends Node {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> whereElements = new ArrayList<>();
 
-		if (triplePattern.subjectType == ElementType.VARIABLE) {
-			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+		if (triplePattern.getSubjectType() == ElementType.VARIABLE) {
+			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.getSubject()));
 		} else {
-			whereElements.add("s='" + triplePattern.subject + "'");
+			whereElements.add("s='" + triplePattern.getSubject() + "'");
 		}
-		if (triplePattern.objectType == ElementType.VARIABLE) {
-			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.object));
+		if (triplePattern.getObjectType() == ElementType.VARIABLE) {
+			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.getObject()));
 		} else {
-			whereElements.add("o='" + triplePattern.object + "'");
+			whereElements.add("o='" + triplePattern.getObject() + "'");
 		}
 
 		String query = "SELECT " + String.join(", ", selectElements);
@@ -65,7 +66,7 @@ public class VPNode extends Node {
 
 	@Override
 	public String toString() {
-		return "{VP node (" + this.getPriority() +"): " + triplePattern.toString() + " }";
+		return "{VP node (" + this.getPriority() + "): " + triplePattern.toString() + " }";
 	}
 
 	@Override

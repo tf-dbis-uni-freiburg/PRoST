@@ -4,13 +4,13 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 
 public class TriplePattern {
-	public String subject;
-	public String predicate;
-	public String object;
-	public ElementType subjectType;
-	public ElementType objectType;
-	public ElementType predicateType;
-	public boolean isComplex = false;
+	private String subject;
+	private String predicate;
+	private String object;
+	private ElementType subjectType;
+	private ElementType objectType;
+	private ElementType predicateType;
+	private boolean isComplex = false;
 
 	// construct from Jena triple
 	public TriplePattern(final Triple triple, final PrefixMapping prefixes) {
@@ -50,5 +50,61 @@ public class TriplePattern {
 	@Override
 	public String toString() {
 		return String.format("(%s) (%s) (%s)", subject, predicate, object);
+	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(final String subject) {
+		this.subject = subject;
+	}
+
+	public String getPredicate() {
+		return predicate;
+	}
+
+	public void setPredicate(final String predicate) {
+		this.predicate = predicate;
+	}
+
+	public String getObject() {
+		return object;
+	}
+
+	public void setObject(final String object) {
+		this.object = object;
+	}
+
+	public ElementType getSubjectType() {
+		return subjectType;
+	}
+
+	public void setSubjectType(final ElementType subjectType) {
+		this.subjectType = subjectType;
+	}
+
+	public ElementType getObjectType() {
+		return objectType;
+	}
+
+	public void setObjectType(final ElementType objectType) {
+		this.objectType = objectType;
+	}
+
+	public ElementType getPredicateType() {
+		return predicateType;
+	}
+
+	public void setPredicateType(final ElementType predicateType) {
+		this.predicateType = predicateType;
+	}
+
+	public boolean isComplex() {
+		return isComplex;
+	}
+
+	public void setComplex(final boolean complex) {
+		isComplex = complex;
 	}
 }

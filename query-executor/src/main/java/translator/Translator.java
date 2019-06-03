@@ -115,9 +115,6 @@ public class Translator {
 			if (relatedNode != null) {
 				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics);
 				nodesQueue.add(joinNode);
-				currentNode.setParent(joinNode);
-				relatedNode.setParent(joinNode);
-
 				nodesQueue.remove(currentNode);
 				nodesQueue.remove(relatedNode);
 			}
@@ -285,7 +282,7 @@ public class Translator {
 		return subjectGroups;
 	}
 
-	/*
+	/**
 	 * Given a source node, finds another node with at least one variable in common,
 	 * if there isn't return null.
 	 */
@@ -302,17 +299,12 @@ public class Translator {
 		return null;
 	}
 
-	/*
-	 * check if two Triple Patterns share at least one variable.
+	/**
+	 * Check if two Triple Patterns share at least one variable.
 	 */
 	private boolean existsVariableInCommon(final TriplePattern tripleA, final TriplePattern tripleB) {
-		if (tripleA.objectType == ElementType.VARIABLE
-				&& (tripleA.object.equals(tripleB.subject) || tripleA.object.equals(tripleB.object))) {
-			return true;
-		}
-
-		return tripleA.subjectType == ElementType.VARIABLE
-				&& (tripleA.subject.equals(tripleB.subject) || tripleA.subject.equals(tripleB.object));
-
+		return (tripleA.getObjectType() == ElementType.VARIABLE
+				&& (tripleA.getObject().equals(tripleB.getSubject())
+				|| tripleA.getObject().equals(tripleB.getObject())));
 	}
 }

@@ -14,7 +14,7 @@ import stats.DatabaseStatistics;
  */
 public abstract class MVNode extends Node {
 
-	List<TriplePattern> tripleGroup;
+	private List<TriplePattern> tripleGroup;
 
 	MVNode(final DatabaseStatistics statistics) {
 		super(statistics);
@@ -24,5 +24,25 @@ public abstract class MVNode extends Node {
 	@Override
 	public List<TriplePattern> collectTriples() {
 		return tripleGroup;
+	}
+
+	void addTriplePattern(final TriplePattern triplePattern) {
+		this.tripleGroup.add(triplePattern);
+	}
+
+	List<TriplePattern> getTripleGroup() {
+		return this.tripleGroup;
+	}
+
+	void setTripleGroup(final List<TriplePattern> tripleGroup) {
+		this.tripleGroup = tripleGroup;
+	}
+
+	TriplePattern getFirstTriplePattern() {
+		return this.tripleGroup.get(0);
+	}
+
+	int size() {
+		return this.tripleGroup.size();
 	}
 }

@@ -31,14 +31,14 @@ public class JWPTNode extends MVNode {
 		for (final Triple t : triplesGroup.getForwardTriples()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			wptTripleGroup.add(tp);
-			tripleGroup.add(tp);
+			this.addTriplePattern(tp);
 		}
 
 		iwptTripleGroup = new ArrayList<>();
 		for (final Triple t : triplesGroup.getInverseTriples()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTripleGroup.add(tp);
-			tripleGroup.add(tp);
+			this.addTriplePattern(tp);
 		}
 		setIsComplex();
 	}
@@ -51,14 +51,14 @@ public class JWPTNode extends MVNode {
 			wptTripleGroup = new ArrayList<>();
 			final TriplePattern triplePattern = new TriplePattern(triple, prefixes);
 			wptTripleGroup.add(triplePattern);
-			tripleGroup.add(triplePattern);
+			this.addTriplePattern(triplePattern);
 
 			iwptTripleGroup = new ArrayList<>();
 		} else {
 			iwptTripleGroup = new ArrayList<>();
 			final TriplePattern triplePattern = new TriplePattern(triple, prefixes);
 			iwptTripleGroup.add(triplePattern);
-			tripleGroup.add(triplePattern);
+			this.addTriplePattern(triplePattern);
 
 			wptTripleGroup = new ArrayList<>();
 		}
@@ -73,20 +73,21 @@ public class JWPTNode extends MVNode {
 	 */
 	private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
-			triplePattern.isComplex = super.statistics.getProperties().get(triplePattern.predicate).isComplex();
+			triplePattern.setComplex(
+					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isComplex());
 		}
 
 		for (final TriplePattern triplePattern : iwptTripleGroup) {
-			triplePattern.isComplex =
-					super.statistics.getProperties().get(triplePattern.predicate).isInverseComplex();
+			triplePattern.setComplex(
+					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isInverseComplex());
 		}
 	}
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		final TriplePattern triple = tripleGroup.get(0);
-		if (tripleGroup.size() == 1 && triple.predicateType.equals(ElementType.VARIABLE)) {
-			if (triple.subjectType.equals(ElementType.CONSTANT) || triple.objectType.equals(ElementType.VARIABLE)) {
+		final TriplePattern triple = this.getFirstTriplePattern();
+		if (this.size() == 1 && triple.getPredicateType().equals(ElementType.VARIABLE)) {
+			if (triple.getSubjectType().equals(ElementType.CONSTANT) || triple.getObjectType().equals(ElementType.VARIABLE)) {
 				computeForwardVariablePredicateNodeData(sqlContext);
 			} else {
 				computeInverseVariablePredicateNodeData(sqlContext);
@@ -103,60 +104,61 @@ public class JWPTNode extends MVNode {
 
 		// subject
 		if (!wptTripleGroup.isEmpty()) {
-			if (wptTripleGroup.get(0).subjectType == ElementType.VARIABLE) {
+			if (wptTripleGroup.get(0).getSubjectType() == ElementType.VARIABLE) {
 				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(wptTripleGroup.get(0).subject));
+						+ Utils.removeQuestionMark(wptTripleGroup.get(0).getSubject()));
 			} else {
-				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + wptTripleGroup.get(0).subject + "'");
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + wptTripleGroup.get(0).getSubject() + "'");
 			}
 		} else if (!iwptTripleGroup.isEmpty()) {
-			if (iwptTripleGroup.get(0).objectType == ElementType.VARIABLE) {
+			if (iwptTripleGroup.get(0).getObjectType() == ElementType.VARIABLE) {
 				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(iwptTripleGroup.get(0).object));
+						+ Utils.removeQuestionMark(iwptTripleGroup.get(0).getObject()));
 			} else {
-				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + iwptTripleGroup.get(0).object + "'");
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + iwptTripleGroup.get(0).getObject() + "'");
 			}
 		}
 
 		// forward patterns
 		for (final TriplePattern t : wptTripleGroup) {
 			final String columnName =
-					WPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
+					WPT_PREFIX.concat(this.getStatistics().getProperties().get(t.getPredicate()).getInternalName());
 			assert !columnName.equals(WPT_PREFIX) : "This column does not exists: " + columnName;
 
-			if (t.objectType == ElementType.CONSTANT) {
-				if (t.isComplex) {
-					whereElements.add("array_contains(" + columnName + ", '" + t.object + "')");
+			if (t.getObjectType() == ElementType.CONSTANT) {
+				if (t.isComplex()) {
+					whereElements.add("array_contains(" + columnName + ", '" + t.getObject() + "')");
 				} else {
-					whereElements.add(columnName + "='" + t.object + "'");
+					whereElements.add(columnName + "='" + t.getObject() + "'");
 				}
-			} else if (t.isComplex) {
-				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.object));
+			} else if (t.isComplex()) {
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {
-				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.object));
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
 
 		// inverse patterns
 		for (final TriplePattern t : iwptTripleGroup) {
-			final String columnName = IWPT_PREFIX.concat(statistics.getProperties().get(t.predicate).getInternalName());
+			final String columnName = IWPT_PREFIX.concat(
+					this.getStatistics().getProperties().get(t.getPredicate()).getInternalName());
 			assert !columnName.equals(IWPT_PREFIX) : "This column does not exists: " + columnName;
 
-			if (t.subjectType == ElementType.CONSTANT) {
-				if (t.isComplex) {
-					whereElements.add("array_contains(" + columnName + ", '" + t.subject + "')");
+			if (t.getSubjectType() == ElementType.CONSTANT) {
+				if (t.isComplex()) {
+					whereElements.add("array_contains(" + columnName + ", '" + t.getSubject() + "')");
 				} else {
-					whereElements.add(columnName + "='" + t.subject + "'");
+					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
-			} else if (t.isComplex) {
-				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.subject));
+			} else if (t.isComplex()) {
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {
-				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.subject));
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -175,42 +177,42 @@ public class JWPTNode extends MVNode {
 
 	//assumes a single pattern in the triples groups, uses the forward part of the table
 	private void computeForwardVariablePredicateNodeData(final SQLContext sqlContext) {
-		assert tripleGroup.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
+		assert this.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
 
 		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
 			properties.add(propertyStatistics.getInternalName());
 		}
-		final TriplePattern triple = tripleGroup.get(0);
+		final TriplePattern triple = this.getFirstTriplePattern();
 
 		for (final String property : properties) {
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
 
-			if (triple.subjectType == ElementType.VARIABLE) {
+			if (triple.getSubjectType() == ElementType.VARIABLE) {
 				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(triple.subject));
+						+ Utils.removeQuestionMark(triple.getSubject()));
 			} else {
-				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.subject + "'");
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.getSubject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			final String columnName = WPT_PREFIX.concat(property);
 
-			if (triple.objectType == ElementType.CONSTANT) {
-				if (triple.isComplex) {
-					whereElements.add("array_contains(" + columnName + ", '" + triple.object + "')");
+			if (triple.getObjectType() == ElementType.CONSTANT) {
+				if (triple.isComplex()) {
+					whereElements.add("array_contains(" + columnName + ", '" + triple.getObject() + "')");
 				} else {
-					whereElements.add(columnName + "='" + triple.object + "'");
+					whereElements.add(columnName + "='" + triple.getObject() + "'");
 				}
-			} else if (triple.isComplex) {
-				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(triple.object));
+			} else if (triple.isComplex()) {
+				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(triple.getObject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {
-				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.object));
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.getObject()));
 				whereElements.add(columnName + " IS NOT NULL");
 			}
 
@@ -233,42 +235,42 @@ public class JWPTNode extends MVNode {
 
 	//assumes a single pattern in the triples groups, uses the forward part of the table
 	private void computeInverseVariablePredicateNodeData(final SQLContext sqlContext) {
-		assert tripleGroup.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
+		assert this.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
 
 		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
 			properties.add(propertyStatistics.getInternalName());
 		}
-		final TriplePattern triple = tripleGroup.get(0);
+		final TriplePattern triple = this.getFirstTriplePattern();
 
 		for (final String property : properties) {
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
 
-			if (triple.objectType == ElementType.VARIABLE) {
+			if (triple.getObjectType() == ElementType.VARIABLE) {
 				selectElements.add(COLUMN_NAME_COMMON_RESOURCE + " AS "
-						+ Utils.removeQuestionMark(triple.object));
+						+ Utils.removeQuestionMark(triple.getObject()));
 			} else {
-				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.object + "'");
+				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.getObject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			final String columnName = IWPT_PREFIX.concat(property);
 
-			if (triple.subjectType == ElementType.CONSTANT) {
-				if (triple.isComplex) {
-					whereElements.add("array_contains(" + columnName + ", '" + triple.subject + "')");
+			if (triple.getSubjectType() == ElementType.CONSTANT) {
+				if (triple.isComplex()) {
+					whereElements.add("array_contains(" + columnName + ", '" + triple.getSubject() + "')");
 				} else {
-					whereElements.add(columnName + "='" + triple.subject + "'");
+					whereElements.add(columnName + "='" + triple.getSubject() + "'");
 				}
-			} else if (triple.isComplex) {
+			} else if (triple.isComplex()) {
 				selectElements.add(" P" + columnName + " AS ");
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {
-				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.subject));
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(triple.getSubject()));
 				whereElements.add(columnName + " IS NOT NULL");
 			}
 
@@ -293,7 +295,7 @@ public class JWPTNode extends MVNode {
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("JWPT node (").append(this.getPriority()).append("): ");
-		for (final TriplePattern tpGroup : tripleGroup) {
+		for (final TriplePattern tpGroup : this.getTripleGroup()) {
 			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");

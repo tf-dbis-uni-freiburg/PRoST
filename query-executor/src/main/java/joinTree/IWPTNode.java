@@ -30,18 +30,11 @@ public class IWPTNode extends MVNode {
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
-		this.tripleGroup = triplePatterns;
-		setIsComplex();
-	}
+		this.setTripleGroup(triplePatterns);
 
-	/**
-	 * Uses the database statistics to determine if the object of triples in the
-	 * node is complex.
-	 */
-	private void setIsComplex() {
-		for (final TriplePattern triplePattern : tripleGroup) {
-			triplePattern.isComplex =
-					statistics.getProperties().get(triplePattern.predicate).isInverseComplex();
+		for (final TriplePattern triplePattern : this.getTripleGroup()) {
+			triplePattern.setComplex(
+					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isInverseComplex());
 		}
 	}
 
@@ -52,7 +45,7 @@ public class IWPTNode extends MVNode {
 	 */
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		if (tripleGroup.size() == 1 && tripleGroup.get(0).predicateType.equals(ElementType.VARIABLE)) {
+		if (this.size() == 1 && this.getFirstTriplePattern().getPredicateType().equals(ElementType.VARIABLE)) {
 			computeVariablePredicateNodeData(sqlContext);
 		} else {
 			computeConstantPredicateNodeData(sqlContext);
@@ -64,30 +57,31 @@ public class IWPTNode extends MVNode {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> explodedElements = new ArrayList<>();
 
-		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			selectElements.add(OBJECT_COLUMN_NAME + " AS " +  Utils.removeQuestionMark(tripleGroup.get(0).object));
+		if (this.getFirstTriplePattern().getObjectType() == ElementType.VARIABLE) {
+			selectElements.add(OBJECT_COLUMN_NAME + " AS "
+					+ Utils.removeQuestionMark(this.getFirstTriplePattern().getObject()));
 		} else {
-			whereElements.add(OBJECT_COLUMN_NAME + "='" + tripleGroup.get(0).object + "'");
+			whereElements.add(OBJECT_COLUMN_NAME + "='" + this.getFirstTriplePattern().getObject() + "'");
 		}
 
-		for (final TriplePattern t : tripleGroup) {
-			final String columnName = statistics.getProperties().get(t.predicate).getInternalName();
+		for (final TriplePattern t : this.getTripleGroup()) {
+			final String columnName = this.getStatistics().getProperties().get(t.getPredicate()).getInternalName();
 			if (columnName == null) {
-				System.err.println("This column does not exists: " + t.predicate);
+				System.err.println("This column does not exists: " + t.getPredicate());
 				return;
 			}
-			if (t.subjectType == ElementType.CONSTANT) {
-				if (t.isComplex) {
-					whereElements.add("array_contains(" + columnName + ", '" + t.subject + "')");
+			if (t.getSubjectType() == ElementType.CONSTANT) {
+				if (t.isComplex()) {
+					whereElements.add("array_contains(" + columnName + ", '" + t.getSubject() + "')");
 				} else {
-					whereElements.add(columnName + "='" + t.subject + "'");
+					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
-			} else if (t.isComplex) {
-				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.subject));
+			} else if (t.isComplex()) {
+				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
 			} else {
-				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.subject));
+				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				whereElements.add(columnName + " IS NOT NULL");
 			}
 		}
@@ -106,36 +100,37 @@ public class IWPTNode extends MVNode {
 
 	private void computeVariablePredicateNodeData(final SQLContext sqlContext) {
 		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
+		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
 			properties.add(propertyStatistics.getInternalName());
 		}
-		final TriplePattern triple = tripleGroup.get(0);
+		final TriplePattern triple = this.getFirstTriplePattern();
 
 		for (final String property : properties) {
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
 
-			if (triple.objectType == ElementType.VARIABLE) {
-				selectElements.add(OBJECT_COLUMN_NAME + " AS " + Utils.removeQuestionMark(tripleGroup.get(0).object));
+			if (triple.getObjectType() == ElementType.VARIABLE) {
+				selectElements.add(OBJECT_COLUMN_NAME + " AS "
+						+ Utils.removeQuestionMark(this.getFirstTriplePattern().getObject()));
 			} else {
-				whereElements.add(OBJECT_COLUMN_NAME + "='" + triple.object + "'");
+				whereElements.add(OBJECT_COLUMN_NAME + "='" + triple.getObject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
-			if (triple.subjectType == ElementType.CONSTANT) {
-				if (triple.isComplex) {
-					whereElements.add("array_contains(" + property + ", '" + triple.subject + "')");
+			if (triple.getSubjectType() == ElementType.CONSTANT) {
+				if (triple.isComplex()) {
+					whereElements.add("array_contains(" + property + ", '" + triple.getSubject() + "')");
 				} else {
-					whereElements.add(property + "='" + triple.subject + "'");
+					whereElements.add(property + "='" + triple.getSubject() + "'");
 				}
-			} else if (triple.isComplex) {
-				selectElements.add("P" + property + " AS " + Utils.removeQuestionMark(triple.subject));
+			} else if (triple.isComplex()) {
+				selectElements.add("P" + property + " AS " + Utils.removeQuestionMark(triple.getSubject()));
 				explodedElements.add("\n lateral view explode(" + property + ") exploded" + property
 						+ " AS P" + property);
 			} else {
-				selectElements.add(property + " AS " + Utils.removeQuestionMark(triple.subject));
+				selectElements.add(property + " AS " + Utils.removeQuestionMark(triple.getSubject()));
 				whereElements.add(property + " IS NOT NULL");
 			}
 
@@ -160,7 +155,7 @@ public class IWPTNode extends MVNode {
 	public String toString() {
 		final StringBuilder str = new StringBuilder("{");
 		str.append("IWPT node(").append(this.getPriority()).append(": ");
-		for (final TriplePattern tpGroup : tripleGroup) {
+		for (final TriplePattern tpGroup : this.getTripleGroup()) {
 			str.append(tpGroup.toString()).append(", ");
 		}
 		str.append(" }");

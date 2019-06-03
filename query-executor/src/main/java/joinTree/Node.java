@@ -19,19 +19,12 @@ import stats.DatabaseStatistics;
  * @author Polina Koleva
  */
 public abstract class Node {
-	final DatabaseStatistics statistics;
+	private final DatabaseStatistics statistics;
 
 	private Dataset<Row> sparkNodeData;
-	private Node parent;
 	private Double priority;
 
 	public Node(final DatabaseStatistics statistics) {
-		this.parent = null;
-		this.statistics = statistics;
-	}
-
-	public Node(final Node parent, final DatabaseStatistics statistics) {
-		this.parent = parent;
 		this.statistics = statistics;
 	}
 
@@ -79,9 +72,9 @@ public abstract class Node {
 		}
 		float priority = 0;
 		for (final TriplePattern triplePattern : this.collectTriples()) {
-			final String predicate = triplePattern.predicate;
-			final boolean isObjectVariable = triplePattern.objectType == ElementType.VARIABLE;
-			final boolean isSubjectVariable = triplePattern.subjectType == ElementType.VARIABLE;
+			final String predicate = triplePattern.getPredicate();
+			final boolean isObjectVariable = triplePattern.getObjectType() == ElementType.VARIABLE;
+			final boolean isSubjectVariable = triplePattern.getSubjectType() == ElementType.VARIABLE;
 			if (!isObjectVariable || !isSubjectVariable) {
 				//TODO number of distinct subjects|predicates / number of tuples for the given property is a better
 				// estimation
@@ -98,7 +91,7 @@ public abstract class Node {
 	private HashSet<String> computeCharacteristicSet() {
 		final HashSet<String> characteristicSet = new HashSet<>();
 		for (final TriplePattern pattern : this.collectTriples()) {
-			characteristicSet.add(pattern.predicate);
+			characteristicSet.add(pattern.getPredicate());
 		}
 		return characteristicSet;
 	}
@@ -127,13 +120,13 @@ public abstract class Node {
 			double m = 1;
 			double o = 1;
 			for (final TriplePattern triple : this.collectTriples()) {
-				//m = m * (superSet.getTuplesPerPredicate().get(triple.predicate) / superSet.getDistinctSubjects());
-				if (triple.objectType == ElementType.CONSTANT) {
+				if (triple.getObjectType() == ElementType.CONSTANT) {
 					// o is min(o,sel(?o=o|?p=p)
 					// min(o,sel(?o=o|?p=p) is sel(?o=o && ?p=p)/sel(?p=p)
-					o = min(o, statistics.getProperties().get(triple.predicate).getBoundObjectEstimatedSelectivity());
+					o = min(o,
+							statistics.getProperties().get(triple.getPredicate()).getBoundObjectEstimatedSelectivity());
 				} else {
-					m = m * ((double) superSet.getTuplesPerPredicate().get(triple.predicate)
+					m = m * ((double) superSet.getTuplesPerPredicate().get(triple.getPredicate())
 							/ (double) superSet.getDistinctSubjects());
 				}
 			}
@@ -142,15 +135,15 @@ public abstract class Node {
 		return cardinality;
 	}
 
-	public void setParent(final Node node) {
-		this.parent = node;
-	}
-
 	Dataset<Row> getSparkNodeData() {
 		return sparkNodeData;
 	}
 
 	void setSparkNodeData(final Dataset<Row> sparkNodeData) {
 		this.sparkNodeData = sparkNodeData;
+	}
+
+	DatabaseStatistics getStatistics() {
+		return this.statistics;
 	}
 }

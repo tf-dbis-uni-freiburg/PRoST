@@ -3,19 +3,15 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import utils.Utils;
 
-/*
+/**
  * A node of the JoinTree that refers to the Triple Table.
  */
 public class TTNode extends Node {
-
-	private static final Logger logger = Logger.getLogger("PRoST");
-
-	public TriplePattern triplePattern;
+	private TriplePattern triplePattern;
 
 	/*
 	 * The node contains a single triple pattern.
@@ -25,32 +21,24 @@ public class TTNode extends Node {
 		this.triplePattern = triplePattern;
 	}
 
-	/*
-	 * The node contains a single triple pattern.
-	 */
-	public TTNode(final Node parent, final TriplePattern triplePattern, final DatabaseStatistics statistics) {
-		super(parent, statistics);
-		this.triplePattern = triplePattern;
-	}
-
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> whereElements = new ArrayList<>();
-		if (triplePattern.subjectType == ElementType.VARIABLE) {
-			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.subject));
+		if (triplePattern.getSubjectType() == ElementType.VARIABLE) {
+			selectElements.add("s AS " + Utils.removeQuestionMark(triplePattern.getSubject()));
 		} else {
-			whereElements.add("s='" + triplePattern.subject + "'");
+			whereElements.add("s='" + triplePattern.getSubject() + "'");
 		}
-		if (triplePattern.predicateType == ElementType.VARIABLE) {
-			selectElements.add("p as " + Utils.removeQuestionMark(triplePattern.predicate));
+		if (triplePattern.getPredicateType() == ElementType.VARIABLE) {
+			selectElements.add("p as " + Utils.removeQuestionMark(triplePattern.getPredicate()));
 		} else {
-			whereElements.add("p='<" + triplePattern.predicate + ">'");
+			whereElements.add("p='<" + triplePattern.getPredicate() + ">'");
 		}
-		if (triplePattern.objectType == ElementType.VARIABLE) {
-			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.object));
+		if (triplePattern.getObjectType() == ElementType.VARIABLE) {
+			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.getObject()));
 		} else {
-			whereElements.add("o='" + triplePattern.object + "'");
+			whereElements.add("o='" + triplePattern.getObject() + "'");
 		}
 
 		String query = "SELECT " + String.join(", ", selectElements);

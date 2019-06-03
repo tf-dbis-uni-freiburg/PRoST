@@ -3,7 +3,6 @@ package joinTree;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import utils.Utils;
@@ -19,7 +18,6 @@ import utils.Utils;
  * @author Polina Koleva
  */
 public class JoinNode extends MVNode {
-	private static final Logger logger = Logger.getLogger("PRoST");
 
 	private Node leftChild;
 	private Node rightChild;
@@ -29,7 +27,7 @@ public class JoinNode extends MVNode {
 		super(statistics);
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
-		this.tripleGroup = getTriples();
+		this.setTripleGroup(getTriples());
 	}
 
 	@Override
@@ -87,7 +85,7 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public String toString() {
-		return "{" + "Join node (" + this.getPriority() + "): " + tripleGroup.size()
+		return "{" + "Join node (" + this.getPriority() + "): " + this.size()
 				+ " }"
 				+ " ["
 				+ "\n Left child: " + leftChild.toString()

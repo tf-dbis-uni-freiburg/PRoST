@@ -51,16 +51,16 @@ public class JoinTree {
 		// TODO fix the optional trees
 		/*for (int i = 0; i < optionalTreeRoots.size(); i++) {
 			// OPTIONAL
-			final Node currentOptionalNode = optionalTreeRoots.get(i);
+			final Node currentOptionalNode = optionalTreeRoots.getFirstTriplePattern(i);
 			// compute joins in the optional tree
 			Dataset<Row> optionalResults = currentOptionalNode.computeJoinWithChildren(sqlContext);
-			// add selection and filter in the optional tree
+			// addTriplePattern selection and filter in the optional tree
 			// if there is a filter set, apply it
 			if (currentOptionalNode.filter == null) {
 				optionalResults = optionalResults.filter(currentOptionalNode.filter);
 			}
 
-			// add left join with the optional tree
+			// addTriplePattern left join with the optional tree
 			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
 			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
 					"left_outer");
@@ -100,21 +100,21 @@ public class JoinTree {
 //		// select only the requested result
 //		final Column[] selectedColumns = new Column[this.projection.size()];
 //		for (int i = 0; i < selectedColumns.length; i++) {
-//			selectedColumns[i] = new Column(this.projection.get(i));
+//			selectedColumns[i] = new Column(this.projection.getFirstTriplePattern(i));
 //		}
 //		// TODO fix the optional tree
 //		for (int i = 0; i < optionalTreeRoots.size(); i++) {
 //			// OPTIONAL
-//			final Node currentOptionalNode = optionalTreeRoots.get(i);
+//			final Node currentOptionalNode = optionalTreeRoots.getFirstTriplePattern(i);
 //			// compute joins in the optional tree
 //			Dataset<Row> optionalResults = currentOptionalNode.compute(sqlContext);
-//			// add selection and filter in the optional tree
+//			// addTriplePattern selection and filter in the optional tree
 //			// if there is a filter set, apply it
 //			if (currentOptionalNode.filter == null) {
 //				optionalResults = optionalResults.filter(currentOptionalNode.filter);
 //			}
 //
-//			// add left join with the optional tree
+//			// addTriplePattern left join with the optional tree
 //			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
 //			results = results.join(optionalResults,scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
 //					"left_outer");
