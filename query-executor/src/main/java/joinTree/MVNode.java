@@ -14,9 +14,9 @@ import stats.DatabaseStatistics;
  */
 public abstract class MVNode extends Node {
 
-	public List<TriplePattern> tripleGroup;
+	List<TriplePattern> tripleGroup;
 
-	public MVNode(final DatabaseStatistics statistics) {
+	MVNode(final DatabaseStatistics statistics) {
 		super(statistics);
 		tripleGroup = new ArrayList<>();
 	}

@@ -12,9 +12,11 @@ import joinTree.Node;
 import stats.DatabaseStatistics;
 import utils.Settings;
 
+/**
+ * A group of triple patterns with a common object resource.
+ */
 public class InverseTriplesGroup extends TriplesGroup {
 	private List<Triple> triplesGroup = new ArrayList<>();
-	private String commonResource;
 
 	InverseTriplesGroup(final Triple triple) {
 		this.triplesGroup.add(triple);
@@ -42,7 +44,7 @@ public class InverseTriplesGroup extends TriplesGroup {
 	}
 
 	public List<Triple> getForwardTriples() {
-		return null;
+		return new ArrayList<>();
 	}
 
 	public List<Triple> getInverseTriples() {

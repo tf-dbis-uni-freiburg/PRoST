@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
@@ -16,7 +15,6 @@ import utils.Utils;
  * A node that uses a Joined Wide Property Table.
  */
 public class JWPTNode extends MVNode {
-	private static final Logger logger = Logger.getLogger("PRoST");
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String WPT_PREFIX = "o_";
 	private static final String IWPT_PREFIX = "s_";
@@ -37,7 +35,6 @@ public class JWPTNode extends MVNode {
 		}
 
 		iwptTripleGroup = new ArrayList<>();
-
 		for (final Triple t : triplesGroup.getInverseTriples()) {
 			final TriplePattern tp = new TriplePattern(t, prefixes);
 			iwptTripleGroup.add(tp);
@@ -47,7 +44,7 @@ public class JWPTNode extends MVNode {
 	}
 
 	public JWPTNode(final Triple triple, final PrefixMapping prefixes,
-					final DatabaseStatistics statistics, boolean tripleAsForwardGroup) {
+					final DatabaseStatistics statistics, final boolean tripleAsForwardGroup) {
 
 		super(statistics);
 		if (tripleAsForwardGroup) {
@@ -173,7 +170,7 @@ public class JWPTNode extends MVNode {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
 
-		sparkNodeData = sqlContext.sql(query);
+		this.setSparkNodeData(sqlContext.sql(query));
 	}
 
 	//assumes a single pattern in the triples groups, uses the forward part of the table
@@ -226,10 +223,10 @@ public class JWPTNode extends MVNode {
 				query += " WHERE " + String.join(" AND ", whereElements);
 			}
 
-			if (sparkNodeData == null) {
-				sparkNodeData = sqlContext.sql(query);
+			if (this.getSparkNodeData() == null) {
+				this.setSparkNodeData(sqlContext.sql(query));
 			} else {
-				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+				this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(query)));
 			}
 		}
 	}
@@ -284,10 +281,10 @@ public class JWPTNode extends MVNode {
 				query += " WHERE " + String.join(" AND ", whereElements);
 			}
 
-			if (sparkNodeData == null) {
-				sparkNodeData = sqlContext.sql(query);
+			if (this.getSparkNodeData() == null) {
+				this.setSparkNodeData(sqlContext.sql(query));
 			} else {
-				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+				this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(query)));
 			}
 		}
 	}

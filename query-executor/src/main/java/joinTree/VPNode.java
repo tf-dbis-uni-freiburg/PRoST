@@ -26,15 +26,15 @@ public class VPNode extends Node {
 			assert statistics.getProperties().get(triplePattern.predicate) != null
 					: "Property " + triplePattern.predicate + " not found in the statistics file";
 			final String tableName = "vp_" + statistics.getProperties().get(triplePattern.predicate).getInternalName();
-			sparkNodeData = sqlContext.sql(createSQLQuery(tableName));
+			this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName)));
 		} else {
 			for (final PropertyStatistics propertyStatistics : statistics.getProperties().values()) {
 				final String tableName =
 						"vp_" + propertyStatistics.getInternalName();
-				if (sparkNodeData == null) {
-					sparkNodeData = sqlContext.sql(createSQLQuery(tableName));
+				if (this.getSparkNodeData() == null) {
+					this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName)));
 				} else {
-					sparkNodeData = sparkNodeData.union(sqlContext.sql(createSQLQuery(tableName)));
+					this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(createSQLQuery(tableName))));
 				}
 			}
 		}

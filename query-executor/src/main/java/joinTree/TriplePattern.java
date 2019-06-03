@@ -2,12 +2,8 @@ package joinTree;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import org.apache.log4j.Logger;
 
 public class TriplePattern {
-
-	private static final Logger logger = Logger.getLogger("PRoST");
-
 	public String subject;
 	public String predicate;
 	public String object;

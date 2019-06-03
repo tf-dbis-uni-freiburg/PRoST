@@ -7,13 +7,20 @@ import java.util.List;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.graph.Triple;
-import org.apache.log4j.Logger;
 import utils.Settings;
 
+/**
+ * Methods to manage groups of triple patterns.
+ */
 public class TriplesGroupsMapping {
-	private static final Logger logger = Logger.getLogger("PRoST");
 	private Multimap<String, TriplesGroup> triplesGroups = ArrayListMultimap.create();
 
+	/**
+	 * Takes a list of triple patterns and creates the appropriate groups according to the enabled data models.
+	 *
+	 * @param triples  triple patterns to be grouped.
+	 * @param settings settings file with information about the enabled data models.
+	 */
 	public TriplesGroupsMapping(final List<Triple> triples, final Settings settings) {
 		if (settings.isUsingWPT()
 				|| settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter() || settings.isUsingJWPTInner()) {
@@ -30,6 +37,9 @@ public class TriplesGroupsMapping {
 		}
 	}
 
+	/**
+	 * Creates triple groups with a common subject resource.
+	 */
 	private void createForwardGroups(final List<Triple> triples) {
 		for (final Triple triple : triples) {
 			TriplesGroup forwardGroup = null;
@@ -48,6 +58,9 @@ public class TriplesGroupsMapping {
 		}
 	}
 
+	/**
+	 * Creates triple groups with a common object resource.
+	 */
 	private void createInverseGroups(final List<Triple> triples) {
 		for (final Triple triple : triples) {
 			TriplesGroup inverseGroup = null;
@@ -68,6 +81,9 @@ public class TriplesGroupsMapping {
 		}
 	}
 
+	/**
+	 * Create joined groups (common resource in either subject or object position) from the current computed groups.
+	 */
 	private void createJoinedGroups() {
 		for (final String key : triplesGroups.keySet()) {
 			final Collection<TriplesGroup> groups = triplesGroups.get(key);
@@ -126,6 +142,11 @@ public class TriplesGroupsMapping {
 		return largestGroup;
 	}
 
+	/**
+	 * Removes the triples present in <code>triplesToRemove</code> from the existing groups. Removes empty groups.
+	 *
+	 * @param triplesToRemove group containing the triples that need to be removed.
+	 */
 	public void removeTriples(final TriplesGroup triplesToRemove) {
 		final Iterator<TriplesGroup> i = this.triplesGroups.values().iterator();
 		while (i.hasNext()) {
@@ -137,6 +158,9 @@ public class TriplesGroupsMapping {
 		}
 	}
 
+	/**
+	 * Returns the total number of triples in the groups.
+	 */
 	public int size() {
 		return this.triplesGroups.size();
 	}

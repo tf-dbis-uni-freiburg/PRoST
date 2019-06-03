@@ -109,7 +109,7 @@ public class WPTNode extends MVNode {
 		if (!whereElements.isEmpty()) {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-		sparkNodeData = sqlContext.sql(query);
+		this.setSparkNodeData(sqlContext.sql(query));
 	}
 
 	//assumes a single pattern in the triples groups
@@ -131,7 +131,7 @@ public class WPTNode extends MVNode {
 				whereElements.add("s='" + triple.subject + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.predicate));
+			selectElements.add("'" + property + "' AS " + Utils.removeQuestionMark(triple.predicate));
 
 			if (triple.objectType == ElementType.CONSTANT) {
 				if (triple.isComplex) {
@@ -157,10 +157,10 @@ public class WPTNode extends MVNode {
 				query += " WHERE " + String.join(" AND ", whereElements);
 			}
 
-			if (sparkNodeData == null) {
-				sparkNodeData = sqlContext.sql(query);
+			if (this.getSparkNodeData() == null) {
+				this.setSparkNodeData(sqlContext.sql(query));
 			} else {
-				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+				this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(query)));
 			}
 		}
 	}

@@ -19,7 +19,6 @@ import utils.Utils;
  * @author Polina Koleva
  */
 public class JoinNode extends MVNode {
-
 	private static final Logger logger = Logger.getLogger("PRoST");
 
 	private Node leftChild;
@@ -35,34 +34,22 @@ public class JoinNode extends MVNode {
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
-		// compute children's data
-		if (getRightChild().sparkNodeData == null) {
-			getRightChild().computeNodeData(sqlContext);
-		}
-		if (getLeftChild().sparkNodeData == null) {
-			getLeftChild().computeNodeData(sqlContext);
-		}
+		this.getLeftChild().computeNodeData(sqlContext);
+		this.getRightChild().computeNodeData(sqlContext);
+
 		// execute a join between the children
-		final List<String> joinVariables = Utils.commonVariables(getRightChild().sparkNodeData.columns(),
-				getLeftChild().sparkNodeData.columns());
-		this.sparkNodeData = getLeftChild().sparkNodeData.join(getRightChild().sparkNodeData,
-				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq());
+		final List<String> joinVariables = Utils.commonVariables(getRightChild().getSparkNodeData().columns(),
+				getLeftChild().getSparkNodeData().columns());
+		this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
+				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
 	}
 
 	public Node getLeftChild() {
 		return leftChild;
 	}
 
-	public void setLeftChild(final Node leftChild) {
-		this.leftChild = leftChild;
-	}
-
 	public Node getRightChild() {
 		return rightChild;
-	}
-
-	public void setRightChild(final Node rightChild) {
-		this.rightChild = rightChild;
 	}
 
 	/**
@@ -93,7 +80,7 @@ public class JoinNode extends MVNode {
 		} else if (rightChildPriority == 0.0) {
 			return leftChildPriority;
 		} else {*/
-			priority = rightChildPriority * leftChildPriority;
+		priority = rightChildPriority * leftChildPriority;
 		//}
 		return priority;
 	}

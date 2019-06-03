@@ -102,26 +102,22 @@ public class Translator {
 		return tree;
 	}
 
-	/*
+	/**
 	 * Constructs the join tree.
 	 */
 	private Node buildTree(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
 		Node currentNode = null;
 
-		// visit the hypergraph to build the tree
 		while (!nodesQueue.isEmpty()) {
 			currentNode = nodesQueue.poll();
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
 			if (relatedNode != null) {
-				// append join node to the queue
 				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics);
 				nodesQueue.add(joinNode);
-				// add join node as a parent
-				currentNode.parent = joinNode;
-				relatedNode.parent = joinNode;
+				currentNode.setParent(joinNode);
+				relatedNode.setParent(joinNode);
 
-				// remove consumed nodes
 				nodesQueue.remove(currentNode);
 				nodesQueue.remove(relatedNode);
 			}

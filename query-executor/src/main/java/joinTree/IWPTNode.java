@@ -65,7 +65,7 @@ public class IWPTNode extends MVNode {
 		final ArrayList<String> explodedElements = new ArrayList<>();
 
 		if (tripleGroup.get(0).objectType == ElementType.VARIABLE) {
-			selectElements.add(OBJECT_COLUMN_NAME + " AS ");
+			selectElements.add(OBJECT_COLUMN_NAME + " AS " +  Utils.removeQuestionMark(tripleGroup.get(0).object));
 		} else {
 			whereElements.add(OBJECT_COLUMN_NAME + "='" + tripleGroup.get(0).object + "'");
 		}
@@ -101,7 +101,7 @@ public class IWPTNode extends MVNode {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
 
-		sparkNodeData = sqlContext.sql(query);
+		this.setSparkNodeData(sqlContext.sql(query));
 	}
 
 	private void computeVariablePredicateNodeData(final SQLContext sqlContext) {
@@ -117,7 +117,7 @@ public class IWPTNode extends MVNode {
 			final ArrayList<String> explodedElements = new ArrayList<>();
 
 			if (triple.objectType == ElementType.VARIABLE) {
-				selectElements.add(OBJECT_COLUMN_NAME + " AS ");
+				selectElements.add(OBJECT_COLUMN_NAME + " AS " + Utils.removeQuestionMark(tripleGroup.get(0).object));
 			} else {
 				whereElements.add(OBJECT_COLUMN_NAME + "='" + triple.object + "'");
 			}
@@ -148,10 +148,10 @@ public class IWPTNode extends MVNode {
 				query += " WHERE " + String.join(" AND ", whereElements);
 			}
 
-			if (sparkNodeData == null) {
-				sparkNodeData = sqlContext.sql(query);
+			if (this.getSparkNodeData() == null) {
+				this.setSparkNodeData(sqlContext.sql(query));
 			} else {
-				sparkNodeData = sparkNodeData.union(sqlContext.sql(query));
+				this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(query)));
 			}
 		}
 	}

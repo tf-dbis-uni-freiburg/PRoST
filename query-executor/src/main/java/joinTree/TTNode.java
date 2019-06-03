@@ -58,7 +58,7 @@ public class TTNode extends Node {
 		if (!whereElements.isEmpty()) {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}
-		sparkNodeData = sqlContext.sql(query);
+		this.setSparkNodeData(sqlContext.sql(query));
 	}
 
 	@Override

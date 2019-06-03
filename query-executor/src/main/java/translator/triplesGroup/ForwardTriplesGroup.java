@@ -12,9 +12,11 @@ import joinTree.WPTNode;
 import stats.DatabaseStatistics;
 import utils.Settings;
 
+/**
+ * A group of triple patterns with a common subject resource.
+ */
 public class ForwardTriplesGroup extends TriplesGroup {
 	private List<Triple> triplesGroup = new ArrayList<>();
-	private String commonResource;
 
 	ForwardTriplesGroup(final Triple triple) {
 		triplesGroup.add(triple);
@@ -46,7 +48,7 @@ public class ForwardTriplesGroup extends TriplesGroup {
 	}
 
 	public List<Triple> getInverseTriples() {
-		return null;
+		return new ArrayList<>();
 	}
 
 	public List<Node> createNodes(final Settings settings, final DatabaseStatistics statistics,

@@ -41,7 +41,7 @@ public class JoinTree {
 	public Dataset<Row> compute(final SQLContext sqlContext) {
 		// compute all the joins
 		root.computeNodeData(sqlContext);
-		Dataset<Row> results = root.sparkNodeData;
+		Dataset<Row> results = root.getSparkNodeData();
 
 		// select only the requested result
 		final Column[] selectedColumns = new Column[this.projection.size()];

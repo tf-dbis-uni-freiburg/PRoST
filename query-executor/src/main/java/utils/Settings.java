@@ -86,7 +86,7 @@ public class Settings {
 
 	private void validate() {
 		assert databaseName != null && !databaseName.equals("") : "Missing database name";
-		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPTOuter)
+		assert (usingTT || usingVP || usingWPT || usingIWPT || usingJWPTOuter || usingJWPTLeftOuter)
 				: "At least one data model containing all data must be enabled";
 
 		int jwptCounter = 0;

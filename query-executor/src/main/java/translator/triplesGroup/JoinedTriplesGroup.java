@@ -11,12 +11,11 @@ import stats.DatabaseStatistics;
 import utils.Settings;
 
 /**
- * A group of triples that have their common variable at either their subject or object.
+ * A group of triples that have their common variable at either their subject or object positions.
  */
 public class JoinedTriplesGroup extends TriplesGroup {
 	private final List<Triple> forwardTriples = new ArrayList<>();
 	private final List<Triple> inverseTriples = new ArrayList<>();
-	private final String commonResource;
 
 	JoinedTriplesGroup(final String commonResource) {
 		this.commonResource = commonResource;
@@ -86,6 +85,7 @@ public class JoinedTriplesGroup extends TriplesGroup {
 			for (final Triple triple : this.forwardTriples) {
 				createdNodes.add(new JWPTNode(triple, prefixes, statistics, true));
 			}
+
 			for (final Triple triple : this.inverseTriples) {
 				createdNodes.add(new JWPTNode(triple, prefixes, statistics, false));
 			}

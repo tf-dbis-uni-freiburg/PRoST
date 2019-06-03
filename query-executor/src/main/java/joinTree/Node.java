@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -20,11 +19,10 @@ import stats.DatabaseStatistics;
  * @author Polina Koleva
  */
 public abstract class Node {
-	private static final Logger logger = Logger.getLogger("PRoST");
-	public Node parent;
-	// the spark data set containing the data relative to this node
-	public Dataset<Row> sparkNodeData;
 	final DatabaseStatistics statistics;
+
+	private Dataset<Row> sparkNodeData;
+	private Node parent;
 	private Double priority;
 
 	public Node(final DatabaseStatistics statistics) {
@@ -40,7 +38,7 @@ public abstract class Node {
 	/**
 	 * Compute the Dataset&lt;Row> to the data referring to this node.
 	 */
-	public abstract void computeNodeData(SQLContext sqlContext);
+	abstract void computeNodeData(SQLContext sqlContext);
 
 	/**
 	 * Get a list of triples that each node contains. For example, {@link VPNode}
@@ -142,5 +140,17 @@ public abstract class Node {
 			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;
 		}
 		return cardinality;
+	}
+
+	public void setParent(final Node node) {
+		this.parent = node;
+	}
+
+	Dataset<Row> getSparkNodeData() {
+		return sparkNodeData;
+	}
+
+	void setSparkNodeData(final Dataset<Row> sparkNodeData) {
+		this.sparkNodeData = sparkNodeData;
 	}
 }
