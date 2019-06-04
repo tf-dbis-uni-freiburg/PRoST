@@ -9,6 +9,7 @@ import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
 import translator.triplesGroup.TriplesGroup;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -20,12 +21,14 @@ public class JWPTNode extends MVNode {
 	private static final String IWPT_PREFIX = "s_";
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
-	private String JOINED_TABLE_NAME = "joined_wide_property_table_outer";
+	private String tableName;
 
 	public JWPTNode(final TriplesGroup triplesGroup, final PrefixMapping prefixes,
-					final DatabaseStatistics statistics) {
+					final DatabaseStatistics statistics, final Settings settings) {
 
 		super(statistics);
+
+		setTableName(settings);
 
 		wptTripleGroup = new ArrayList<>();
 		for (final Triple t : triplesGroup.getForwardTriples()) {
@@ -44,9 +47,13 @@ public class JWPTNode extends MVNode {
 	}
 
 	public JWPTNode(final Triple triple, final PrefixMapping prefixes,
-					final DatabaseStatistics statistics, final boolean tripleAsForwardGroup) {
+					final DatabaseStatistics statistics, final boolean tripleAsForwardGroup,
+					final Settings settings) {
 
 		super(statistics);
+
+		setTableName(settings);
+
 		if (tripleAsForwardGroup) {
 			wptTripleGroup = new ArrayList<>();
 			final TriplePattern triplePattern = new TriplePattern(triple, prefixes);
@@ -64,6 +71,17 @@ public class JWPTNode extends MVNode {
 		}
 
 		setIsComplex();
+	}
+
+	private void setTableName(final Settings settings){
+		if (settings.isUsingJWPTOuter()) {
+			tableName = "joined_wide_property_table_outer";
+		} else if (settings.isUsingJWPTLeftouter()) {
+			tableName = "joined_wide_property_table_leftouter";
+		} else {
+			assert settings.isUsingJWPTInner();
+			tableName = "joined_wide_property_table_inner";
+		}
 	}
 
 	/**
@@ -164,7 +182,7 @@ public class JWPTNode extends MVNode {
 		}
 
 		String query = "SELECT " + String.join(",", selectElements);
-		query += " FROM " + JOINED_TABLE_NAME;
+		query += " FROM " + tableName;
 		if (!explodedElements.isEmpty()) {
 			query += " " + String.join(" ", explodedElements);
 		}
@@ -217,7 +235,7 @@ public class JWPTNode extends MVNode {
 			}
 
 			String query = "SELECT " + String.join(",", selectElements);
-			query += " FROM " + JOINED_TABLE_NAME;
+			query += " FROM " + tableName;
 			if (!explodedElements.isEmpty()) {
 				query += " " + String.join(" ", explodedElements);
 			}
@@ -275,7 +293,7 @@ public class JWPTNode extends MVNode {
 			}
 
 			String query = "SELECT " + String.join(",", selectElements);
-			query += " FROM " + JOINED_TABLE_NAME;
+			query += " FROM " + tableName;
 			if (!explodedElements.isEmpty()) {
 				query += " " + String.join(" ", explodedElements);
 			}

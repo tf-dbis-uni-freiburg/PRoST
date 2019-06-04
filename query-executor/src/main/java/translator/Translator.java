@@ -183,7 +183,7 @@ public class Translator {
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else if (settings.isUsingJWPTOuter()
 					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
-				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true));
+				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else {
 				//no best pt node type, uses general best option
@@ -197,7 +197,7 @@ public class Translator {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingJWPTOuter()) {
-					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true));
+					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingIWPT()) {
 					nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));

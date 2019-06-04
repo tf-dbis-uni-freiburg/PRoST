@@ -79,15 +79,15 @@ public class JoinedTriplesGroup extends TriplesGroup {
 
 		final List<Node> createdNodes = new ArrayList<>();
 		if (settings.isGroupingTriples()) {
-			createdNodes.add(new JWPTNode(this, prefixes, statistics));
+			createdNodes.add(new JWPTNode(this, prefixes, statistics, settings));
 			return createdNodes;
 		} else {
 			for (final Triple triple : this.forwardTriples) {
-				createdNodes.add(new JWPTNode(triple, prefixes, statistics, true));
+				createdNodes.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 			}
 
 			for (final Triple triple : this.inverseTriples) {
-				createdNodes.add(new JWPTNode(triple, prefixes, statistics, false));
+				createdNodes.add(new JWPTNode(triple, prefixes, statistics, false, settings));
 			}
 			return createdNodes;
 		}

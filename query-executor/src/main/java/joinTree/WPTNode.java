@@ -22,7 +22,7 @@ public class WPTNode extends MVNode {
 	 * table name can be changes depending on the list of triples this node
 	 * contains.
 	 */
-	private String tableName = "wide_property_table";
+	private static String TABLE_NAME = "wide_property_table";
 
 	/*
 	 * Alternative constructor, used to instantiate a Node directly with a list of
@@ -86,7 +86,7 @@ public class WPTNode extends MVNode {
 		}
 
 		String query = "SELECT " + String.join(", ", selectElements);
-		query += " FROM " + tableName;
+		query += " FROM " + TABLE_NAME;
 		if (!explodedElements.isEmpty()) {
 			query += " " + String.join(" ", explodedElements);
 		}
@@ -133,7 +133,7 @@ public class WPTNode extends MVNode {
 			}
 
 			String query = "SELECT " + String.join(", ", selectElements);
-			query += " FROM " + tableName;
+			query += " FROM " + TABLE_NAME;
 			if (!explodedElements.isEmpty()) {
 				query += " " + String.join(" ", explodedElements);
 			}

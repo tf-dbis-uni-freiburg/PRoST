@@ -60,51 +60,31 @@ public class TriplePattern {
 		this.subject = subject;
 	}
 
-	public String getPredicate() {
+	String getPredicate() {
 		return predicate;
-	}
-
-	public void setPredicate(final String predicate) {
-		this.predicate = predicate;
 	}
 
 	public String getObject() {
 		return object;
 	}
 
-	public void setObject(final String object) {
-		this.object = object;
-	}
-
-	public ElementType getSubjectType() {
+	ElementType getSubjectType() {
 		return subjectType;
-	}
-
-	public void setSubjectType(final ElementType subjectType) {
-		this.subjectType = subjectType;
 	}
 
 	public ElementType getObjectType() {
 		return objectType;
 	}
 
-	public void setObjectType(final ElementType objectType) {
-		this.objectType = objectType;
-	}
-
-	public ElementType getPredicateType() {
+	ElementType getPredicateType() {
 		return predicateType;
 	}
 
-	public void setPredicateType(final ElementType predicateType) {
-		this.predicateType = predicateType;
-	}
-
-	public boolean isComplex() {
+	boolean isComplex() {
 		return isComplex;
 	}
 
-	public void setComplex(final boolean complex) {
+	void setComplex(final boolean complex) {
 		isComplex = complex;
 	}
 }

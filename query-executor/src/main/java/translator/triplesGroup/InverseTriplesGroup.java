@@ -58,7 +58,7 @@ public class InverseTriplesGroup extends TriplesGroup {
 			if (settings.isUsingIWPT()) {
 				createdNodes.add(new IWPTNode(this.triplesGroup, prefixes, statistics));
 			} else if (settings.isUsingJWPTOuter()) {
-				createdNodes.add(new JWPTNode(this, prefixes, statistics));
+				createdNodes.add(new JWPTNode(this, prefixes, statistics, settings));
 			}
 			return createdNodes;
 		} else {
@@ -66,7 +66,7 @@ public class InverseTriplesGroup extends TriplesGroup {
 				if (settings.isUsingIWPT()) {
 					createdNodes.add(new IWPTNode(Collections.singletonList(triple), prefixes, statistics));
 				} else if (settings.isUsingJWPTOuter()) {
-					createdNodes.add(new JWPTNode(triple, prefixes, statistics, false));
+					createdNodes.add(new JWPTNode(triple, prefixes, statistics, false, settings));
 				}
 			}
 			return createdNodes;
