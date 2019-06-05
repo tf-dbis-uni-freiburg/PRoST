@@ -55,5 +55,4 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\result");
 		executor.execute(jt);*/
 	}
-
 }

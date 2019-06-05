@@ -76,9 +76,7 @@ public class Main {
 
 			logger.info("LOADING VP TABLES...");
 			startTime = System.currentTimeMillis();
-			final VerticalPartitioningLoader vp_loader;
-
-			vp_loader = new VerticalPartitioningLoader(settings, spark, statistics);
+			final VerticalPartitioningLoader vp_loader = new VerticalPartitioningLoader(settings, spark, statistics);
 
 			vp_loader.load();
 			executionTime = System.currentTimeMillis() - startTime;
