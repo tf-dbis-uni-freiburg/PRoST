@@ -264,7 +264,7 @@ public class Settings {
 
 	private String createCsvFilename() {
 		final ArrayList<String> csvFilenameElements = new ArrayList<>();
-		csvFilenameElements.add("times");
+		csvFilenameElements.add(this.getDatabaseName());
 		if (usingTT) {
 			csvFilenameElements.add("TT");
 		}
