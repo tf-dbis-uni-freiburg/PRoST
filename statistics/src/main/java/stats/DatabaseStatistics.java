@@ -41,13 +41,13 @@ public class DatabaseStatistics {
 	private HashMap<String, PropertyStatistics> properties;
 	private ArrayList<CharacteristicSetStatistics> characteristicSets;
 
-	private Boolean hasTT;
-	private Boolean hasVPTables;
-	private Boolean hasWPT;
-	private Boolean hasIWPT;
-	private Boolean hasJWPTOuter;
-	private Boolean hasJWPTInner;
-	private Boolean hasJWPTLeftOuter;
+	private Boolean hasTT = false;
+	private Boolean hasVPTables = false;
+	private Boolean hasWPT = false;
+	private Boolean hasIWPT = false;
+	private Boolean hasJWPTOuter = false;
+	private Boolean hasJWPTInner = false;
+	private Boolean hasJWPTLeftOuter = false;
 
 	private Boolean ttPartitionedByPredicate;
 	private Boolean ttPartitionedBySubject;
@@ -98,6 +98,7 @@ public class DatabaseStatistics {
 		arrays of the type <<"propertyName","count">,...,<"pn","cn">>
 	 */
 	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
+		logger.info("begin");
 		spark.sql("USE " + databaseName);
 		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
@@ -116,6 +117,9 @@ public class DatabaseStatistics {
 				+ "(predicates)")));
 		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount").agg(collect_list(
 				"tuplesPerPredicate").as("tuplesPerPredicate"));
+
+		logger.info("Charset columns: " + Arrays.toString(characteristicSets.columns()));
+		logger.info("Charset count: " + characteristicSets.count());
 
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
 		for (final Row charSet : collectedCharSets) {

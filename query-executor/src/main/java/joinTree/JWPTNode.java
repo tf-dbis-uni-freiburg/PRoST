@@ -26,7 +26,7 @@ public class JWPTNode extends MVNode {
 	public JWPTNode(final TriplesGroup triplesGroup, final PrefixMapping prefixes,
 					final DatabaseStatistics statistics, final Settings settings) {
 
-		super(statistics);
+		super(statistics, settings);
 
 		setTableName(settings);
 
@@ -50,7 +50,7 @@ public class JWPTNode extends MVNode {
 					final DatabaseStatistics statistics, final boolean tripleAsForwardGroup,
 					final Settings settings) {
 
-		super(statistics);
+		super(statistics, settings);
 
 		setTableName(settings);
 

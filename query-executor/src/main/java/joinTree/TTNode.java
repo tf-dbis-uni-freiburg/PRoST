@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -16,8 +17,8 @@ public class TTNode extends Node {
 	/*
 	 * The node contains a single triple pattern.
 	 */
-	public TTNode(final TriplePattern triplePattern, final DatabaseStatistics statistics) {
-		super(statistics);
+	public TTNode(final TriplePattern triplePattern, final DatabaseStatistics statistics, final Settings settings) {
+		super(statistics, settings);
 		this.triplePattern = triplePattern;
 	}
 

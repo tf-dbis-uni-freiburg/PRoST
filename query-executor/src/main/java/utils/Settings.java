@@ -43,6 +43,7 @@ public class Settings {
 	// Translator options
 	private boolean groupingTriples = true;
 	private int minGroupSize = 2;
+	private boolean usingCharacteristicSets = false;
 
 	// Executor options
 	private boolean randomQueryOrder = false;
@@ -75,6 +76,7 @@ public class Settings {
 
 			this.groupingTriples = settings.get("translator", "groupingTriples", boolean.class);
 			this.minGroupSize = settings.get("translator", "minGroupSize", int.class);
+			this.usingCharacteristicSets = settings.get("translator", "usingCharacteristicSets", boolean.class);
 
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
 			this.savingBenchmarkFile = settings.get("executor", "savingBenchmarkFile", boolean.class);
@@ -301,6 +303,10 @@ public class Settings {
 		if (randomQueryOrder) {
 			csvFilenameElements.add("randomOrder");
 		}
+
+		if (usingCharacteristicSets) {
+			csvFilenameElements.add("usingCharset");
+		}
 		return String.join("_", csvFilenameElements) + ".csv";
 	}
 
@@ -376,6 +382,10 @@ public class Settings {
 		return savingBenchmarkFile;
 	}
 
+	public boolean isUsingCharacteristicSets() {
+		return usingCharacteristicSets;
+	}
+
 	public static class Builder {
 		//General settings
 		private String databaseName;
@@ -395,6 +405,7 @@ public class Settings {
 		// Translator options
 		private boolean groupingTriples = true;
 		private int minGroupSize = 1;
+		private boolean usingCharacteriticSets = false;
 
 		public Builder(final String databaseName) {
 			this.databaseName = databaseName;
@@ -450,6 +461,11 @@ public class Settings {
 			return this;
 		}
 
+		public Builder usingCharacteristicSets(){
+			this.usingCharacteriticSets = true;
+			return this;
+		}
+
 		public Settings build() {
 			final Settings settings = new Settings();
 			settings.databaseName = this.databaseName;
@@ -464,6 +480,7 @@ public class Settings {
 			settings.usingJWPTInner = this.usingJWPTInner;
 			settings.groupingTriples = this.groupingTriples;
 			settings.minGroupSize = this.minGroupSize;
+			settings.usingCharacteristicSets = this.usingCharacteriticSets;
 			return settings;
 		}
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -23,8 +24,8 @@ public class JoinNode extends MVNode {
 	private Node rightChild;
 
 	public JoinNode(final Node leftChild, final Node rightChild,
-					final DatabaseStatistics statistics) {
-		super(statistics);
+					final DatabaseStatistics statistics, Settings settings) {
+		super(statistics, settings);
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
 		this.setTripleGroup(getTriples());

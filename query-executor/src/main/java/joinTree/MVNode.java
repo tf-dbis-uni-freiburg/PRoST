@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import stats.DatabaseStatistics;
+import utils.Settings;
 
 /**
  * Abstract class that represent a node which contains a list of triples. For
@@ -16,8 +17,8 @@ public abstract class MVNode extends Node {
 
 	private List<TriplePattern> tripleGroup;
 
-	MVNode(final DatabaseStatistics statistics) {
-		super(statistics);
+	MVNode(final DatabaseStatistics statistics, final Settings settings) {
+		super(statistics, settings);
 		tripleGroup = new ArrayList<>();
 	}
 

@@ -8,6 +8,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -28,8 +29,9 @@ public class WPTNode extends MVNode {
 	 * Alternative constructor, used to instantiate a Node directly with a list of
 	 * jena triple patterns.
 	 */
-	public WPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
-		super(statistics);
+	public WPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics,
+				   final Settings settings) {
+		super(statistics, settings);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
@@ -41,7 +43,6 @@ public class WPTNode extends MVNode {
 					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isComplex());
 		}
 	}
-
 
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {

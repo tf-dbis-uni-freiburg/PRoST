@@ -11,6 +11,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import stats.CharacteristicSetStatistics;
 import stats.DatabaseStatistics;
+import utils.Settings;
 
 /**
  * An abstract class that each node of the JoinTree has to extend. Each node has
@@ -20,12 +21,14 @@ import stats.DatabaseStatistics;
  */
 public abstract class Node {
 	private final DatabaseStatistics statistics;
+	private final Settings settings;
 
 	private Dataset<Row> sparkNodeData;
 	private Double priority;
 
-	public Node(final DatabaseStatistics statistics) {
+	public Node(final DatabaseStatistics statistics, final Settings settings) {
 		this.statistics = statistics;
+		this.settings = settings;
 	}
 
 	/**
@@ -67,25 +70,26 @@ public abstract class Node {
 	 * tree node. For {@link JoinNode}, see the overridden method.
 	 */
 	double heuristicNodePriority() {
-		if (!statistics.getCharacteristicSets().isEmpty()) {
+		if (settings.isUsingCharacteristicSets()) {
 			return computeStarJoinCardinality();
-		}
-		float priority = 0;
-		for (final TriplePattern triplePattern : this.collectTriples()) {
-			final String predicate = triplePattern.getPredicate();
-			final boolean isObjectVariable = triplePattern.getObjectType() == ElementType.VARIABLE;
-			final boolean isSubjectVariable = triplePattern.getSubjectType() == ElementType.VARIABLE;
-			if (!isObjectVariable || !isSubjectVariable) {
-				//TODO number of distinct subjects|predicates / number of tuples for the given property is a better
-				// estimation
-				priority = 0;
-				break;
-			} else {
-				final int size = statistics.getProperties().get(predicate).getTuplesNumber();
-				priority += size;
+		} else {
+			float priority = 0;
+			for (final TriplePattern triplePattern : this.collectTriples()) {
+				final String predicate = triplePattern.getPredicate();
+				final boolean isObjectVariable = triplePattern.getObjectType() == ElementType.VARIABLE;
+				final boolean isSubjectVariable = triplePattern.getSubjectType() == ElementType.VARIABLE;
+				if (!isObjectVariable || !isSubjectVariable) {
+					//TODO number of distinct subjects|predicates / number of tuples for the given property is a better
+					// estimation
+					priority = 0;
+					break;
+				} else {
+					final int size = statistics.getProperties().get(predicate).getTuplesNumber();
+					priority += size;
+				}
 			}
+			return priority;
 		}
-		return priority;
 	}
 
 	private HashSet<String> computeCharacteristicSet() {

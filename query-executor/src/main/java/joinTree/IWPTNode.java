@@ -8,6 +8,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -24,8 +25,9 @@ public class IWPTNode extends MVNode {
 	 * @param jenaTriples list of Triples referring to the same object.
 	 * @param prefixes    prefix mapping of the properties.
 	 */
-	public IWPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics) {
-		super(statistics);
+	public IWPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics
+			, final Settings settings) {
+		super(statistics, settings);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));

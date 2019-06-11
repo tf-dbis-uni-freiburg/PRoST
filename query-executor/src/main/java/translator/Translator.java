@@ -113,7 +113,7 @@ public class Translator {
 			currentNode = nodesQueue.poll();
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
 			if (relatedNode != null) {
-				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics);
+				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
 				nodesQueue.add(joinNode);
 				nodesQueue.remove(currentNode);
 				nodesQueue.remove(relatedNode);
@@ -176,10 +176,10 @@ public class Translator {
 			tripleAsList.add(triple);
 			//first try to find best PT node type for the given pattern
 			if (settings.isUsingWPT() && triple.getSubject().isConcrete()) {
-				nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
+				nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else if (settings.isUsingIWPT() && triple.getObject().isConcrete()) {
-				nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
+				nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else if (settings.isUsingJWPTOuter()
 					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
@@ -194,13 +194,13 @@ public class Translator {
 					createVpNodes(tripleAsList, nodesQueue);
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingWPT()) {
-					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics));
+					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingJWPTOuter()) {
 					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingIWPT()) {
-					nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics));
+					nodesQueue.add(new IWPTNode(tripleAsList, prefixes, statistics, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				}
 			}
@@ -222,7 +222,7 @@ public class Translator {
 	private void createVpNodes(final List<Triple> unassignedTriples, final PriorityQueue<Node> nodesQueue) {
 		final List<Triple> triples = new ArrayList<>(unassignedTriples);
 		for (final Triple t : triples) {
-			final Node newNode = new VPNode(new TriplePattern(t, prefixes), statistics);
+			final Node newNode = new VPNode(new TriplePattern(t, prefixes), statistics, settings);
 			nodesQueue.add(newNode);
 			unassignedTriples.remove(t);
 		}
@@ -236,7 +236,7 @@ public class Translator {
 	 */
 	private void createTTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
 		for (final Triple t : triples) {
-			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics));
+			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics, settings));
 		}
 		triples.clear();
 	}

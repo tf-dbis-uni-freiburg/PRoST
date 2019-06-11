@@ -58,7 +58,7 @@ public class ForwardTriplesGroup extends TriplesGroup {
 
 		if (settings.isGroupingTriples()) {
 			if (settings.isUsingWPT()) {
-				createdNodes.add(new WPTNode(this.triplesGroup, prefixes, statistics));
+				createdNodes.add(new WPTNode(this.triplesGroup, prefixes, statistics, settings));
 			} else if (settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter()) {
 				createdNodes.add(new JWPTNode(this, prefixes, statistics, settings));
 			}
@@ -66,7 +66,7 @@ public class ForwardTriplesGroup extends TriplesGroup {
 		} else {
 			for (final Triple triple : this.triplesGroup) {
 				if (settings.isUsingWPT()) {
-					createdNodes.add(new WPTNode(Collections.singletonList(triple), prefixes, statistics));
+					createdNodes.add(new WPTNode(Collections.singletonList(triple), prefixes, statistics, settings));
 				} else if (settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter()) {
 					createdNodes.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 				}

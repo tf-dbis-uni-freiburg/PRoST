@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
 import stats.PropertyStatistics;
+import utils.Settings;
 import utils.Utils;
 
 /**
@@ -15,8 +16,8 @@ import utils.Utils;
 public class VPNode extends Node {
 	private final TriplePattern triplePattern;
 
-	public VPNode(final TriplePattern triplePattern, final DatabaseStatistics statistics) {
-		super(statistics);
+	public VPNode(final TriplePattern triplePattern, final DatabaseStatistics statistics, final Settings settings) {
+		super(statistics, settings);
 		this.triplePattern = triplePattern;
 	}
 
