@@ -5,11 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import stats.DatabaseStatistics;
-import stats.PropertyStatistics;
 
 /**
  * Build the VP, i.e. a table for each predicate.
@@ -64,12 +62,6 @@ public class VerticalPartitioningLoader extends Loader {
 			}
 			spark.sql(populateVPTable);
 
-			if (computingPropertyStatistics) {
-				final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
-				this.getStatistics().getProperties().put(property, new PropertyStatistics(vpTableDataset,
-						getValidHiveName(property)));
-			}
-			//logger.info("Created VP table for the property: " + property);
 		}
 		logger.info("Vertical Partitioning completed. Loaded " + getPropertiesNames().length + " tables.");
 	}

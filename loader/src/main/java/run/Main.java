@@ -70,6 +70,16 @@ public class Main {
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
+		if (settings.isComputingCharacteristicSets()) {
+			logger.info("COMPUTING CHARACTERISTIC SETS...");
+			startTime = System.currentTimeMillis();
+			statistics.computeCharacteristicSetsStatistics(spark);
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("CHARACTERISTIC SETS COMPUTED!");
+			logger.info("Time in ms to computed characteristic sets: " + executionTime);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+		}
+
 		if (settings.isGeneratingVP()) {
 			statistics.setHasVPTables(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
@@ -88,15 +98,26 @@ public class Main {
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
+		if (settings.isComputingPropertyStatistics()) {
+			logger.info("COMPUTING PROPERTY STATISTICS...");
+			startTime = System.currentTimeMillis();
+			statistics.computePropertyStatistics(spark);
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("PROPERTY STATISTICS COMPUTED!");
+			logger.info("Time in ms to computed characteristic sets: " + executionTime);
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+		}
+
+
 		if (settings.isGeneratingWPT()) {
 			statistics.setHasWPT(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 
 			logger.info("LOADING WPT...");
 			startTime = System.currentTimeMillis();
-			final WidePropertyTableLoader pt_loader =
+			final WidePropertyTableLoader wptLoader =
 					new WidePropertyTableLoader(settings, spark, statistics);
-			pt_loader.load();
+			wptLoader.load();
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("WPT LOADED!");
 			logger.info("Time in ms to build the Property Table: " + executionTime);

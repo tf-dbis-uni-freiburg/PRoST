@@ -39,6 +39,8 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
 
+		statistics.computeCharacteristicSetsStatistics(spark());
+
 		/*statistics.saveToFile(System.getProperty("user.dir") + "\\target\\test_output\\charset"
 				+ ".json");*/
 

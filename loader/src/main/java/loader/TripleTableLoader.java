@@ -20,7 +20,6 @@ public class TripleTableLoader extends Loader {
 	private final boolean ttPartitionedByPredicate;
 	private final boolean dropDuplicates;
 	private final String hdfsInputDirectory;
-	private final boolean computingCharacteristicSets;
 
 	public TripleTableLoader(final Settings settings, final SparkSession spark, final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, statistics);
@@ -28,7 +27,6 @@ public class TripleTableLoader extends Loader {
 		this.ttPartitionedBySubject = settings.isTtPartitionedBySubject();
 		this.ttPartitionedByPredicate = settings.isTtPartitionedByPredicate();
 		this.dropDuplicates = settings.isDroppingDuplicateTriples();
-		this.computingCharacteristicSets = settings.isComputingCharacteristicSets();
 	}
 
 	@SuppressWarnings("CheckStyle")
@@ -130,10 +128,6 @@ public class TripleTableLoader extends Loader {
 		}
 
 		this.getStatistics().setTuplesNumber(tuplesCount);
-
-		if (computingCharacteristicSets) {
-			this.getStatistics().computeCharacteristicSetsStatistics(allTriples);
-		}
 
 		// The following part just outputs to the log in case there have been
 		// problems parsing the files.

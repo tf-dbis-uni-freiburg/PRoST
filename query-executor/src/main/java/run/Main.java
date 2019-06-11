@@ -45,7 +45,7 @@ public class Main {
 		final DatabaseStatistics statistics = DatabaseStatistics.loadFromFile(settings.getStatsPath());
 		settings.checkTablesAvailability(statistics);
 
-		final File file = new File(settings.getInputPath());
+		final File file = new File(settings.getQueriesInputPath());
 
 		// create an executor
 		final Executor executor = new Executor(settings);
@@ -54,7 +54,7 @@ public class Main {
 		if (file.isFile()) {
 
 			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(settings.getInputPath(),
+			final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
 					statistics, settings);
 
 			executor.execute(translatedQuery);
@@ -76,7 +76,7 @@ public class Main {
 				logger.info("Starting: " + fileName);
 
 				// translation phase
-				final JoinTree translatedQuery = translateSingleQuery(settings.getInputPath() + "/" + fileName,
+				final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
 						statistics, settings);
 
 				// execution phase

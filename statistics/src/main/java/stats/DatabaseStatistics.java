@@ -13,13 +13,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import scala.collection.Iterator;
 import scala.collection.immutable.Vector;
 import scala.collection.mutable.WrappedArray;
@@ -29,6 +34,8 @@ import scala.collection.mutable.WrappedArray;
  * Handles statistical information about a whole database.
  */
 public class DatabaseStatistics {
+	static final Logger logger = Logger.getLogger("PRoST");
+
 	private String databaseName;
 	private Long tuplesNumber;
 	private HashMap<String, PropertyStatistics> properties;
@@ -90,7 +97,10 @@ public class DatabaseStatistics {
 		final schema: charSet:array<string>, distinctSubjects:long, tuplesPerPredicate:array<array<string>> ->
 		arrays of the type <<"propertyName","count">,...,<"pn","cn">>
 	 */
-	public void computeCharacteristicSetsStatistics(final Dataset<Row> tripletable) {
+	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
+		spark.sql("USE " + databaseName);
+		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
+
 		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(collect_set("p").as("charSet"), collect_list(
 				"p").as("predicates"));
 		characteristicSets = characteristicSets.groupBy("charSet").agg(count("s").as("subjectCount"),
@@ -120,6 +130,57 @@ public class DatabaseStatistics {
 			}
 			this.characteristicSets.add(characteristicSetStatistics);
 		}
+
+		//tuplesNumber!=0 if the tripletable was loaded with PRoST
+		if (this.tuplesNumber == 0) {
+			this.setTuplesNumber(tripletable.count());
+		}
+	}
+
+	public void computePropertyStatistics(final SparkSession spark) {
+		spark.sql("USE " + databaseName);
+		final String[] propertiesNames = extractProperties(spark);
+
+		for (String property : propertiesNames) {
+			final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
+			this.getProperties().put(property, new PropertyStatistics(vpTableDataset,
+					getValidHiveName(property)));
+		}
+	}
+
+	String getValidHiveName(final String columnName) {
+		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
+	}
+
+	private String[] extractProperties(final SparkSession spark) {
+		final List<Row> props = spark
+				.sql("SELECT DISTINCT(p) AS p FROM tripletable")
+				.collectAsList();
+		final String[] properties = new String[props.size()];
+		for (int i = 0; i < props.size(); i++) {
+			properties[i] = props.get(i).getString(0);
+		}
+		final String[] cleanedProperties = handleCaseInsensitivePredicates(properties);
+		return cleanedProperties;
+	}
+
+	private String[] handleCaseInsensitivePredicates(final String[] properties) {
+		final Set<String> seenPredicates = new HashSet<>();
+		final Set<String> originalRemovedPredicates = new HashSet<>();
+		final Set<String> propertiesSet = new HashSet<>(Arrays.asList(properties));
+
+		for (final String predicate : propertiesSet) {
+			if (seenPredicates.contains(predicate.toLowerCase())) {
+				originalRemovedPredicates.add(predicate);
+			} else {
+				seenPredicates.add(predicate.toLowerCase());
+			}
+		}
+		for (final String predicateToBeRemoved : originalRemovedPredicates) {
+			propertiesSet.remove(predicateToBeRemoved);
+		}
+
+		return propertiesSet.toArray(new String[0]);
 	}
 
 	public HashMap<String, PropertyStatistics> getProperties() {

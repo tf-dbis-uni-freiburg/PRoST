@@ -24,7 +24,7 @@ public class Settings {
 	//General settings
 	private String settingsPath;
 	private String databaseName;
-	private String inputPath;
+	private String queriesInputPath;
 	private String statsPath;
 	private String outputFilePath;
 	private String benchmarkFilePath;
@@ -47,6 +47,10 @@ public class Settings {
 	// Executor options
 	private boolean randomQueryOrder = false;
 	private boolean savingBenchmarkFile = false;
+
+	private Settings() {
+
+	}
 
 	public Settings(final String[] args) throws Exception {
 		parseArguments(args);
@@ -181,7 +185,7 @@ public class Settings {
 			databaseName = cmd.getOptionValue("DB");
 		}
 		if (cmd.hasOption("input")) {
-			inputPath = cmd.getOptionValue("input");
+			queriesInputPath = cmd.getOptionValue("input");
 		}
 		if (cmd.hasOption("preferences")) {
 			settingsPath = cmd.getOptionValue("preferences");
@@ -207,7 +211,7 @@ public class Settings {
 
 		logger.info("Using preference settings: " + settingsPath);
 		logger.info("Database set to: " + databaseName);
-		logger.info("Input queries path set to: " + inputPath);
+		logger.info("Input queries path set to: " + queriesInputPath);
 		if (outputFilePath != null) {
 			logger.info("Output path set to: " + outputFilePath);
 		}
@@ -304,8 +308,8 @@ public class Settings {
 		return databaseName;
 	}
 
-	public String getInputPath() {
-		return inputPath;
+	public String getQueriesInputPath() {
+		return queriesInputPath;
 	}
 
 	public String getStatsPath() {
@@ -371,4 +375,97 @@ public class Settings {
 	public boolean isSavingBenchmarkFile() {
 		return savingBenchmarkFile;
 	}
+
+	public static class Builder {
+		//General settings
+		private String databaseName;
+		private String inputPath = "/";
+		private String statsPath;
+
+		// Node types
+		private boolean usingTT = false;
+		private boolean usingVP = false;
+		private boolean usingWPT = false;
+		private boolean usingIWPT = false;
+		private boolean usingJWPTOuter = false;
+		private boolean usingJWPTInner = false;
+		private boolean usingJWPTLeftOuter = false;
+
+
+		// Translator options
+		private boolean groupingTriples = true;
+		private int minGroupSize = 1;
+
+		public Builder(final String databaseName) {
+			this.databaseName = databaseName;
+		}
+
+		public Builder withQueriesInputPath(final String inputPath) {
+			this.inputPath = inputPath;
+			return this;
+		}
+
+		public Builder usingTTNodes() {
+			this.usingTT = true;
+			return this;
+		}
+
+		public Builder usingVPNodes() {
+			this.usingVP = true;
+			return this;
+		}
+
+		public Builder usingWPTNodes() {
+			this.usingWPT = true;
+			return this;
+		}
+
+		public Builder usingIWPTNodes() {
+			this.usingIWPT = true;
+			return this;
+		}
+
+		public Builder usingJWPTOuterNodes() {
+			this.usingJWPTOuter = true;
+			return this;
+		}
+
+		public Builder usingJWPTLeftouterNodes() {
+			this.usingJWPTLeftOuter = true;
+			return this;
+		}
+
+		public Builder usingJWPTInnerNodes() {
+			this.usingJWPTInner = true;
+			return this;
+		}
+
+		public Builder withUngroupedTriples() {
+			this.groupingTriples = false;
+			return this;
+		}
+
+		public Builder withMinimumGroupSize(final int minimumGroupSize) {
+			this.minGroupSize = minimumGroupSize;
+			return this;
+		}
+
+		public Settings build() {
+			final Settings settings = new Settings();
+			settings.databaseName = this.databaseName;
+			settings.queriesInputPath = this.inputPath;
+			settings.statsPath = this.databaseName + ".json";
+			settings.usingTT = this.usingTT;
+			settings.usingVP = this.usingVP;
+			settings.usingWPT = this.usingWPT;
+			settings.usingIWPT = this.usingIWPT;
+			settings.usingJWPTOuter = this.usingJWPTOuter;
+			settings.usingJWPTLeftOuter = this.usingJWPTLeftOuter;
+			settings.usingJWPTInner = this.usingJWPTInner;
+			settings.groupingTriples = this.groupingTriples;
+			settings.minGroupSize = this.minGroupSize;
+			return settings;
+		}
+	}
+
 }
