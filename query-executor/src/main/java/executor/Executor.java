@@ -66,6 +66,7 @@ public class Executor {
 		if (settings.getOutputFilePath() != null) {
 			results.write().mode(SaveMode.Overwrite).parquet(settings.getOutputFilePath());
 		}
+		final long resultsCount = results.count();
 
 		executionTime = System.currentTimeMillis() - startTime;
 		logger.info("Execution time JOINS: " + executionTime);
@@ -76,7 +77,7 @@ public class Executor {
 		if (settings.isSavingBenchmarkFile()) {
 			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.getQueryName());
 			statisticsBuilder.executionTime(executionTime);
-			statisticsBuilder.resultsCount(results.count());
+			statisticsBuilder.resultsCount(resultsCount);
 
 			final String queryPlan = results.queryExecution().executedPlan().toString();
 			statisticsBuilder.joinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join"));
