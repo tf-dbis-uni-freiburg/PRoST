@@ -98,7 +98,6 @@ public class DatabaseStatistics {
 		arrays of the type <<"propertyName","count">,...,<"pn","cn">>
 	 */
 	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
-		logger.info("begin");
 		spark.sql("USE " + databaseName);
 		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
@@ -118,11 +117,9 @@ public class DatabaseStatistics {
 		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount").agg(collect_list(
 				"tuplesPerPredicate").as("tuplesPerPredicate"));
 
-		logger.info("Charset columns: " + Arrays.toString(characteristicSets.columns()));
-		logger.info("Charset count: " + characteristicSets.count());
-
-		final List<Row> collectedCharSets = characteristicSets.collectAsList();
-		for (final Row charSet : collectedCharSets) {
+		final java.util.Iterator<Row> iter = characteristicSets.toLocalIterator();
+		while (iter.hasNext()){
+			final Row charSet = iter.next();
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
 			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
 

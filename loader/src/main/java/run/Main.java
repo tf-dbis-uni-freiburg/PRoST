@@ -76,7 +76,7 @@ public class Main {
 			statistics.computeCharacteristicSetsStatistics(spark);
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("CHARACTERISTIC SETS COMPUTED!");
-			logger.info("Time in ms to computed characteristic sets: " + executionTime);
+			logger.info("Time in ms to compute characteristic sets: " + executionTime);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -104,7 +104,7 @@ public class Main {
 			statistics.computePropertyStatistics(spark);
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("PROPERTY STATISTICS COMPUTED!");
-			logger.info("Time in ms to computed characteristic sets: " + executionTime);
+			logger.info("Time in ms to compute property statistics: " + executionTime);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 

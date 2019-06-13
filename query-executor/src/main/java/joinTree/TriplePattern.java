@@ -60,7 +60,7 @@ public class TriplePattern {
 		this.subject = subject;
 	}
 
-	String getPredicate() {
+	public String getPredicate() {
 		return predicate;
 	}
 
@@ -68,7 +68,7 @@ public class TriplePattern {
 		return object;
 	}
 
-	ElementType getSubjectType() {
+	public ElementType getSubjectType() {
 		return subjectType;
 	}
 
@@ -76,7 +76,7 @@ public class TriplePattern {
 		return objectType;
 	}
 
-	ElementType getPredicateType() {
+	public ElementType getPredicateType() {
 		return predicateType;
 	}
 

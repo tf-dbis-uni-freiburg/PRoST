@@ -110,15 +110,24 @@ public class Translator {
 		Node currentNode = null;
 
 		while (!nodesQueue.isEmpty()) {
+			logger.info("queue size: " + nodesQueue.size());
 			currentNode = nodesQueue.poll();
+			logger.info("current node: " + currentNode.toString());
+
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
+
+
 			if (relatedNode != null) {
+				logger.info("related node: " + relatedNode.toString());
 				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
 				nodesQueue.add(joinNode);
 				nodesQueue.remove(currentNode);
 				nodesQueue.remove(relatedNode);
+			} else {
+				logger.info("related is null");
 			}
 		}
+		logger.info("root: " + currentNode.toString());
 		return currentNode;
 	}
 
@@ -303,8 +312,36 @@ public class Translator {
 	 * Check if two Triple Patterns share at least one variable.
 	 */
 	private boolean existsVariableInCommon(final TriplePattern tripleA, final TriplePattern tripleB) {
-		return (tripleA.getObjectType() == ElementType.VARIABLE
-				&& (tripleA.getObject().equals(tripleB.getSubject())
-				|| tripleA.getObject().equals(tripleB.getObject())));
+		final List<String> variablesTripleA = new ArrayList<>();
+		if (tripleA.getSubjectType() == ElementType.VARIABLE) {
+			variablesTripleA.add(tripleA.getSubject());
+		}
+		if (tripleA.getPredicateType() == ElementType.VARIABLE) {
+			variablesTripleA.add(tripleA.getPredicate());
+		}
+		if (tripleA.getObjectType() == ElementType.VARIABLE) {
+			variablesTripleA.add(tripleA.getObject());
+		}
+
+
+		final List<String> variablesTripleB = new ArrayList<>();
+		if (tripleB.getSubjectType() == ElementType.VARIABLE) {
+			variablesTripleB.add(tripleB.getSubject());
+		}
+		if (tripleB.getPredicateType() == ElementType.VARIABLE) {
+			variablesTripleB.add(tripleB.getPredicate());
+		}
+		if (tripleB.getObjectType() == ElementType.VARIABLE) {
+			variablesTripleB.add(tripleB.getObject());
+		}
+
+		for (final String varA : variablesTripleA) {
+			for (final String varB : variablesTripleB) {
+				if (varA.equals(varB)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
