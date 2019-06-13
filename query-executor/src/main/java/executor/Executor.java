@@ -62,6 +62,7 @@ public class Executor {
 
 		startTime = System.currentTimeMillis();
 
+
 		if (settings.getOutputFilePath() != null) {
 			results.write().mode(SaveMode.Overwrite).parquet(settings.getOutputFilePath());
 		}
