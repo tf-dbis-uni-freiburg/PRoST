@@ -1,6 +1,7 @@
 package executor;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -133,23 +134,43 @@ public class Executor {
 	 * file.
 	 */
 	public void saveResultsCsv(final String fileName) {
-		try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
-				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-			 final CSVPrinter csvPrinter = new CSVPrinter(writer,
-					 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
-							 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
-							 "VP Nodes",	"WPT Nodes", "IWPT Nodes", "JWPT Nodes"))) {
-			for (final Statistics statistics : this.executionStatistics) {
-				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
-						statistics.getResultsCount(), statistics.getJoinsCount(),
-						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
-						statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
-						statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
-			}
-			csvPrinter.flush();
+		final File file = new File(Paths.get(fileName).toString());
+		if (!file.exists()) {
+			try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
+					StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
-		} catch (final IOException e) {
-			e.printStackTrace();
+				 final CSVPrinter csvPrinter = new CSVPrinter(writer,
+						 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
+								 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
+								 "VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes"))) {
+				for (final Statistics statistics : this.executionStatistics) {
+					csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
+							statistics.getResultsCount(), statistics.getJoinsCount(),
+							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
+							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
+							statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
+				}
+				csvPrinter.flush();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
+					StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+				 final CSVPrinter csvPrinter = new CSVPrinter(writer,
+						 CSVFormat.DEFAULT)) {
+				for (final Statistics statistics : this.executionStatistics) {
+					csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
+							statistics.getResultsCount(), statistics.getJoinsCount(),
+							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
+							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
+							statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
+				}
+				csvPrinter.flush();
+
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
