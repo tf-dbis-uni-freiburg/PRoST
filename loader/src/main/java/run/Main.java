@@ -145,10 +145,13 @@ public class Main {
 		}
 
 		if (settings.isGeneratingJWPTOuter()) {
+			assert statistics.getProperties().size() > 0 : "Property statistics are needed to compute JWPT";
+
 			statistics.setHasJWPTOuter(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 
 			logger.info("LOADING JWPT_OUTER...");
+
 			startTime = System.currentTimeMillis();
 			final JoinedWidePropertyTableLoader jwptLoader =
 					new JoinedWidePropertyTableLoader(settings, spark, JoinedWidePropertyTableLoader.JoinType.outer,
@@ -164,6 +167,8 @@ public class Main {
 		}
 
 		if (settings.isGeneratingJWPTInner()) {
+			assert statistics.getProperties().size() > 0 : "Property statistics are needed to compute JWPT";
+
 			statistics.setHasJWPTInner(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 
@@ -183,6 +188,8 @@ public class Main {
 		}
 
 		if (settings.isGeneratingJWPTLeftOuter()) {
+			assert statistics.getProperties().size() > 0 : "Property statistics are needed to compute JWPT";
+			
 			statistics.setHasJWPTLeftOuter(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 
