@@ -22,10 +22,8 @@ import utils.Settings;
 public abstract class Node {
 	private final DatabaseStatistics statistics;
 	private final Settings settings;
-
 	private Dataset<Row> sparkNodeData;
 	private Double priority;
-
 	public Node(final DatabaseStatistics statistics, final Settings settings) {
 		this.statistics = statistics;
 		this.settings = settings;
@@ -149,5 +147,25 @@ public abstract class Node {
 
 	DatabaseStatistics getStatistics() {
 		return this.statistics;
+	}
+
+	public enum DataModel {
+		TT("tripletable"),
+		WPT("wide_property_table"),
+		IWPT("inverse_wide_property_table"),
+		JWPT_OUTER("joined_wide_property_table_outer"),
+		JWPT_LEFTOUTER("joined_wide_property_table_leftouter"),
+		JWPT_INNER("joined_wide_property_table_inner");
+
+		private String tableName;
+
+		DataModel(final String tableName) {
+			this.tableName = tableName;
+		}
+
+		public String getTableName() {
+			return this.tableName;
+		}
+
 	}
 }

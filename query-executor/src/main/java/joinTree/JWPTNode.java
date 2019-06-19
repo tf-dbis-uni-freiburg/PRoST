@@ -73,14 +73,14 @@ public class JWPTNode extends MVNode {
 		setIsComplex();
 	}
 
-	private void setTableName(final Settings settings){
+	private void setTableName(final Settings settings) {
 		if (settings.isUsingJWPTOuter()) {
-			tableName = "joined_wide_property_table_outer";
+			tableName = DataModel.JWPT_OUTER.getTableName();
 		} else if (settings.isUsingJWPTLeftouter()) {
-			tableName = "joined_wide_property_table_leftouter";
+			tableName = DataModel.JWPT_LEFTOUTER.getTableName();
 		} else {
 			assert settings.isUsingJWPTInner();
-			tableName = "joined_wide_property_table_inner";
+			tableName = DataModel.JWPT_INNER.getTableName();
 		}
 	}
 

@@ -43,7 +43,7 @@ public class TTNode extends Node {
 		}
 
 		String query = "SELECT " + String.join(", ", selectElements);
-		query += " FROM tripletable";
+		query += " FROM " + DataModel.TT.getTableName();
 		if (!whereElements.isEmpty()) {
 			query += " WHERE " + String.join(" AND ", whereElements);
 		}

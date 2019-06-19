@@ -16,7 +16,7 @@ import utils.Utils;
  */
 public class IWPTNode extends MVNode {
 	private static final String OBJECT_COLUMN_NAME = "o";
-	private static final String TABLE_NAME = "inverse_wide_property_table";
+	private static final String TABLE_NAME = DataModel.IWPT.getTableName();
 
 	/**
 	 * Alternative constructor, used to instantiate a Node directly with a list of

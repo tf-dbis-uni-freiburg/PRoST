@@ -23,7 +23,7 @@ public class WPTNode extends MVNode {
 	 * table name can be changes depending on the list of triples this node
 	 * contains.
 	 */
-	private static String TABLE_NAME = "wide_property_table";
+	private static String TABLE_NAME = DataModel.WPT.getTableName();
 
 	/*
 	 * Alternative constructor, used to instantiate a Node directly with a list of
