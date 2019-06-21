@@ -39,7 +39,7 @@ public class Executor {
 		this.executionStatistics = new ArrayList<>();
 
 		// initialize the Spark environment
-		spark = SparkSession.builder().appName("PRoST-Executor").getOrCreate();
+		spark = SparkSession.builder().appName("PRoST-Executor").enableHiveSupport().getOrCreate();
 		this.sqlContext = spark.sqlContext();
 
 		// use the selected database
