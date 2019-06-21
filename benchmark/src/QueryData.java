@@ -13,6 +13,17 @@ public class QueryData {
 	private double standardDeviation;
 	private int numberOfOutliersTrimmed;
 
+	private long resultsCount;
+	private int joinsCount;
+	private int broadcastJoinsCount;
+	private int sortMergeJoinsCount;
+	private int joinNodesCount;
+	private int ttNodesCount;
+	private int vpNodesCount;
+	private int wptNodesCount;
+	private int iwptNodesCount;
+	private int jwptNodesCount;
+
 	public void compute() {
 		Collections.sort(times);
 		computeMedian();
@@ -58,31 +69,112 @@ public class QueryData {
 		this.numberOfOutliersTrimmed = originalSize - times.size();
 	}
 
-	public void addTime(int time) {
+	void addTime(final int time) {
 		this.times.add(time);
 	}
 
-	public double getAverage() {
+	double getAverage() {
 		return average;
 	}
 
-	public double getQ1() {
+	double getQ1() {
 		return q1;
 	}
 
-	public double getQ3() {
+	double getQ3() {
 		return q3;
 	}
 
-	public double getUpperFence() {
+	double getUpperFence() {
 		return upperFence;
 	}
 
-	public double getMedian() {
+	double getMedian() {
 		return median;
 	}
 
-	public int getNumberOfOutliersTrimmed() {
+	int getNumberOfOutliersTrimmed() {
 		return numberOfOutliersTrimmed;
 	}
+
+	void setResultsCount(final long resultsCount) {
+		this.resultsCount = resultsCount;
+	}
+
+	void setJoinsCount(final int joinsCount) {
+		this.joinsCount = joinsCount;
+	}
+
+	void setBroadcastJoinsCount(final int broadcastJoinsCount) {
+		this.broadcastJoinsCount = broadcastJoinsCount;
+	}
+
+	void setSortMergeJoinsCount(final int sortMergeJoinsCount) {
+		this.sortMergeJoinsCount = sortMergeJoinsCount;
+	}
+
+	void setJoinNodesCount(final int joinNodesCount) {
+		this.joinNodesCount = joinNodesCount;
+	}
+
+	void setTtNodesCount(final int ttNodesCount) {
+		this.ttNodesCount = ttNodesCount;
+	}
+
+	void setVpNodesCount(final int vpNodesCount) {
+		this.vpNodesCount = vpNodesCount;
+	}
+
+	void setWptNodesCount(final int wptNodesCount) {
+		this.wptNodesCount = wptNodesCount;
+	}
+
+	void setIwptNodesCount(final int iwptNodesCount) {
+		this.iwptNodesCount = iwptNodesCount;
+	}
+
+	void setJwptNodesCount(final int jwptNodesCount) {
+		this.jwptNodesCount = jwptNodesCount;
+	}
+
+	long getResultsCount() {
+		return resultsCount;
+	}
+
+	int getJoinsCount() {
+		return joinsCount;
+	}
+
+	int getBroadcastJoinsCount() {
+		return broadcastJoinsCount;
+	}
+
+	int getSortMergeJoinsCount() {
+		return sortMergeJoinsCount;
+	}
+
+	int getJoinNodesCount() {
+		return joinNodesCount;
+	}
+
+	int getTtNodesCount() {
+		return ttNodesCount;
+	}
+
+	int getVpNodesCount() {
+		return vpNodesCount;
+	}
+
+	int getWptNodesCount() {
+		return wptNodesCount;
+	}
+
+	int getIwptNodesCount() {
+		return iwptNodesCount;
+	}
+
+	int getJwptNodesCount() {
+		return jwptNodesCount;
+	}
 }
+

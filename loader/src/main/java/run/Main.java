@@ -189,7 +189,7 @@ public class Main {
 
 		if (settings.isGeneratingJWPTLeftOuter()) {
 			assert statistics.getProperties().size() > 0 : "Property statistics are needed to compute JWPT";
-			
+
 			statistics.setHasJWPTLeftOuter(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 
