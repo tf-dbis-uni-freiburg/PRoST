@@ -21,7 +21,6 @@ import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -34,8 +33,6 @@ import scala.collection.mutable.WrappedArray;
  * Handles statistical information about a whole database.
  */
 public class DatabaseStatistics {
-	static final Logger logger = Logger.getLogger("PRoST");
-
 	private String databaseName;
 	private Long tuplesNumber;
 	private HashMap<String, PropertyStatistics> properties;
@@ -117,9 +114,8 @@ public class DatabaseStatistics {
 		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount").agg(collect_list(
 				"tuplesPerPredicate").as("tuplesPerPredicate"));
 
-		final java.util.Iterator<Row> iter = characteristicSets.toLocalIterator();
-		while (iter.hasNext()){
-			final Row charSet = iter.next();
+		final List<Row> collectedCharSets = characteristicSets.collectAsList();
+		for (final Row charSet : collectedCharSets) {
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
 			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
 
@@ -142,14 +138,14 @@ public class DatabaseStatistics {
 		spark.sql("USE " + databaseName);
 		final String[] propertiesNames = extractProperties(spark);
 
-		for (String property : propertiesNames) {
+		for (final String property : propertiesNames) {
 			final Dataset<Row> vpTableDataset = spark.sql("SELECT * FROM " + "vp_" + getValidHiveName(property));
 			this.getProperties().put(property, new PropertyStatistics(vpTableDataset,
 					getValidHiveName(property)));
 		}
 	}
 
-	String getValidHiveName(final String columnName) {
+	private String getValidHiveName(final String columnName) {
 		return columnName.replaceAll("[<>]", "").trim().replaceAll("[[^\\w]+]", "_");
 	}
 
@@ -161,8 +157,7 @@ public class DatabaseStatistics {
 		for (int i = 0; i < props.size(); i++) {
 			properties[i] = props.get(i).getString(0);
 		}
-		final String[] cleanedProperties = handleCaseInsensitivePredicates(properties);
-		return cleanedProperties;
+		return handleCaseInsensitivePredicates(properties);
 	}
 
 	private String[] handleCaseInsensitivePredicates(final String[] properties) {
@@ -242,10 +237,6 @@ public class DatabaseStatistics {
 
 	public void setHasJWPTInner(final Boolean hasJWPTInner) {
 		this.hasJWPTInner = hasJWPTInner;
-	}
-
-	public Boolean hasJWPTLeftOuter() {
-		return hasJWPTLeftOuter;
 	}
 
 	public void setHasJWPTLeftOuter(final Boolean hasJWPTLeftOuter) {
