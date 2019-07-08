@@ -114,28 +114,26 @@ public class TriplesGroupsMapping {
 	 */
 	public TriplesGroup extractBestTriplesGroup(final Settings settings) {
 		TriplesGroup largestGroup = null;
-		int size = 0;
+		int largestGroupSize = 0;
 		for (final TriplesGroup group : this.triplesGroups.values()) {
 			final int groupSize = group.size();
-			if (groupSize > size) {
+			if (groupSize > largestGroupSize) {
 				largestGroup = group;
-				size = groupSize;
-			} else if (settings.isUsingJWPTInner()) {
-				if (!(largestGroup instanceof JoinedTriplesGroup) && (group instanceof JoinedTriplesGroup)) {
+				largestGroupSize = groupSize;
+			} else if (groupSize == largestGroupSize) {
+				if (group instanceof ForwardTriplesGroup) {
 					largestGroup = group;
-				}
-			} else if (settings.isUsingWPT()) {
-				if (!(largestGroup instanceof ForwardTriplesGroup) && (group instanceof ForwardTriplesGroup)) {
+				} else if (!(largestGroup instanceof ForwardTriplesGroup) && (group instanceof JoinedTriplesGroup)
+						&& !settings.isUsingJWPTOuter()) {
 					largestGroup = group;
-				}
-			} else if (settings.isUsingJWPTLeftouter()) {
-				if (!(largestGroup instanceof JoinedTriplesGroup) && (group instanceof JoinedTriplesGroup)) {
+				} else if (settings.isUsingJWPTOuter()
+						&& largestGroup instanceof JoinedTriplesGroup && group instanceof InverseTriplesGroup) {
 					largestGroup = group;
 				}
 			}
 		}
 
-		assert (largestGroup != null && size > 0) : "No best group was extracted";
+		assert (largestGroup != null && largestGroupSize > 0) : "No best group was extracted";
 
 		this.triplesGroups.remove(largestGroup.getCommonResource(), largestGroup);
 
