@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
+import joinTree.JoinTree;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
@@ -16,6 +17,7 @@ import query.utilities.HiveDatabaseUtilities;
 import query.utilities.TestData;
 import query.utilities.TripleBean;
 import stats.DatabaseStatistics;
+import translator.Translator;
 import utils.Settings;
 
 /**
@@ -103,12 +105,14 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		ttDataset.write().saveAsTable("tripletable");
 
 
-		final Settings settings = new Settings.Builder("ttQueryTest_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("ttQueryTest_db").usingTTNodes().usingCharacteristicSets().build();
 		final DatabaseStatistics statistics = new DatabaseStatistics("ttQueryTest_db");
+		statistics.computeCharacteristicSetsStatistics(spark());
 
-		/*final Triple triple = new Triple();
-		final TriplePattern pattern = new TriplePattern();
-		final TTNode ttNode = new TTNode();*/
-
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("ttTest.q").getPath());
+		JoinTree joinTree = translator.translateQuery();
+		List<Row> result =  joinTree.compute(spark().sqlContext()).collectAsList();
 	}
 }
