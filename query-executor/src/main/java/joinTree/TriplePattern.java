@@ -29,8 +29,17 @@ public class TriplePattern {
 		}
 
 		// extract and set the predicate
-		predicateType = ElementType.CONSTANT;
-		predicate = "<" + triple.getPredicate().toString() + ">";
+		if (triple.getPredicate().isVariable()) {
+			predicateType = ElementType.VARIABLE;
+			predicate = triple.getPredicate().toString();
+		} else {
+			predicateType = ElementType.CONSTANT;
+			if (triple.getPredicate().isLiteral()) {
+				predicate = triple.getPredicate().toString();
+			} else {
+				predicate = "<" + triple.getPredicate().toString() + ">";
+			}
+		}
 
 		// extract and set the object
 		if (triple.getObject().isVariable()) {
