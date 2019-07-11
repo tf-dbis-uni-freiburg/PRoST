@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
@@ -43,7 +44,6 @@ public class JWPTNode extends MVNode {
 			iwptTripleGroup.add(tp);
 			this.addTriplePattern(tp);
 		}
-		setIsComplex();
 	}
 
 	public JWPTNode(final Triple triple, final PrefixMapping prefixes,
@@ -69,8 +69,6 @@ public class JWPTNode extends MVNode {
 
 			wptTripleGroup = new ArrayList<>();
 		}
-
-		setIsComplex();
 	}
 
 	private void setTableName(final Settings settings) {
@@ -89,7 +87,7 @@ public class JWPTNode extends MVNode {
 	 * <code>TriplePattern</code> in <code>wptTripleGroup</code> and
 	 * <code>iwptTripleGroup</code>is complex.
 	 */
-	private void setIsComplex() {
+	/*private void setIsComplex() {
 		for (final TriplePattern triplePattern : wptTripleGroup) {
 			triplePattern.setComplex(
 					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isComplex());
@@ -99,13 +97,13 @@ public class JWPTNode extends MVNode {
 			triplePattern.setComplex(
 					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isInverseComplex());
 		}
-	}
-
+	}*/
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
 		final TriplePattern triple = this.getFirstTriplePattern();
 		if (this.size() == 1 && triple.getPredicateType().equals(ElementType.VARIABLE)) {
-			if (triple.getSubjectType().equals(ElementType.CONSTANT) || triple.getObjectType().equals(ElementType.VARIABLE)) {
+			if (triple.getSubjectType().equals(ElementType.CONSTANT)
+					|| triple.getObjectType().equals(ElementType.VARIABLE)) {
 				computeForwardVariablePredicateNodeData(sqlContext);
 			} else {
 				computeInverseVariablePredicateNodeData(sqlContext);
@@ -144,12 +142,12 @@ public class JWPTNode extends MVNode {
 			assert !columnName.equals(WPT_PREFIX) : "This column does not exists: " + columnName;
 
 			if (t.getObjectType() == ElementType.CONSTANT) {
-				if (t.isComplex()) {
+				if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.getObject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + t.getObject() + "'");
 				}
-			} else if (t.isComplex()) {
+			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
@@ -166,12 +164,12 @@ public class JWPTNode extends MVNode {
 			assert !columnName.equals(IWPT_PREFIX) : "This column does not exists: " + columnName;
 
 			if (t.getSubjectType() == ElementType.CONSTANT) {
-				if (t.isComplex()) {
+				if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.getSubject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
-			} else if (t.isComplex()) {
+			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
@@ -196,14 +194,11 @@ public class JWPTNode extends MVNode {
 	//assumes a single pattern in the triples groups, uses the forward part of the table
 	private void computeForwardVariablePredicateNodeData(final SQLContext sqlContext) {
 		assert this.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
-
-		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
-			properties.add(propertyStatistics.getInternalName());
-		}
 		final TriplePattern triple = this.getFirstTriplePattern();
 
-		for (final String property : properties) {
+		for (final Map.Entry<String, PropertyStatistics> entry : this.getStatistics().getProperties().entrySet()) {
+			final String property = entry.getValue().getInternalName();
+			final String key = entry.getKey();
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
@@ -215,17 +210,17 @@ public class JWPTNode extends MVNode {
 				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.getSubject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
+			selectElements.add("'" + key + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			final String columnName = WPT_PREFIX.concat(property);
 
 			if (triple.getObjectType() == ElementType.CONSTANT) {
-				if (triple.isComplex()) {
+				if ((triple.isComplex(getStatistics(), key))) {
 					whereElements.add("array_contains(" + columnName + ", '" + triple.getObject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + triple.getObject() + "'");
 				}
-			} else if (triple.isComplex()) {
+			} else if ((triple.isComplex(getStatistics(), key))) {
 				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(triple.getObject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
@@ -255,13 +250,12 @@ public class JWPTNode extends MVNode {
 	private void computeInverseVariablePredicateNodeData(final SQLContext sqlContext) {
 		assert this.size() == 1 : "JWPT nodes with variable predicates can only contain one triple pattern";
 
-		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
-			properties.add(propertyStatistics.getInternalName());
-		}
 		final TriplePattern triple = this.getFirstTriplePattern();
 
-		for (final String property : properties) {
+		for (final Map.Entry<String, PropertyStatistics> entry : this.getStatistics().getProperties().entrySet()) {
+			final String property = entry.getValue().getInternalName();
+			final String key = entry.getKey();
+
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
@@ -273,17 +267,17 @@ public class JWPTNode extends MVNode {
 				whereElements.add(COLUMN_NAME_COMMON_RESOURCE + "='" + triple.getObject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
+			selectElements.add("'" + key + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			final String columnName = IWPT_PREFIX.concat(property);
 
 			if (triple.getSubjectType() == ElementType.CONSTANT) {
-				if (triple.isComplex()) {
+				if ((triple.isInverseComplex(getStatistics(), key))) {
 					whereElements.add("array_contains(" + columnName + ", '" + triple.getSubject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + triple.getSubject() + "'");
 				}
-			} else if (triple.isComplex()) {
+			} else if ((triple.isInverseComplex(getStatistics(), key))) {
 				selectElements.add(" P" + columnName + " AS ");
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);

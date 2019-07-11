@@ -116,7 +116,6 @@ public class Translator {
 
 			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
 
-
 			if (relatedNode != null) {
 				logger.info("related node: " + relatedNode.toString());
 				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
@@ -194,6 +193,10 @@ public class Translator {
 					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
 				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
+			} else if (settings.isUsingJWPTLeftouter()
+						&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
+				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
+				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else {
 				//no best pt node type, uses general best option
 				if (settings.isUsingTT()) {
@@ -206,6 +209,9 @@ public class Translator {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingJWPTOuter()) {
+					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
+					unassignedTriplesWithVariablePredicate.remove(triple);
+				} else if (settings.isUsingJWPTLeftouter()) {
 					nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingIWPT()) {

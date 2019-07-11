@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.spark.sql.SQLContext;
 import stats.DatabaseStatistics;
@@ -30,19 +31,25 @@ public class VPNode extends Node {
 					"vp_" + this.getStatistics().getProperties().get(triplePattern.getPredicate()).getInternalName();
 			this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName)));
 		} else {
-			for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
+			for (final Map.Entry<String, PropertyStatistics> entry : this.getStatistics().getProperties().entrySet()) {
+				final PropertyStatistics propertyStatistics = entry.getValue();
 				final String tableName =
 						"vp_" + propertyStatistics.getInternalName();
 				if (this.getSparkNodeData() == null) {
-					this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName)));
+					this.setSparkNodeData(sqlContext.sql(createSQLQuery(tableName, entry.getKey())));
 				} else {
-					this.setSparkNodeData(this.getSparkNodeData().union(sqlContext.sql(createSQLQuery(tableName))));
+					this.setSparkNodeData(this.getSparkNodeData()
+							.union(sqlContext.sql(createSQLQuery(tableName, entry.getKey()))));
 				}
 			}
 		}
 	}
 
 	private String createSQLQuery(final String vpTableName) {
+		return createSQLQuery(vpTableName, null);
+	}
+
+	private String createSQLQuery(final String vpTableName, final String vpPropertyName) {
 		final ArrayList<String> selectElements = new ArrayList<>();
 		final ArrayList<String> whereElements = new ArrayList<>();
 
@@ -51,6 +58,13 @@ public class VPNode extends Node {
 		} else {
 			whereElements.add("s='" + triplePattern.getSubject() + "'");
 		}
+
+		if (triplePattern.getPredicateType() == ElementType.VARIABLE) {
+			assert vpPropertyName != null;
+			selectElements.add("'" + vpPropertyName + "' AS "
+					+ Utils.removeQuestionMark((triplePattern.getPredicate())));
+		}
+
 		if (triplePattern.getObjectType() == ElementType.VARIABLE) {
 			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.getObject()));
 		} else {

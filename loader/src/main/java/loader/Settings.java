@@ -286,7 +286,12 @@ public class Settings {
 		private boolean dropDuplicateTriples = false;
 		private boolean computePropertyStatistics = false;
 		private boolean computeCharacteristicSets = false;
-
+		private boolean generateVP = false;
+		private boolean generateWpt = false;
+		private boolean generateIwpt = false;
+		private boolean generateJwptOuter = false;
+		private boolean generateJwptLeftOuter = false;
+		private boolean generateJwptInner = false;
 
 		public Builder(final String databaseName) {
 			this.databaseName = databaseName;
@@ -327,6 +332,36 @@ public class Settings {
 			return this;
 		}
 
+		public Builder generateVp() {
+			this.generateVP = true;
+			return this;
+		}
+
+		public Builder generateWpt() {
+			this.generateWpt = true;
+			return this;
+		}
+
+		public Builder generateIwpt() {
+			this.generateIwpt = true;
+			return this;
+		}
+
+		public Builder generateJwptOuter() {
+			this.generateJwptOuter = true;
+			return this;
+		}
+
+		public Builder generateJwptLeftOuter() {
+			this.generateJwptLeftOuter = true;
+			return this;
+		}
+
+		public Builder generateJwptInner() {
+			this.generateJwptInner = true;
+			return this;
+		}
+
 		public Settings build() {
 			final Settings settings = new Settings();
 			settings.databaseName = this.databaseName;
@@ -337,6 +372,12 @@ public class Settings {
 			settings.dropDuplicateTriples = this.dropDuplicateTriples;
 			settings.computeCharacteristicSets = this.computeCharacteristicSets;
 			settings.computePropertyStatistics = this.computePropertyStatistics;
+			settings.generateVP = this.generateVP;
+			settings.generateWPT = this.generateWpt;
+			settings.generateIWPT = this.generateIwpt;
+			settings.generateJWPTOuter = this.generateJwptOuter;
+			settings.generateJWPTLeftOuter = this.generateJwptLeftOuter;
+			settings.generateJWPTInner = this.generateJwptInner;
 
 			return settings;
 		}

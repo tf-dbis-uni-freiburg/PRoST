@@ -24,6 +24,7 @@ public abstract class Node {
 	private final Settings settings;
 	private Dataset<Row> sparkNodeData;
 	private Double priority;
+
 	public Node(final DatabaseStatistics statistics, final Settings settings) {
 		this.statistics = statistics;
 		this.settings = settings;
@@ -81,6 +82,8 @@ public abstract class Node {
 					// estimation
 					priority = 0;
 					break;
+				} else if (triplePattern.getPredicateType() == ElementType.VARIABLE) {
+					priority += statistics.getTuplesNumber();
 				} else {
 					final int size = statistics.getProperties().get(predicate).getTuplesNumber();
 					priority += size;

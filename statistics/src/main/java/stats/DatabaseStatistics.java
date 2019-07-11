@@ -191,6 +191,10 @@ public class DatabaseStatistics {
 		this.tuplesNumber = tuplesNumber;
 	}
 
+	public long getTuplesNumber(){
+		return tuplesNumber;
+	}
+
 	public Boolean hasTT() {
 		return hasTT;
 	}

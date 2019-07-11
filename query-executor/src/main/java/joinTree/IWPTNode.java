@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
@@ -25,19 +26,14 @@ public class IWPTNode extends MVNode {
 	 * @param jenaTriples list of Triples referring to the same object.
 	 * @param prefixes    prefix mapping of the properties.
 	 */
-	public IWPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics
-			, final Settings settings) {
+	public IWPTNode(final List<Triple> jenaTriples, final PrefixMapping prefixes, final DatabaseStatistics statistics,
+					final Settings settings) {
 		super(statistics, settings);
 		final ArrayList<TriplePattern> triplePatterns = new ArrayList<>();
 		for (final Triple t : jenaTriples) {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		this.setTripleGroup(triplePatterns);
-
-		for (final TriplePattern triplePattern : this.getTripleGroup()) {
-			triplePattern.setComplex(
-					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isInverseComplex());
-		}
 	}
 
 	/*
@@ -73,12 +69,12 @@ public class IWPTNode extends MVNode {
 				return;
 			}
 			if (t.getSubjectType() == ElementType.CONSTANT) {
-				if (t.isComplex()) {
+				if (t.isInverseComplex(getStatistics(), t.getPredicate())) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.getSubject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
-			} else if (t.isComplex()) {
+			} else if (t.isInverseComplex(getStatistics(), t.getPredicate())) {
 				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
@@ -101,13 +97,12 @@ public class IWPTNode extends MVNode {
 	}
 
 	private void computeVariablePredicateNodeData(final SQLContext sqlContext) {
-		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
-			properties.add(propertyStatistics.getInternalName());
-		}
 		final TriplePattern triple = this.getFirstTriplePattern();
 
-		for (final String property : properties) {
+		for (final Map.Entry<String, PropertyStatistics> entry : this.getStatistics().getProperties().entrySet()) {
+			final String property = entry.getValue().getInternalName();
+			final String key = entry.getKey();
+
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
@@ -119,15 +114,15 @@ public class IWPTNode extends MVNode {
 				whereElements.add(OBJECT_COLUMN_NAME + "='" + triple.getObject() + "'");
 			}
 
-			selectElements.add("'" + property + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
+			selectElements.add("'" + key + "' as " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			if (triple.getSubjectType() == ElementType.CONSTANT) {
-				if (triple.isComplex()) {
+				if (triple.isInverseComplex(getStatistics(), key)) {
 					whereElements.add("array_contains(" + property + ", '" + triple.getSubject() + "')");
 				} else {
 					whereElements.add(property + "='" + triple.getSubject() + "'");
 				}
-			} else if (triple.isComplex()) {
+			} else if (triple.isInverseComplex(getStatistics(), key)) {
 				selectElements.add("P" + property + " AS " + Utils.removeQuestionMark(triple.getSubject()));
 				explodedElements.add("\n lateral view explode(" + property + ") exploded" + property
 						+ " AS P" + property);

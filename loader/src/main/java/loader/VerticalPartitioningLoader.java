@@ -17,13 +17,10 @@ import stats.DatabaseStatistics;
  */
 public class VerticalPartitioningLoader extends Loader {
 	private final boolean isPartitioning;
-	private final boolean computingPropertyStatistics;
-
 	public VerticalPartitioningLoader(final Settings settings, final SparkSession spark,
 									  final DatabaseStatistics statistics) {
 		super(settings.getDatabaseName(), spark, statistics);
 		this.isPartitioning = settings.isVpPartitionedBySubject();
-		this.computingPropertyStatistics = settings.isComputingPropertyStatistics();
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package joinTree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
@@ -37,11 +38,6 @@ public class WPTNode extends MVNode {
 			triplePatterns.add(new TriplePattern(t, prefixes));
 		}
 		this.setTripleGroup(triplePatterns);
-
-		for (final TriplePattern triplePattern : this.getTripleGroup()) {
-			triplePattern.setComplex(
-					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isComplex());
-		}
 	}
 
 	@Override
@@ -71,12 +67,12 @@ public class WPTNode extends MVNode {
 				return;
 			}
 			if (t.getObjectType() == ElementType.CONSTANT) {
-				if (t.isComplex()) {
+				if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.getObject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + t.getObject() + "'");
 				}
-			} else if (t.isComplex()) {
+			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
 				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				explodedElements.add("\nlateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
@@ -99,13 +95,12 @@ public class WPTNode extends MVNode {
 
 	//assumes a single pattern in the triples groups
 	private void computeVariablePredicateNodeData(final SQLContext sqlContext) {
-		final List<String> properties = new ArrayList<>();
-		for (final PropertyStatistics propertyStatistics : this.getStatistics().getProperties().values()) {
-			properties.add(propertyStatistics.getInternalName());
-		}
 		final TriplePattern triple = this.getFirstTriplePattern();
 
-		for (final String property : properties) {
+		for (final Map.Entry<String, PropertyStatistics> entry : this.getStatistics().getProperties().entrySet()) {
+			final String property = entry.getValue().getInternalName();
+			final String key = entry.getKey();
+
 			final ArrayList<String> selectElements = new ArrayList<>();
 			final ArrayList<String> whereElements = new ArrayList<>();
 			final ArrayList<String> explodedElements = new ArrayList<>();
@@ -116,15 +111,15 @@ public class WPTNode extends MVNode {
 				whereElements.add("s='" + triple.getSubject() + "'");
 			}
 
-			selectElements.add("'" + property + "' AS " + Utils.removeQuestionMark(triple.getPredicate()));
+			selectElements.add("'" + key + "' AS " + Utils.removeQuestionMark(triple.getPredicate()));
 
 			if (triple.getObjectType() == ElementType.CONSTANT) {
-				if (triple.isComplex()) {
+				if ((triple.isComplex(getStatistics(), key))) {
 					whereElements.add("array_contains(" + property + ", '" + triple.getObject() + "')");
 				} else {
 					whereElements.add(property + "='" + triple.getObject() + "'");
 				}
-			} else if (triple.isComplex()) {
+			} else if ((triple.isComplex(getStatistics(), key))) {
 				selectElements.add("P" + property + " AS " + Utils.removeQuestionMark(triple.getObject()));
 				explodedElements.add("\nlateral view explode(" + property + ") exploded" + property
 						+ " AS P" + property);

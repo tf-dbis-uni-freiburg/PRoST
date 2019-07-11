@@ -2,6 +2,7 @@ package joinTree;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import stats.DatabaseStatistics;
 
 public class TriplePattern {
 	private String subject;
@@ -10,7 +11,7 @@ public class TriplePattern {
 	private ElementType subjectType;
 	private ElementType objectType;
 	private ElementType predicateType;
-	private boolean isComplex = false;
+	//private boolean isComplex = false;
 
 	// construct from Jena triple
 	public TriplePattern(final Triple triple, final PrefixMapping prefixes) {
@@ -89,11 +90,11 @@ public class TriplePattern {
 		return predicateType;
 	}
 
-	boolean isComplex() {
-		return isComplex;
+	boolean isComplex(final DatabaseStatistics statistics, final String predicate) {
+		return statistics.getProperties().get(predicate).isComplex();
 	}
 
-	void setComplex(final boolean complex) {
-		isComplex = complex;
+	boolean isInverseComplex(final DatabaseStatistics statistics, final String predicate) {
+		return statistics.getProperties().get(predicate).isInverseComplex();
 	}
 }
