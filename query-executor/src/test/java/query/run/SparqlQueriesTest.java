@@ -1,20 +1,19 @@
 package query.run;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
 import joinTree.JoinTree;
-import org.apache.log4j.Logger;
+import loader.InverseWidePropertyTableLoader;
+import loader.JoinedWidePropertyTableLoader;
+import loader.VerticalPartitioningLoader;
+import loader.WidePropertyTableLoader;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.junit.Test;
-import query.utilities.HiveDatabaseUtilities;
-import query.utilities.TestData;
 import query.utilities.TripleBean;
 import stats.DatabaseStatistics;
 import translator.Translator;
@@ -29,43 +28,96 @@ import utils.Settings;
  * @author Victor Anthony Arrascue Ayala
  */
 public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Serializable {
-	protected static final Logger logger = Logger.getLogger("PRoST");
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
-	/**
-	 * This method tests if triples with more than three elements are ignored
-	 * when parsing the file.
-	 *
-	 */
-	public void queryOnSingleTriple() {
-		final List<TripleBean> triplesList = TestData.createSingleTripleTestData();
-		final Dataset<TripleBean> data = spark().createDataset(triplesList, triplesEncoder);
-		HiveDatabaseUtilities.writeTriplesToDatabase("singleTripleDb", data, spark());
-
-		final ClassLoader classLoader = getClass().getClassLoader();
-		final File singleTripleQuery1 = new File(classLoader.getResource("singleTripleQuery1.q").getFile());
-
-		// TODO need new .json statistics file
-		//final File statsSingleTripleQuery1 = new File(classLoader.getResource("singletripledb.stats").getFile());
-
-
-		//TODO need new json statistics
-		/*Stats.getInstance().parseStats(statsSingleTripleQuery1.getAbsolutePath());
-		final Translator translator = new Translator(singleTripleQuery1.getAbsolutePath(), -1);
-		translator.setUseTripleTablePartitioning(true);
-		translator.setMinimumGroupSize(-1);
-		final JoinTree jt = translator.translateQuery();
-		final Executor executor = new Executor("singleTripleDb");
-		executor.setOutputFile(System.getProperty("user.dir") + "\\target\\test_output\\result");
-		executor.execute(jt);*/
+	@Test
+	public void queryTest() {
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest_db");
+		Dataset<Row> fullDataset = initializeDb(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT(statistics, fullDataset);
+		queryOnVp(statistics, fullDataset);
+		queryOnWpt(statistics, fullDataset);
+		queryOnIwpt(statistics, fullDataset);
+		queryOnJwptOuter(statistics, fullDataset);
+		queryOnJwptLeftOuter(statistics, fullDataset);
 	}
 
-	@Test
-	public void queryOnTT() {
-		spark().sql("DROP DATABASE IF EXISTS ttQueryTest_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  ttQueryTest_db");
-		spark().sql("USE ttQueryTest_db");
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingTTNodes().usingCharacteristicSets().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		assertDataFrameEquals(result, fullDataset);
+	}
+
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingVPNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
+				result.schema().asNullable());
+		assertDataFrameEquals(nullableResult, fullDataset);
+	}
+
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
+				result.schema().asNullable());
+		assertDataFrameEquals(nullableResult, fullDataset);
+	}
+
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingIWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
+				result.schema().asNullable());
+		assertDataFrameEquals(nullableResult, fullDataset);
+	}
+
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingJWPTOuterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
+				result.schema().asNullable());
+		assertDataFrameEquals(nullableResult, fullDataset);
+	}
+
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+		final Settings settings = new Settings.Builder("queryTest_db").usingJWPTLeftouterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTest.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
+				result.schema().asNullable());
+		assertDataFrameEquals(nullableResult, fullDataset);
+	}
+
+	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+		spark().sql("DROP DATABASE IF EXISTS queryTest_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest_db");
+		spark().sql("USE queryTest_db");
 
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
@@ -101,18 +153,40 @@ public class SparqlQueriesTest extends JavaDataFrameSuiteBase implements Seriali
 		triplesList.add(t5);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
-				"s", "p","o");
+				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 
+		final loader.Settings loaderSettings =
+				new loader.Settings.Builder("queryTest_db").withInputPath((System.getProperty(
+						"user.dir") + "\\target\\test_output\\sparqlQueriesTest").replace('\\', '/'))
+						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
+						.generateJwptLeftOuter().generateJwptInner().build();
 
-		final Settings settings = new Settings.Builder("ttQueryTest_db").usingTTNodes().usingCharacteristicSets().build();
-		final DatabaseStatistics statistics = new DatabaseStatistics("ttQueryTest_db");
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
+		vpLoader.load();
+
 		statistics.computeCharacteristicSetsStatistics(spark());
+		statistics.computePropertyStatistics(spark());
 
-		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("ttTest.q").getPath());
-		JoinTree joinTree = translator.translateQuery();
-		List<Row> result =  joinTree.compute(spark().sqlContext()).collectAsList();
+		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
+		wptLoader.load();
+
+		final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(loaderSettings, spark(),
+				statistics);
+		iwptLoader.load();
+
+		final JoinedWidePropertyTableLoader jwptOuterLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.outer, statistics);
+		jwptOuterLoader.load();
+
+		final JoinedWidePropertyTableLoader jwptLeftOuterLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
+		jwptLeftOuterLoader.load();
+
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
+		jwptLeftOuterLoader.load();*/
+
+		return ttDataset;
 	}
 }

@@ -66,6 +66,18 @@
 			<version>1.0</version>
 			<scope>compile</scope>
 		</dependency>
+        <dependency>
+            <groupId>uni.freiburg.dbis.prost.loader</groupId>
+            <artifactId>loader</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+		<dependency>
+			<groupId>uni.freiburg.dbis.prost.loader</groupId>
+			<artifactId>loader</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
