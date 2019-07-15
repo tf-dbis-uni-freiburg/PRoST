@@ -19,6 +19,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.execution.QueryExecution;
 import utils.Settings;
 
 /**
@@ -80,7 +81,8 @@ public class Executor {
 			statisticsBuilder.executionTime(executionTime);
 			statisticsBuilder.resultsCount(resultsCount);
 
-			final String queryPlan = results.queryExecution().executedPlan().toString();
+			final QueryExecution queryExecution = results.queryExecution();
+			final String queryPlan = queryExecution.executedPlan().toString();
 			statisticsBuilder.joinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan, "Join"));
 			statisticsBuilder.broadcastJoinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
 					"BroadcastHashJoin"));
@@ -88,6 +90,7 @@ public class Executor {
 					"SortMergeJoin"));
 
 			statisticsBuilder.withCountedNodes(queryTree);
+			statisticsBuilder.withPlansAsStrings(queryExecution);
 			executionStatistics.add(statisticsBuilder.build());
 		}
 	}
@@ -142,14 +145,17 @@ public class Executor {
 				 final CSVPrinter csvPrinter = new CSVPrinter(writer,
 						 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
 								 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
-								 "VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes"))) {
+								 "VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes",
+								 "Logical Plan", "Analyzed Plan", "Optimized Plan", "Executed Plan"))) {
 				for (final Statistics statistics : this.executionStatistics) {
 					csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
 							statistics.getResultsCount(), statistics.getJoinsCount(),
 							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
 							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
 							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
-							statistics.getJwptNodesCount());
+							statistics.getJwptNodesCount(),
+							statistics.getLogicalPlan(), statistics.getAnalyzedPlan(), statistics.getOptimizedPlan(),
+							statistics.getExecutedPlan());
 				}
 				csvPrinter.flush();
 			} catch (final IOException e) {
@@ -166,7 +172,9 @@ public class Executor {
 							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
 							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
 							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
-							statistics.getJwptNodesCount());
+							statistics.getJwptNodesCount(),
+							statistics.getLogicalPlan(), statistics.getAnalyzedPlan(), statistics.getOptimizedPlan(),
+							statistics.getExecutedPlan());
 				}
 				csvPrinter.flush();
 
