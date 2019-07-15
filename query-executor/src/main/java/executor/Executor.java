@@ -148,7 +148,8 @@ public class Executor {
 							statistics.getResultsCount(), statistics.getJoinsCount(),
 							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
 							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
-							statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
+							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
+							statistics.getJwptNodesCount());
 				}
 				csvPrinter.flush();
 			} catch (final IOException e) {
@@ -164,7 +165,8 @@ public class Executor {
 							statistics.getResultsCount(), statistics.getJoinsCount(),
 							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
 							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
-							statistics.getWptNodesCount(), statistics.getIwptNodesCount(), statistics.getJwptNodesCount());
+							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
+							statistics.getJwptNodesCount());
 				}
 				csvPrinter.flush();
 

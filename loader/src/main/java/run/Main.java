@@ -42,7 +42,7 @@ public class Main {
 		final Settings settings = new Settings(args);
 		final DatabaseStatistics statistics;
 		if (settings.isDroppingDB()) {
-			spark.sql("DROP DATABASE " + settings.getDatabaseName() + " CASCADE");
+			spark.sql("DROP DATABASE " + settings.getDatabaseName() + " IF EXISTS CASCADE");
 			statistics = new DatabaseStatistics(settings.getDatabaseName());
 		} else {
 			statistics = DatabaseStatistics.loadFromFile(settings.getDatabaseName() + ".json");
@@ -71,6 +71,7 @@ public class Main {
 		}
 
 		if (settings.isComputingCharacteristicSets()) {
+			assert statistics.hasTT() : "Not possible to compute characteristic sets. Db does not contain TT.";
 			logger.info("COMPUTING CHARACTERISTIC SETS...");
 			startTime = System.currentTimeMillis();
 			statistics.computeCharacteristicSetsStatistics(spark);
@@ -99,6 +100,8 @@ public class Main {
 		}
 
 		if (settings.isComputingPropertyStatistics()) {
+			assert statistics.hasVPTables() : "Not possible to compute property statistics. DB does not contain VP "
+					+ "tables";
 			logger.info("COMPUTING PROPERTY STATISTICS...");
 			startTime = System.currentTimeMillis();
 			statistics.computePropertyStatistics(spark);
