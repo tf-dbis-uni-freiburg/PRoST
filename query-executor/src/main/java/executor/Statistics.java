@@ -8,6 +8,7 @@ import joinTree.Node;
 import joinTree.TTNode;
 import joinTree.VPNode;
 import joinTree.WPTNode;
+import org.apache.spark.sql.execution.QueryExecution;
 
 class Statistics {
 	private String queryName;
@@ -25,56 +26,77 @@ class Statistics {
 	private int jwptNodesCount;
 	private int joinNodesCount;
 
+	private String logicalPlan;
+	private String analyzedPlan;
+	private String optimizedPlan;
+	private String executedPlan;
+
 	private Statistics() {
 
 	}
 
-	public String getQueryName() {
+	String getQueryName() {
 		return queryName;
 	}
 
-	public long getExecutionTime() {
+	long getExecutionTime() {
 		return executionTime;
 	}
 
-	public long getResultsCount() {
+	long getResultsCount() {
 		return resultsCount;
 	}
 
-	public int getJoinsCount() {
+	int getJoinsCount() {
 		return joinsCount;
 	}
 
-	public int getBroadcastJoinsCount() {
+	int getBroadcastJoinsCount() {
 		return broadcastJoinsCount;
 	}
 
-	public int getSortMergeJoinsCount() {
+	int getSortMergeJoinsCount() {
 		return sortMergeJoinsCount;
 	}
 
-	public int getTtNodesCount() {
+	int getTtNodesCount() {
 		return ttNodesCount;
 	}
 
-	public int getVpNodesCount() {
+	int getVpNodesCount() {
 		return vpNodesCount;
 	}
 
-	public int getWptNodesCount() {
+	int getWptNodesCount() {
 		return wptNodesCount;
 	}
 
-	public int getIwptNodesCount() {
+	int getIwptNodesCount() {
 		return iwptNodesCount;
 	}
 
-	public int getJwptNodesCount() {
+	int getJwptNodesCount() {
 		return jwptNodesCount;
 	}
 
-	public int getJoinNodesCount() {
+	int getJoinNodesCount() {
 		return joinNodesCount;
+	}
+
+	public String getLogicalPlan() {
+		return logicalPlan;
+	}
+
+	public String getAnalyzedPlan() {
+		return analyzedPlan;
+	}
+
+	public String getOptimizedPlan() {
+		return optimizedPlan;
+	}
+
+	public String getExecutedPlan() {
+		return executedPlan;
 	}
 
 	/**
@@ -96,6 +118,10 @@ class Statistics {
 		private int jwptNodesCount = 0;
 		private int joinNodesCount = 0;
 
+		private String logicalPlan;
+		private String analyzedPlan;
+		private String optimizedPlan;
+		private String executedPlan;
 
 		Builder(final String queryName) {
 			this.queryName = queryName;
@@ -128,6 +154,14 @@ class Statistics {
 
 		Builder withCountedNodes(final JoinTree tree) {
 			countNodes(tree.getRoot());
+			return this;
+		}
+
+		Builder withPlansAsStrings(final QueryExecution sparkPlan) {
+			this.logicalPlan = sparkPlan.logical().toString();
+			this.analyzedPlan = sparkPlan.analyzed().toString();
+			this.optimizedPlan = sparkPlan.optimizedPlan().toString();
+			this.executedPlan = sparkPlan.executedPlan().toString();
 			return this;
 		}
 
@@ -164,6 +198,10 @@ class Statistics {
 			statistics.iwptNodesCount = this.iwptNodesCount;
 			statistics.jwptNodesCount = this.jwptNodesCount;
 			statistics.joinNodesCount = this.joinNodesCount;
+			statistics.logicalPlan = this.logicalPlan;
+			statistics.analyzedPlan = this.analyzedPlan;
+			statistics.optimizedPlan = this.optimizedPlan;
+			statistics.executedPlan = this.executedPlan;
 			return statistics;
 		}
 	}
