@@ -77,8 +77,9 @@ public class VPLoaderTest extends JavaDataFrameSuiteBase {
 				spark().createDataset(vp3TripleList, triplesEncoder).select("s", "o").orderBy(
 						"s","o");
 
-		final Settings settings = new Settings.Builder("vpTest_db").withInputPath((System.getProperty(
-				"user.dir") + "\\target\\test_output\\vpTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
+		final Settings settings = new Settings.Builder("vpTest_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/vpTest")).droppingDuplicateTriples().computePropertyStatistics().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("vpTest_db");
 

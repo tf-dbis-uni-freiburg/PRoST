@@ -27,14 +27,16 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File triplesWithMoreThanThreeRes = new File(
 				classLoader.getResource("charset.nt").getFile());
-		HdfsUtilities.putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(), System.getProperty("user.dir") +
-				"\\target\\test_output\\charset", jsc());
+		HdfsUtilities.putFileToHDFS(triplesWithMoreThanThreeRes.getAbsolutePath(),
+				System.getProperty("user.dir").replace('\\','/') +
+				"/target/test_output/charset", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS charset_db CASCADE");
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("charset_db");
-		final Settings settings = new Settings.Builder("charset_db").withInputPath((System.getProperty("user.dir") +
-				"\\target\\test_output\\charset").replace('\\', '/')).droppingDuplicateTriples().computeCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("charset_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+				"/target/test_output/charset")).droppingDuplicateTriples().computeCharacteristicSets().build();
 
 		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
@@ -69,5 +71,4 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		Assert.assertTrue(characteristicSets.contains(expectedCharacteristicSet2));
 		Assert.assertTrue(characteristicSets.contains(expectedCharacteristicSet3));
 	}
-
 }
