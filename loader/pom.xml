@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>uni.freiburg.dbis.prost</groupId>
 		<artifactId>prost-parent</artifactId>
-		<version>1.0</version>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>loader</artifactId>
@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>uni.freiburg.dbis.prost</groupId>
 			<artifactId>statistics</artifactId>
-			<version>1.0</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
