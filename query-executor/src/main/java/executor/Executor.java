@@ -141,12 +141,12 @@ public class Executor {
 		final CSVPrinter csvPrinter;
 		final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
 				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-		if (!file.exists()) {
+		if (file.length() == 0) {
 			csvPrinter = new CSVPrinter(writer,
-						 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
-								 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
-								 "VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes",
-								 "Logical Plan", "Analyzed Plan", "Optimized Plan", "Executed Plan"));
+					CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
+							"Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
+							"VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes",
+							"Logical Plan", "Analyzed Plan", "Optimized Plan", "Executed Plan"));
 		} else {
 			csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 		}
