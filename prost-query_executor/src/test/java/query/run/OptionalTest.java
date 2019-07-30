@@ -18,11 +18,9 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
-
 import query.utilities.TripleBean;
-import stats.DatabaseStatistics;
+import statistics.DatabaseStatistics;
 import translator.Translator;
 import utils.Settings;
 
@@ -38,7 +36,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
-	@Test
+	//@Test
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
