@@ -18,6 +18,7 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
@@ -36,27 +37,23 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
-	//@Test
+	@Test
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT(statistics, fullDataset);
-		queryOnVp(statistics, fullDataset);
-//		queryOnWpt(statistics, fullDataset);
-//		queryOnIwpt(statistics, fullDataset);
-//		queryOnJwptOuter(statistics, fullDataset);
-//		queryOnJwptLeftOuter(statistics, fullDataset);
+		queryOnTT(statistics);
+		queryOnVp(statistics);
+		queryOnWpt(statistics);
+		queryOnIwpt(statistics);
+		queryOnJwptOuter(statistics);
+		queryOnJwptLeftOuter(statistics);
 	}
-	
-	  
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+
+	private void queryOnTT(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTest5.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
-		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -74,10 +71,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
-				
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -107,7 +103,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -130,10 +126,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
-		
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -156,10 +151,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
-		
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -182,10 +176,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
-		
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
 		final Settings settings = new Settings.Builder("queryTest05_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -208,7 +201,6 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
-		
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
