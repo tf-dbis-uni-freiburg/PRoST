@@ -48,6 +48,7 @@ public class Settings {
 	// Executor options
 	private boolean randomQueryOrder = false;
 	private boolean savingBenchmarkFile = false;
+	private boolean savingSparkPlans = false;
 
 	private Settings() {
 
@@ -80,6 +81,7 @@ public class Settings {
 
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
 			this.savingBenchmarkFile = settings.get("executor", "savingBenchmarkFile", boolean.class);
+			this.savingSparkPlans = settings.get("executor", "savingSparkPlans", boolean.class);
 		}
 
 		if (savingBenchmarkFile && benchmarkFilePath == null) {
@@ -386,6 +388,10 @@ public class Settings {
 		return usingCharacteristicSets;
 	}
 
+	public boolean isSavingSparkPlans() {
+		return savingSparkPlans;
+	}
+
 	public static class Builder {
 		//General settings
 		private String databaseName;
@@ -461,7 +467,7 @@ public class Settings {
 			return this;
 		}
 
-		public Builder usingCharacteristicSets(){
+		public Builder usingCharacteristicSets() {
 			this.usingCharacteriticSets = true;
 			return this;
 		}

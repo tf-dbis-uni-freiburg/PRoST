@@ -15,14 +15,15 @@ class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File jwptTest = new File(
 				classLoader.getResource("jwptTest.nt").getFile());
-		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(), System.getProperty("user.dir") +
-				"\\target\\test_output\\jwptTest", jsc());
+		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(),
+				System.getProperty("user.dir").replace('\\','/') +
+				"/target/test_output/jwptTest", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
-
-		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
+		final Settings settings = new Settings.Builder("jwptTest_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/jwptTest")).droppingDuplicateTriples().computePropertyStatistics().build();
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 
 		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(),statistics);
@@ -47,13 +48,16 @@ class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File jwptTest = new File(
 				classLoader.getResource("jwptTest.nt").getFile());
-		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(), System.getProperty("user.dir") +
-				"\\target\\test_output\\jwptTest", jsc());
+		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(),
+				System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/jwptTest", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
-		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
+		final Settings settings = new Settings.Builder("jwptTest_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/jwptTest")).
+				droppingDuplicateTriples().computePropertyStatistics().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 
@@ -79,13 +83,15 @@ class JWPTLoaderTest extends JavaDataFrameSuiteBase {
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File jwptTest = new File(
 				classLoader.getResource("jwptTest.nt").getFile());
-		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(), System.getProperty("user.dir") +
-				"\\target\\test_output\\jwptTest", jsc());
+		HdfsUtilities.putFileToHDFS(jwptTest.getAbsolutePath(),
+				System.getProperty("user.dir").replace('\\','/') +
+				"/target/test_output/jwptTest", jsc());
 
 		spark().sql("DROP DATABASE IF EXISTS jwptTest_db CASCADE");
 
-		final Settings settings = new Settings.Builder("jwptTest_db").withInputPath((System.getProperty("user.dir") + "\\target"
-				+ "\\test_output\\jwptTest").replace('\\', '/')).droppingDuplicateTriples().computePropertyStatistics().build();
+		final Settings settings = new Settings.Builder("jwptTest_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/jwptTest")).droppingDuplicateTriples().computePropertyStatistics().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("jwptTest_db");
 		final TripleTableLoader ttLoader = new TripleTableLoader(settings, spark(), statistics);

@@ -98,8 +98,9 @@ public class WPTTest extends JavaDataFrameSuiteBase {
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 
-		final Settings settings = new Settings.Builder("wptTest_db").withInputPath((System.getProperty(
-				"user.dir") + "\\target\\test_output\\wptTest").replace('\\', '/')).droppingDuplicateTriples().build();
+		final Settings settings = new Settings.Builder("wptTest_db").
+				withInputPath((System.getProperty("user.dir").replace('\\','/') +
+						"/target/test_output/wptTest")).droppingDuplicateTriples().build();
 
 		final DatabaseStatistics statistics = new DatabaseStatistics("wptTest_db");
 

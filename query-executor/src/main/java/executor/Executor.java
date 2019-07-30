@@ -136,51 +136,39 @@ public class Executor {
 	 * Save the results <query name, execution time, number of results> in a csv
 	 * file.
 	 */
-	public void saveResultsCsv(final String fileName) {
+	public void saveResultsCsv(final String fileName) throws IOException {
 		final File file = new File(Paths.get(fileName).toString());
-		if (!file.exists()) {
-			try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
-					StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-
-				 final CSVPrinter csvPrinter = new CSVPrinter(writer,
-						 CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
-								 "Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
-								 "VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes",
-								 "Logical Plan", "Analyzed Plan", "Optimized Plan", "Executed Plan"))) {
-				for (final Statistics statistics : this.executionStatistics) {
-					csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
-							statistics.getResultsCount(), statistics.getJoinsCount(),
-							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
-							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
-							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
-							statistics.getJwptNodesCount(),
-							statistics.getLogicalPlan(), statistics.getAnalyzedPlan(), statistics.getOptimizedPlan(),
-							statistics.getExecutedPlan());
-				}
-				csvPrinter.flush();
-			} catch (final IOException e) {
-				e.printStackTrace();
-			}
+		final CSVPrinter csvPrinter;
+		final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
+				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		if (file.length() == 0) {
+			csvPrinter = new CSVPrinter(writer,
+					CSVFormat.DEFAULT.withHeader("Query", "Time (ms)", "Number of results", "Joins",
+							"Broadcast Joins", "SortMerge Join", "Join Nodes", "TT Nodes",
+							"VP Nodes", "WPT Nodes", "IWPT Nodes", "JWPT Nodes",
+							"Logical Plan", "Analyzed Plan", "Optimized Plan", "Executed Plan"));
 		} else {
-			try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
-					StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-				 final CSVPrinter csvPrinter = new CSVPrinter(writer,
-						 CSVFormat.DEFAULT)) {
-				for (final Statistics statistics : this.executionStatistics) {
-					csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
-							statistics.getResultsCount(), statistics.getJoinsCount(),
-							statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
-							statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
-							statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
-							statistics.getJwptNodesCount(),
-							statistics.getLogicalPlan(), statistics.getAnalyzedPlan(), statistics.getOptimizedPlan(),
-							statistics.getExecutedPlan());
-				}
-				csvPrinter.flush();
-
-			} catch (final IOException e) {
-				e.printStackTrace();
+			csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+		}
+		for (final Statistics statistics : this.executionStatistics) {
+			if (settings.isSavingSparkPlans()) {
+				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
+						statistics.getResultsCount(), statistics.getJoinsCount(),
+						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
+						statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
+						statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
+						statistics.getJwptNodesCount(),
+						statistics.getLogicalPlan(), statistics.getAnalyzedPlan(), statistics.getOptimizedPlan(),
+						statistics.getExecutedPlan());
+			} else {
+				csvPrinter.printRecord(statistics.getQueryName(), statistics.getExecutionTime(),
+						statistics.getResultsCount(), statistics.getJoinsCount(),
+						statistics.getBroadcastJoinsCount(), statistics.getSortMergeJoinsCount(),
+						statistics.getJoinNodesCount(), statistics.getTtNodesCount(), statistics.getVpNodesCount(),
+						statistics.getWptNodesCount(), statistics.getIwptNodesCount(),
+						statistics.getJwptNodesCount());
 			}
 		}
+		csvPrinter.flush();
 	}
 }
