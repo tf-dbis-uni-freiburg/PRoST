@@ -164,12 +164,12 @@ public class JWPTNode extends MVNode {
 			assert !columnName.equals(IWPT_PREFIX) : "This column does not exists: " + columnName;
 
 			if (t.getSubjectType() == ElementType.CONSTANT) {
-				if ((t.isComplex(getStatistics(), t.getPredicate()))) {
+				if ((t.isInverseComplex(getStatistics(), t.getPredicate()))) {
 					whereElements.add("array_contains(" + columnName + ", '" + t.getSubject() + "')");
 				} else {
 					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
-			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
+			} else if ((t.isInverseComplex(getStatistics(), t.getPredicate()))) {
 				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName);
