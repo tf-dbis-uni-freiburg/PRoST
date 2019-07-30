@@ -12,11 +12,10 @@ import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-class Benchmark {
+class csvHandler {
 	private HashMap<String, QueryData> data;
 
-
-	Benchmark() {
+	csvHandler() {
 		data = new HashMap<>();
 	}
 

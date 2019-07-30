@@ -2,5 +2,5 @@ declare -a SETTINGS=(iwpt.csv iwpt_leftouter.csv leftouter.csv outer.csv vp_inne
 
 for s in ${SETTINGS[@]}
 do
-	java -jar benchmark.jar $s
+	java -jar csvHandler.jar $s
 done
