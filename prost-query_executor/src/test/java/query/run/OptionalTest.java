@@ -40,6 +40,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	@Test
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
+		initializeDb(statistics);
 		queryOnTT(statistics);
 		queryOnVp(statistics);
 		queryOnWpt(statistics);
