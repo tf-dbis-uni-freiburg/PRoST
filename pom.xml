@@ -15,11 +15,10 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<name>PRoST Parent Project</name>
-
 	<modules>
-		<module>loader</module>
-		<module>query-executor</module>
-        <module>statistics</module>
+		<module>prost-loader</module>
+		<module>prost-query_executor</module>
+        <module>prost-statistics</module>
     </modules>
 
 	<properties>
