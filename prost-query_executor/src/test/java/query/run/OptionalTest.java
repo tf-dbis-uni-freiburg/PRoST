@@ -18,6 +18,7 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
@@ -38,6 +39,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
+	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
 		initializeDb(statistics);
