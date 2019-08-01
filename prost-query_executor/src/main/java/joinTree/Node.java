@@ -131,7 +131,8 @@ public abstract class Node {
 					o = min(o,
 							statistics.getProperties().get(triple.getPredicate()).getBoundObjectEstimatedSelectivity());
 				} else {
-					m = m * ((double) superSet.getTuplesPerPredicate().get(triple.getPredicate())
+					m =
+							m * ((double) superSet.getPropertyTuplesNumber(triple.getPredicate())
 							/ (double) superSet.getDistinctSubjects());
 				}
 			}

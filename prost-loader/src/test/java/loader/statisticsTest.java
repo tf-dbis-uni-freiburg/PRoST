@@ -36,12 +36,19 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		final DatabaseStatistics statistics = new DatabaseStatistics("charset_db");
 		final Settings settings = new Settings.Builder("charset_db").
 				withInputPath((System.getProperty("user.dir").replace('\\','/') +
-				"/target/test_output/charset")).droppingDuplicateTriples().computeCharacteristicSets().build();
+				"/target/test_output/charset")).droppingDuplicateTriples().computeCharacteristicSets().
+				computePropertyStatistics().generateVp().generateWpt().build();
 
 		final TripleTableLoader tt_loader = new TripleTableLoader(settings, spark(), statistics);
 		tt_loader.load();
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(settings, spark(), statistics);
+		vpLoader.load();
+		statistics.computePropertyStatistics(spark());
+		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(settings,spark(),statistics);
+		wptLoader.load();
 
 		statistics.computeCharacteristicSetsStatistics(spark());
+		//statistics.computeCharacteristicSetsStatistics2(spark());
 
 		/*statistics.saveToFile(System.getProperty("user.dir") + "\\target\\test_output\\charset"
 				+ ".json");*/
@@ -52,20 +59,20 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 
 		final CharacteristicSetStatistics expectedCharacteristicSet1 = new CharacteristicSetStatistics();
 		expectedCharacteristicSet1.setDistinctSubjects(Long.valueOf("1"));
-		expectedCharacteristicSet1.getTuplesPerPredicate().put("ex:hasAuthor", Long.valueOf("1"));
-		expectedCharacteristicSet1.getTuplesPerPredicate().put("ex:hasPublisher", Long.valueOf("1"));
-		expectedCharacteristicSet1.getTuplesPerPredicate().put("ex:hasTitle", Long.valueOf("1"));
-		expectedCharacteristicSet1.getTuplesPerPredicate().put("ex:hasYear", Long.valueOf("1"));
+		expectedCharacteristicSet1.addProperty("ex:hasAuthor", Long.valueOf("1"));
+		expectedCharacteristicSet1.addProperty("ex:hasPublisher", Long.valueOf("1"));
+		expectedCharacteristicSet1.addProperty("ex:hasTitle", Long.valueOf("1"));
+		expectedCharacteristicSet1.addProperty("ex:hasYear", Long.valueOf("1"));
 
 		final CharacteristicSetStatistics expectedCharacteristicSet2 = new CharacteristicSetStatistics();
 		expectedCharacteristicSet2.setDistinctSubjects(Long.valueOf("2"));
-		expectedCharacteristicSet2.getTuplesPerPredicate().put("ex:hasAuthor", Long.valueOf("3"));
-		expectedCharacteristicSet2.getTuplesPerPredicate().put("ex:hasTitle", Long.valueOf("3"));
-		expectedCharacteristicSet2.getTuplesPerPredicate().put("ex:hasYear", Long.valueOf("2"));
+		expectedCharacteristicSet2.addProperty("ex:hasAuthor", Long.valueOf("3"));
+		expectedCharacteristicSet2.addProperty("ex:hasTitle", Long.valueOf("3"));
+		expectedCharacteristicSet2.addProperty("ex:hasYear", Long.valueOf("2"));
 
 		final CharacteristicSetStatistics expectedCharacteristicSet3 = new CharacteristicSetStatistics();
 		expectedCharacteristicSet3.setDistinctSubjects(Long.valueOf("4"));
-		expectedCharacteristicSet3.getTuplesPerPredicate().put("ex:hasAuthor", Long.valueOf("4"));
+		expectedCharacteristicSet3.addProperty("ex:hasAuthor", Long.valueOf("4"));
 
 		Assert.assertTrue(characteristicSets.contains(expectedCharacteristicSet1));
 		Assert.assertTrue(characteristicSets.contains(expectedCharacteristicSet2));

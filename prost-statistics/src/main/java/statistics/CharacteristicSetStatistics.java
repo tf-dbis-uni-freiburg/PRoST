@@ -16,8 +16,8 @@ public class CharacteristicSetStatistics {
 		tuplesPerPredicate = new HashMap<>();
 	}
 
-	public HashMap<String, Long> getTuplesPerPredicate() {
-		return tuplesPerPredicate;
+	public void addProperty(final String property, final long count) {
+		this.tuplesPerPredicate.put(property, count);
 	}
 
 	public Long getDistinctSubjects() {
@@ -28,26 +28,30 @@ public class CharacteristicSetStatistics {
 		this.distinctSubjects = distinctSubjects;
 	}
 
+	public long getPropertyTuplesNumber(final String key) {
+		return this.tuplesPerPredicate.get(key);
+	}
+
 	@Override
-	public boolean equals(final Object o) {
-		if (this == o) {
+	public boolean equals(final Object object) {
+		if (this == object) {
 			return true;
 		}
-		if (o == null || getClass() != o.getClass()) {
+		if (object == null || getClass() != object.getClass()) {
 			return false;
 		}
 
-		if (!this.distinctSubjects.equals(((CharacteristicSetStatistics) o).distinctSubjects)) {
+		if (!this.distinctSubjects.equals(((CharacteristicSetStatistics) object).distinctSubjects)) {
 			return false;
 		}
 
-		if (this.getTuplesPerPredicate().size() != ((CharacteristicSetStatistics) o).getTuplesPerPredicate().size()) {
+		if (this.tuplesPerPredicate.size() != ((CharacteristicSetStatistics) object).tuplesPerPredicate.size()) {
 			return false;
 		}
 
-		for (final String key : this.getTuplesPerPredicate().keySet()) {
-			if (!this.getTuplesPerPredicate().get(key).equals(
-					((CharacteristicSetStatistics) o).getTuplesPerPredicate().get(key))) {
+		for (final String property : this.getProperties()) {
+			if (!this.tuplesPerPredicate.get(property).equals(
+					((CharacteristicSetStatistics) object).tuplesPerPredicate.get(property))) {
 				return false;
 			}
 		}
@@ -55,7 +59,7 @@ public class CharacteristicSetStatistics {
 	}
 
 	/**
-	 * Checks if argument is a subset of this characteristic set
+	 * Checks if argument is a subset of this characteristic set.
 	 *
 	 * @param queryCharacteristicSet HashSet of predicates
 	 * @return true if the characteristic set contains all predicates from queryCharacteristicSet
@@ -87,15 +91,15 @@ public class CharacteristicSetStatistics {
 	}
 
 	void merge(final CharacteristicSetStatistics newCharset) {
-		for (final Map.Entry<String, Long> tuple : newCharset.getTuplesPerPredicate().entrySet()) {
+		for (final Map.Entry<String, Long> tuple : newCharset.tuplesPerPredicate.entrySet()) {
 			final String newProperty = tuple.getKey();
 			final Long valueToAdd = tuple.getValue();
 
-			if (this.getTuplesPerPredicate().containsKey(newProperty)) {
-				final Long oldValue = this.getTuplesPerPredicate().get(newProperty);
-				this.getTuplesPerPredicate().put(newProperty, oldValue + valueToAdd);
+			if (this.tuplesPerPredicate.containsKey(newProperty)) {
+				final Long oldValue = this.tuplesPerPredicate.get(newProperty);
+				this.tuplesPerPredicate.put(newProperty, oldValue + valueToAdd);
 			} else {
-				this.getTuplesPerPredicate().put(newProperty, valueToAdd);
+				this.tuplesPerPredicate.put(newProperty, valueToAdd);
 			}
 		}
 	}

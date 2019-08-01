@@ -6,6 +6,8 @@ import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.collect_set;
 import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.explode;
+import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.size;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -17,10 +19,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -94,7 +99,8 @@ public class DatabaseStatistics {
 		final schema: charSet:array<string>, distinctSubjects:long, tuplesPerPredicate:array<array<string>> ->
 		arrays of the type <<"propertyName","count">,...,<"pn","cn">>
 	 */
-	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
+	@Deprecated
+	public void computeCharacteristicSetsStatisticsFromTT(final SparkSession spark) {
 		spark.sql("USE " + databaseName);
 		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
@@ -123,7 +129,7 @@ public class DatabaseStatistics {
 			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
 				final Vector<String> v = iterator.next().toVector();
-				characteristicSetStatistics.getTuplesPerPredicate().put(v.getElem(0, 1), Long.valueOf(v.getElem(1, 1)));
+				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.valueOf(v.getElem(1, 1)));
 			}
 			this.characteristicSets.add(characteristicSetStatistics);
 		}
@@ -131,6 +137,88 @@ public class DatabaseStatistics {
 		//tuplesNumber!=0 if the tripletable was loaded with PRoST
 		if (this.tuplesNumber == 0) {
 			this.setTuplesNumber(tripletable.count());
+		}
+	}
+
+	/**
+	 * Computes the characteristic sets, without computing the number of tuples of each property. Uses the TT.
+	 */
+	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
+		this.characteristicSets = new ArrayList<>();
+		spark.sql("USE " + databaseName);
+		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
+
+		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(collect_set("p").as("charSet"), collect_list(
+				"p").as("predicates"));
+		characteristicSets = characteristicSets.groupBy("charSet").agg(count("s").as("subjectCount"));
+
+		final List<Row> collectedCharSets = characteristicSets.collectAsList();
+		for (final Row charSet : collectedCharSets) {
+			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
+			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
+
+			final WrappedArray<String> properties = charSet.getAs("charSet");
+			final Iterator<String> iterator = properties.toIterator();
+			while (iterator.hasNext()) {
+				final String property = iterator.next();
+				//number of tuples per predicate is computed afterwards
+				characteristicSetStatistics.addProperty(property, 0L);
+			}
+			this.characteristicSets.add(characteristicSetStatistics);
+		}
+		//tuplesNumber!=0 if the tripletable was loaded with PRoST
+		if (this.tuplesNumber == 0) {
+			this.setTuplesNumber(tripletable.count());
+		}
+
+		computeTuplesPerPredicate(spark);
+	}
+
+	/**
+	 * Computes the number of tuples per property for the already computed characteristic sets using the WPT.
+	 */
+	private void computeTuplesPerPredicate(final SparkSession spark) {
+		final ListIterator<CharacteristicSetStatistics> characteristicSetIterator =
+				this.characteristicSets.listIterator();
+		while (characteristicSetIterator.hasNext()) {
+			final CharacteristicSetStatistics characteristicSet =
+					characteristicSetIterator.next();
+			final Set<String> characteristicsSetProperties = characteristicSet.getProperties();
+			final ArrayList<String> whereElements = new ArrayList<>();
+			final ArrayList<String> selectElements = new ArrayList<>();
+			for (final Map.Entry<String, PropertyStatistics> propertyStatisticsEntry : this.properties.entrySet()) {
+				final String columnName = propertyStatisticsEntry.getValue().getInternalName();
+				if (characteristicsSetProperties.contains(propertyStatisticsEntry.getKey())) {
+					whereElements.add(columnName + " IS NOT NULL");
+					selectElements.add(columnName);
+				} else {
+					whereElements.add(columnName + " IS NULL");
+				}
+			}
+			String query = "SELECT " + String.join(", ", selectElements);
+			query += " FROM wide_property_table";
+			query += " WHERE " + String.join(" AND ", whereElements);
+
+			Dataset<Row> tuples = spark.sql(query);
+
+			for (final String property : characteristicsSetProperties) {
+				final String internalName = this.properties.get(property).getInternalName();
+				if (this.properties.get(property).isComplex()) {
+					tuples = tuples.withColumn(internalName, size(new Column(internalName)));
+				} else {
+					tuples = tuples.withColumn(internalName, lit(1));
+				}
+			}
+			tuples = tuples.groupBy().sum();
+			final Row sums = tuples.collectAsList().get(0);
+
+			final CharacteristicSetStatistics newCharset = new CharacteristicSetStatistics();
+			newCharset.setDistinctSubjects(characteristicSet.getDistinctSubjects());
+			for (final String property : characteristicsSetProperties) {
+				final String internalName = this.properties.get(property).getInternalName();
+				newCharset.addProperty(property, sums.getAs("sum(" + internalName + ")"));
+			}
+			characteristicSetIterator.set(newCharset);
 		}
 	}
 
@@ -270,7 +358,6 @@ public class DatabaseStatistics {
 	public void setVpPartitionedBySubject(final Boolean vpPartitionedBySubject) {
 		this.vpPartitionedBySubject = vpPartitionedBySubject;
 	}
-
 
 
 	//does not guarantee superset
