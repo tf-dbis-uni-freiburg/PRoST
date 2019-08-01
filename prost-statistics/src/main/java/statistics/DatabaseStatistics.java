@@ -359,6 +359,10 @@ public class DatabaseStatistics {
 		this.vpPartitionedBySubject = vpPartitionedBySubject;
 	}
 
+	public boolean hasPropertiesStatistics() {
+		return !this.properties.isEmpty();
+	}
+
 
 	//does not guarantee superset
 	/*public void mergeCharacteristicSetsIntoSuperSets() {
