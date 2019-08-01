@@ -20,7 +20,7 @@ import org.ini4j.Ini;
  */
 public class Settings {
 
-	private static final String DEFAULT_SETTINGS_FILE = "loader_default.ini";
+	private static final String DEFAULT_SETTINGS_FILE = "prost-loader-default.ini";
 	private String inputPath;
 	private String settingsPath;
 	private String databaseName;

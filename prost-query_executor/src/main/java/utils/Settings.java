@@ -19,7 +19,7 @@ import statistics.DatabaseStatistics;
  * Loads and validates initialization options for the query-executor component.
  */
 public class Settings {
-	private static final String DEFAULT_SETTINGS_FILE = "query-executor_default.ini";
+	private static final String DEFAULT_SETTINGS_FILE = "prost-query_executor-default.ini";
 
 	//General settings
 	private String settingsPath;
