@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 
 import query.utilities.TripleBean;
-import stats.DatabaseStatistics;
+import statistics.DatabaseStatistics;
 import translator.Translator;
 import utils.Settings;
 
@@ -53,7 +53,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest06_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
@@ -289,7 +289,6 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);

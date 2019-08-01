@@ -45,7 +45,7 @@ public class VariablePredicateTests extends JavaDataFrameSuiteBase implements Se
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTest.q").getPath());
@@ -165,7 +165,6 @@ public class VariablePredicateTests extends JavaDataFrameSuiteBase implements Se
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);

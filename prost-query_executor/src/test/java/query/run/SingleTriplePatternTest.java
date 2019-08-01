@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 
 import query.utilities.TripleBean;
-import stats.DatabaseStatistics;
+import statistics.DatabaseStatistics;
 import translator.Translator;
 import utils.Settings;
 
@@ -52,7 +52,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest01_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTestSingleTriple1.q").getPath());
@@ -267,7 +267,6 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -307,7 +306,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	  
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest02_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTestSingleTriple2.q").getPath());
@@ -532,7 +531,6 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
