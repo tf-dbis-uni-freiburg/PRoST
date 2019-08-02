@@ -1,3 +1,5 @@
+package benchmark_analysis;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,16 +14,13 @@ import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-class csvHandler {
-	private HashMap<String, QueryData> data;
-
-	csvHandler() {
-		data = new HashMap<>();
-	}
-
-	void loadData(final String csvFilePath) {
+/**
+ * Handles loading and saving the .csv file with benchmark information from PRoST execution.
+ */
+public class CsvHandler {
+	public static HashMap<String, QueryData> loadData(final String csvFilePath) {
 		final Path pathToFile = Paths.get(csvFilePath);
-
+		final HashMap<String, QueryData> data = new HashMap<>();
 		try {
 			final BufferedReader br = Files.newBufferedReader(pathToFile, StandardCharsets.UTF_8);
 			br.readLine();//skips header
@@ -36,7 +35,7 @@ class csvHandler {
 				} else {
 					final QueryData newQueryData = new QueryData();
 					newQueryData.addTime(time);
-					newQueryData.setResultsCount(Long.valueOf(elements[2]));
+					newQueryData.setResultsCount(Long.parseLong(elements[2]));
 					newQueryData.setJoinsCount(Integer.parseInt(elements[3]));
 					newQueryData.setBroadcastJoinsCount(Integer.parseInt(elements[4]));
 					newQueryData.setSortMergeJoinsCount(Integer.parseInt(elements[5]));
@@ -56,13 +55,11 @@ class csvHandler {
 			e.printStackTrace();
 		}
 
-		for (final QueryData queryData : data.values()) {
-			queryData.compute();
-		}
+		return data;
 	}
 
-	void saveData(String fileName) {
-		fileName = fileName.replace(".csv", "_filtered.csv");
+	public static void saveData(final String originalFileName, final HashMap<String, QueryData> data) {
+		final String fileName = originalFileName.replace(".csv", "_filtered.csv");
 		try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8,
 				StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
@@ -71,7 +68,7 @@ class csvHandler {
 							 "Q3", "UpperFence", "Outliers", "Number of Results", "Joins", "Broadcast joins",
 							 "SortMergeJoins", "Join Nodes", "TT Nodes", "VP Nodes", "WPT Nodes", "IWPT Nodes",
 							 "JWPT Nodes"))) {
-			for (final Map.Entry<String, QueryData> entry : this.data.entrySet()) {
+			for (final Map.Entry<String, QueryData> entry : data.entrySet()) {
 				final QueryData queryData = entry.getValue();
 				csvPrinter.printRecord(entry.getKey(), queryData.getAverage(),
 						queryData.getMedian(), queryData.getQ1(),
