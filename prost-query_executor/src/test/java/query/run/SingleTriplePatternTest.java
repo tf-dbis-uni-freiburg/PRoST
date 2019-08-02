@@ -43,7 +43,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT(statistics, fullDataset);
+		queryOnTT(statistics, fullDataset);
 		queryOnVp(statistics, fullDataset);
 		queryOnWpt(statistics, fullDataset);
 		queryOnIwpt(statistics, fullDataset);
@@ -296,7 +296,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest02_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT2(statistics, fullDataset);
+		queryOnTT2(statistics, fullDataset);
 		queryOnVp2(statistics, fullDataset);
 		queryOnWpt2(statistics, fullDataset);
 		queryOnIwpt2(statistics, fullDataset);

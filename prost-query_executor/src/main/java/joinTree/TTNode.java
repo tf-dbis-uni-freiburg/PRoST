@@ -32,9 +32,9 @@ public class TTNode extends Node {
 			whereElements.add("s='" + triplePattern.getSubject() + "'");
 		}
 		if (triplePattern.getPredicateType() == ElementType.VARIABLE) {
-			selectElements.add("p as " + Utils.removeQuestionMark(triplePattern.getPredicate()));
+			selectElements.add("p AS " + Utils.removeQuestionMark(triplePattern.getPredicate()));
 		} else {
-			whereElements.add("p='<" + triplePattern.getPredicate() + ">'");
+			whereElements.add("p='" + triplePattern.getPredicate() + "'");
 		}
 		if (triplePattern.getObjectType() == ElementType.VARIABLE) {
 			selectElements.add("o AS " + Utils.removeQuestionMark(triplePattern.getObject()));
