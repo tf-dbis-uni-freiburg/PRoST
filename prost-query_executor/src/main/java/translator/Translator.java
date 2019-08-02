@@ -66,22 +66,14 @@ public class Translator {
 		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
 
 		// build main tree
-		final Node rootNode = buildTree(mainTree.getTriples());
-
-		// TODO fix the optional
-		//		final List<Node> optionalTreeRoots = new ArrayList<>();
-		//		for (int i = 0; i < queryVisitor.getOptionalQueryTrees().size(); i++) {
-		//			final QueryTree currentOptionalTree = queryVisitor.getOptionalQueryTrees().get(i);
-		//			// build optional tree
-		//			final Node optionalTreeRoot = buildTree(currentOptionalTree.getTriples());
-		//			// optionalTreeRoot.filter = currentOptionalTree.getFilter();
-		//			optionalTreeRoots.add(optionalTreeRoot);
-		//		}
-		// final JoinTree tree = new JoinTree(rootNode, optionalTreeRoots, inputFile);
-
+		Node rootNode = buildTree(mainTree.getTriples());
+		for (final QueryTree optionalTree : queryVisitor.getOptionalQueryTrees()) {
+			final Node optionalNode = buildTree(optionalTree.getTriples());
+			rootNode = new JoinNode(rootNode, optionalNode, "leftouter", statistics, settings);
+			//TODO apply filters from optionalNodes
+		}
 		final JoinTree tree = new JoinTree(rootNode, queryPath);
 
-		// set filter
 		tree.setFilter(mainTree.getFilter());
 
 		// set projections
@@ -95,7 +87,6 @@ public class Translator {
 			tree.setProjectionList(projectionList);
 		}
 
-		// if distinct keyword is present
 		tree.setDistinct(query.isDistinct());
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
@@ -187,7 +178,7 @@ public class Translator {
 				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else if (settings.isUsingJWPTLeftouter()
-						&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
+					&& (triple.getSubject().isConcrete() || triple.getObject().isConcrete())) {
 				nodesQueue.add(new JWPTNode(triple, prefixes, statistics, true, settings));
 				unassignedTriplesWithVariablePredicate.remove(triple);
 			} else {

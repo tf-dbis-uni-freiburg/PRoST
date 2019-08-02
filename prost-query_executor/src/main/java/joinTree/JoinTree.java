@@ -21,8 +21,6 @@ public class JoinTree {
 	private String filter;
 	private String queryName;
 	private List<String> projection;
-	// TODO fix optional tree
-	// private final List<Node> optionalTreeRoots;
 	private boolean selectDistinct = false;
 
 	public JoinTree(final Node root, final String queryName) {
@@ -48,24 +46,8 @@ public class JoinTree {
 		for (int i = 0; i < selectedColumns.length; i++) {
 			selectedColumns[i] = new Column(this.projection.get(i));
 		}
-		// TODO fix the optional trees
-		/*for (int i = 0; i < optionalTreeRoots.size(); i++) {
-			// OPTIONAL
-			final Node currentOptionalNode = optionalTreeRoots.getFirstTriplePattern(i);
-			// compute joins in the optional tree
-			Dataset<Row> optionalResults = currentOptionalNode.computeJoinWithChildren(sqlContext);
-			// addTriplePattern selection and filter in the optional tree
-			// if there is a filter set, apply it
-			if (currentOptionalNode.filter == null) {
-				optionalResults = optionalResults.filter(currentOptionalNode.filter);
-			}
 
-			// addTriplePattern left join with the optional tree
-			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
-			results = results.join(optionalResults, scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
-					"left_outer");
-		}*/
-
+		//TODO implement filter Node (filters are part of the execution plan and should be present in the join tree)
 		// if there is a filter set, apply it
 		results = this.filter == null ? results
 				: results.filter(this.filter);
@@ -81,69 +63,6 @@ public class JoinTree {
 		return results;
 	}
 
-	/*
-//	// TODO compute the tree in a bottom-up approach
-//	public Dataset<Row> computeBottomUp(final SQLContext sqlContext) {
-//		PriorityQueue<Node> visitableNodes = new PriorityQueue<Node>(new NodeComparator());
-//		visitableNodes.addAll(findLeaves());
-//		while (!visitableNodes.isEmpty()) {
-//			Node current = visitableNodes.poll();
-//			// if a leave, compute node date
-//			if (current.sparkNodeData == null) {
-//				current.computeNodeData(sqlContext);
-//			}
-//			
-//		}
-//
-//		Dataset<Row> results = root.sparkNodeData;
-//
-//		// select only the requested result
-//		final Column[] selectedColumns = new Column[this.projection.size()];
-//		for (int i = 0; i < selectedColumns.length; i++) {
-//			selectedColumns[i] = new Column(this.projection.getFirstTriplePattern(i));
-//		}
-//		// TODO fix the optional tree
-//		for (int i = 0; i < optionalTreeRoots.size(); i++) {
-//			// OPTIONAL
-//			final Node currentOptionalNode = optionalTreeRoots.getFirstTriplePattern(i);
-//			// compute joins in the optional tree
-//			Dataset<Row> optionalResults = currentOptionalNode.compute(sqlContext);
-//			// addTriplePattern selection and filter in the optional tree
-//			// if there is a filter set, apply it
-//			if (currentOptionalNode.filter == null) {
-//				optionalResults = optionalResults.filter(currentOptionalNode.filter);
-//			}
-//
-//			// addTriplePattern left join with the optional tree
-//			final List<String> joinVariables = Utils.commonVariables(results.columns(), optionalResults.columns());
-//			results = results.join(optionalResults,scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(),
-//					"left_outer");
-//		}
-//
-//		// if there is a filter set, apply it
-//		results = this.filter == null ? results.select(selectedColumns)
-//				: results.filter(this.filter).select(selectedColumns);
-//
-//		// if results are distinct
-//		if (selectDistinct) {
-//			results = results.distinct();
-//		}
-//		return results;
-//	}
-//
-//	public boolean hasNotComputedChildren(Node node) {
-//		boolean hasChildrenToCompute = false;
-//		for (Iterator iterator = node.children.iterator(); iterator.hasNext();) {
-//			Node child = (Node) iterator.next();
-//			// either there is a child which data is not computed
-//			// or there is a child which children are not computed
-//			if (child.sparkNodeData == null || (child.sparkNodeData != null && hasNotComputedChildren(child))) {
-//				return true;
-//			}
-//		}
-//		return hasChildrenToCompute;
-//	}
-	 */
 	public Node getRoot() {
 		return root;
 	}
