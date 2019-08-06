@@ -126,11 +126,9 @@ public class Settings {
 				+ "have a JWPT";
 		assert (!this.isUsingJWPTOuter() || statistics.hasJWPTOuter()) : "JWPT_leftouter enabled, but database does "
 				+ "not have a JWPT";
-		if (this.isUsingJWPTInner()) {
-			assert (isUsingTT() || isUsingVP() || isUsingWPT()
-					|| isUsingIWPT() || isUsingJWPTOuter() || isUsingJWPTLeftouter())
-					: "JWPT_inner cannot execute all query types by itself";
-		}
+		assert !this.isUsingJWPTInner() || (isUsingTT() || isUsingVP() || isUsingWPT()
+				|| isUsingIWPT() || isUsingJWPTOuter() || isUsingJWPTLeftouter())
+				: "JWPT_inner cannot execute all query types by itself";
 	}
 
 	private void parseArguments(final String[] args) {

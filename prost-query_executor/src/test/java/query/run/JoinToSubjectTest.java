@@ -43,7 +43,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest06_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT(statistics, fullDataset);
+		queryOnTT(statistics, fullDataset);
 		queryOnVp(statistics, fullDataset);
 		queryOnWpt(statistics, fullDataset);
 		queryOnIwpt(statistics, fullDataset);

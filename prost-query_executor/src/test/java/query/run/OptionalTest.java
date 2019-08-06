@@ -52,21 +52,21 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest05_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTest5.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
@@ -84,14 +84,14 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		expectedResult.printSchema();
 		expectedResult.show();
 		
@@ -114,14 +114,14 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
@@ -139,14 +139,14 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final JoinTree joinTree = translator.translateQuery();
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
@@ -164,14 +164,14 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
@@ -189,14 +189,14 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science");
-		Row row2 = RowFactory.create("Title2", null);
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "Science");
+		final Row row2 = RowFactory.create("Title2", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
@@ -276,7 +276,6 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -600,7 +599,12 @@ WHERE
 
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
++------+--------+
+| title| genre	|
++------+--------+
+|Title1|Science	|
+|Title2|		|
++------+--------+
 -----------------------------------------------------------------------------------------------------------------
 */
 

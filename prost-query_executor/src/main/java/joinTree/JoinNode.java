@@ -19,16 +19,25 @@ import utils.Utils;
  * @author Polina Koleva
  */
 public class JoinNode extends MVNode {
-
 	private Node leftChild;
 	private Node rightChild;
+	private String joinType;
 
 	public JoinNode(final Node leftChild, final Node rightChild,
-					final DatabaseStatistics statistics, Settings settings) {
+					final DatabaseStatistics statistics, final Settings settings) {
 		super(statistics, settings);
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
 		this.setTripleGroup(getTriples());
+	}
+
+	public JoinNode(final Node leftChild, final Node rightChild, final String joinType,
+					final DatabaseStatistics statistics, final Settings settings) {
+		super(statistics, settings);
+		this.leftChild = leftChild;
+		this.rightChild = rightChild;
+		this.setTripleGroup(getTriples());
+		this.joinType = joinType;
 	}
 
 	@Override
@@ -39,8 +48,13 @@ public class JoinNode extends MVNode {
 		// execute a join between the children
 		final List<String> joinVariables = Utils.commonVariables(getRightChild().getSparkNodeData().columns(),
 				getLeftChild().getSparkNodeData().columns());
-		this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
-				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
+		if (joinType == null) {
+			this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
+					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
+		} else {
+			this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
+					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(), joinType));
+		}
 	}
 
 	public Node getLeftChild() {
@@ -79,18 +93,30 @@ public class JoinNode extends MVNode {
 		} else if (rightChildPriority == 0.0) {
 			return leftChildPriority;
 		} else {*/
-		priority = rightChildPriority * leftChildPriority;
-		//}
+		if (joinType != null && joinType.equals("leftouter")) {
+			priority = leftChildPriority;
+		} else {
+			priority = rightChildPriority * leftChildPriority;
+		}
 		return priority;
 	}
 
 	@Override
 	public String toString() {
-		return "{" + "Join node (" + this.getPriority() + "): " + this.size()
-				+ " }"
-				+ " ["
-				+ "\n Left child: " + leftChild.toString()
-				+ "\n Right child: " + rightChild.toString()
-				+ "\n]";
+		if (joinType == null) {
+			return "{" + "Join node (" + this.getPriority() + "): " + this.size()
+					+ " }"
+					+ " ["
+					+ "\n Left child: " + leftChild.toString()
+					+ "\n Right child: " + rightChild.toString()
+					+ "\n]";
+		} else {
+			return "{" + "Join node (" + this.joinType + ") (" + this.getPriority() + "): " + this.size()
+					+ " }"
+					+ " ["
+					+ "\n Left child: " + leftChild.toString()
+					+ "\n Right child: " + rightChild.toString()
+					+ "\n]";
+		}
 	}
 }

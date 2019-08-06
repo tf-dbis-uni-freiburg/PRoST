@@ -19,6 +19,7 @@
 		<module>prost-loader</module>
 		<module>prost-query_executor</module>
         <module>prost-statistics</module>
+		<module>prost-benchmark_analysis</module>
     </modules>
 
 	<properties>

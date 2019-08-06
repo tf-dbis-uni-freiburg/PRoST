@@ -43,7 +43,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest04_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT(statistics, fullDataset);
+		queryOnTT(statistics, fullDataset);
 		queryOnVp(statistics, fullDataset);
 		queryOnWpt(statistics, fullDataset);
 		queryOnIwpt(statistics, fullDataset);
@@ -302,7 +302,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest03_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-//		queryOnTT2(statistics, fullDataset);
+		queryOnTT2(statistics, fullDataset);
 		queryOnVp2(statistics, fullDataset);
 		queryOnWpt2(statistics, fullDataset);
 		queryOnIwpt2(statistics, fullDataset);
