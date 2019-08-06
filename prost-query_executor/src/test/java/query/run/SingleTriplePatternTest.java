@@ -558,18 +558,22 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 
 /*
+PREFIX ex: <http://example.org/#>.
+PREFIX at: <http://author1.com/#>.
+PREFIX sp: <http://springer.com/#>.
+
 TABLE:
 ================================================================================================================
-"<http://example.org/book1>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book1>"		| "<http://example.org/title>"			| "Title1"
-"<http://example.org/book1>"		| "<http://example.org/genre>"			| "Science"
-"<http://example.org/book1>"		| "<http://example.org/writtenBy>"		| "<http://author1.com/author>"
+ex:book1		| ex:publishedBy	| sp:publisher
+ex:book1		| ex:title			| "Title1"
+ex:book1		| ex:genre			| "Science"
+ex:book1		| ex:writtenBy		| at:author
 
-"<http://author1.com/author>"		| "<http://example.org/name>"			| "Author1"
-"<http://springer.com/publisher>"	| "<http://example.org/name>"			| "Springer-Verlag"
+ex:book2		| ex:publishedBy	| sp:publisher
+ex:book2		| ex:title			| "Title2"
 
-"<http://example.org/book2>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book2>"		| "<http://example.org/title>"			| "Title2"
+at:author		| ex:name			| "Author1"
+sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:
@@ -593,18 +597,22 @@ RESULT:
 */
 
 /*
+PREFIX ex: <http://example.org/#>.
+PREFIX at: <http://author1.com/#>.
+PREFIX sp: <http://springer.com/#>.
+
 TABLE:
 ================================================================================================================
-"<http://example.org/book1>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book1>"		| "<http://example.org/title>"			| "Title1"
-"<http://example.org/book1>"		| "<http://example.org/genre>"			| "Science"
-"<http://example.org/book1>"		| "<http://example.org/writtenBy>"		| "<http://author1.com/author>"
+ex:book1		| ex:publishedBy	| sp:publisher
+ex:book1		| ex:title			| "Title1"
+ex:book1		| ex:genre			| "Science"
+ex:book1		| ex:writtenBy		| at:author
 
-"<http://author1.com/author>"		| "<http://example.org/name>"			| "Author1"
-"<http://springer.com/publisher>"	| "<http://example.org/name>"			| "Springer-Verlag"
+ex:book2		| ex:publishedBy	| sp:publisher
+ex:book2		| ex:title			| "Title2"
 
-"<http://example.org/book2>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book2>"		| "<http://example.org/title>"			| "Title2"
+at:author		| ex:name			| "Author1"
+sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:

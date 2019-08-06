@@ -40,7 +40,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 
 	@Test
 	@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest() {
+	public void queryTest1() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
 		initializeDb(statistics);
 		queryOnTT(statistics);
@@ -300,21 +300,292 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 
 		return ttDataset;
 	}
+	/*
+	
+	@Test
+	@Ignore("Optionals are not fully implemented yet.")
+	public void queryTest() {
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
+		initializeDb(statistics);
+		queryOnTT(statistics);
+		queryOnVp(statistics);
+		queryOnWpt(statistics);
+		queryOnIwpt(statistics);
+		queryOnJwptOuter(statistics);
+		queryOnJwptLeftOuter(statistics);
+	}
+
+	private void queryOnTT(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingTTNodes().usingCharacteristicSets().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+	
+	private void queryOnVp(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingVPNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		expectedResult.printSchema();
+		expectedResult.show();
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+				
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+
+	private void queryOnWpt(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+
+	private void queryOnIwpt(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingIWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+
+	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTOuterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTLeftouterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Translator translator = new Translator(settings, statistics,
+				classLoader.getResource("queryTestOptional2.q").getPath());
+		final JoinTree joinTree = translator.translateQuery();
+		
+		//EXPECTED
+		StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("genre", DataTypes.StringType, true),
+				DataTypes.createStructField("author", DataTypes.StringType, true),
+				});
+		Row row1 = RowFactory.create("Title1", null, "Author1");
+		Row row2 = RowFactory.create("Title2", "Science", null);
+		List<Row> rowList = ImmutableList.of(row1, row2);
+		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
+		//ACTUAL
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "author");
+		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
+				actualResult.schema().asNullable());
+		
+		assertDataFrameEquals(expectedResult, nullableActualResult);
+	}
+
+	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+		spark().sql("DROP DATABASE IF EXISTS queryTest05_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08_db");
+		spark().sql("USE queryTest08_db");
+
+				
+		// creates test tt table
+		final TripleBean t1 = new TripleBean();
+		t1.setS("<http://example.org/book1>");
+		t1.setP("<http://example.org/publishedBy>");
+		t1.setO("<http://springer.com/publisher>");
+
+		final TripleBean t2 = new TripleBean();
+		t2.setS("<http://example.org/book1>");
+		t2.setP("<http://example.org/title>");
+		t2.setO("Title1");
+
+		final TripleBean t3 = new TripleBean();
+		t3.setS("<http://example.org/book1>");
+		t3.setP("<http://example.org/writtenBy>");
+		t3.setO("<http://author1.com/author>");
+
+		final TripleBean t4 = new TripleBean();
+		t4.setS("<http://author1.com/author>");
+		t4.setP("<http://example.org/name>");
+		t4.setO("Author1");
+		
+		final TripleBean t5 = new TripleBean();
+		t5.setS("<http://springer.com/publisher>");
+		t5.setP("<http://example.org/name>");
+		t5.setO("Springer-Verlag");
+		
+		final TripleBean t6 = new TripleBean();
+		t6.setS("<http://example.org/book2>");
+		t6.setP("<http://example.org/publishedBy>");
+		t6.setO("<http://springer.com/publisher>");
+
+		final TripleBean t7 = new TripleBean();
+		t7.setS("<http://example.org/book2>");
+		t7.setP("<http://example.org/title>");
+		t7.setO("Title2");
+		
+		final TripleBean t8 = new TripleBean();
+		t8.setS("<http://example.org/book2>");
+		t8.setP("<http://example.org/genre>");
+		t8.setO("Science");
+
+		final ArrayList<TripleBean> triplesList = new ArrayList<>();
+		triplesList.add(t1);
+		triplesList.add(t2);
+		triplesList.add(t3);
+		triplesList.add(t4);
+		triplesList.add(t5);
+		triplesList.add(t6);
+		triplesList.add(t7);
+		triplesList.add(t8);
+
+		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
+				"s", "p", "o");
+		ttDataset.write().saveAsTable("tripletable");
+
+		final loader.Settings loaderSettings =
+				new loader.Settings.Builder("queryTest08_db").withInputPath((System.getProperty(
+						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
+						.generateJwptLeftOuter().generateJwptInner().build();
+
+		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
+		vpLoader.load();
+
+		statistics.computeCharacteristicSetsStatistics(spark());
+		statistics.computePropertyStatistics(spark());
+
+		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
+		wptLoader.load();
+
+		final InverseWidePropertyTableLoader iwptLoader = new InverseWidePropertyTableLoader(loaderSettings, spark(),
+				statistics);
+		iwptLoader.load();
+
+		final JoinedWidePropertyTableLoader jwptOuterLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.outer, statistics);
+		jwptOuterLoader.load();
+
+		final JoinedWidePropertyTableLoader jwptLeftOuterLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
+		jwptLeftOuterLoader.load();
+
+		return ttDataset;
+	}
+*/
 }
 
 /*
+PREFIX ex: <http://example.org/#>.
+PREFIX at: <http://author1.com/#>.
+PREFIX sp: <http://springer.com/#>.
+
 TABLE:
 ================================================================================================================
-"<http://example.org/book1>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book1>"		| "<http://example.org/title>"			| "Title1"
-"<http://example.org/book1>"		| "<http://example.org/genre>"			| "Science"
-"<http://example.org/book1>"		| "<http://example.org/writtenBy>"		| "<http://author1.com/author>"
+ex:book1		| ex:publishedBy	| sp:publisher
+ex:book1		| ex:title			| "Title1"
+ex:book1		| ex:genre			| "Science"
+ex:book1		| ex:writtenBy		| at:author
 
-"<http://author1.com/author>"		| "<http://example.org/name>"			| "Author1"
-"<http://springer.com/publisher>"	| "<http://example.org/name>"			| "Springer-Verlag"
+ex:book2		| ex:publishedBy	| sp:publisher
+ex:book2		| ex:title			| "Title2"
 
-"<http://example.org/book2>"		| "<http://example.org/publishedBy>"	| "<http://springer.com/publisher>"
-"<http://example.org/book2>"		| "<http://example.org/title>"			| "Title2"
+at:author		| ex:name			| "Author1"
+sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:
@@ -324,6 +595,42 @@ WHERE
 {
 	?book <http://example.org/title> ?title.
 	OPTIONAL {?book <http://example.org/genre> ?genre}
+}
+-----------------------------------------------------------------------------------------------------------------
+
+RESULT:
+-----------------------------------------------------------------------------------------------------------------
+?
+-----------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+PREFIX ex: <http://example.org/#>.
+PREFIX at: <http://author1.com/#>.
+PREFIX sp: <http://springer.com/#>.
+
+TABLE:
+================================================================================================================
+ex:book1		| ex:publishedBy	| sp:publisher
+ex:book1		| ex:title			| "Title1"
+ex:book1		| ex:writtenBy		| at:author
+
+ex:book2		| ex:publishedBy	| sp:publisher
+ex:book2		| ex:title			| "Title2"
+ex:book2		| ex:genre			| "Science"
+
+at:author		| ex:name			| "Author1"
+sp:publisher	| ex:name			| "Springer-Verlag"
+================================================================================================================
+
+QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT ?title ?genre ?author
+WHERE
+{
+	?book <http://example.org/title> ?title.
+	OPTIONAL {?book <http://example.org/genre> ?genre}.
+	OPTIONAL {?book <http://example.org/author> ?author}
 }
 -----------------------------------------------------------------------------------------------------------------
 
