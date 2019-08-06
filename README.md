@@ -7,6 +7,8 @@ Input graphs are partitioned efficiently and stored across several tables regist
 ## Publications
   - Cossu, Matteo, Michael Färber, and Georg Lausen. "PRoST: Distributed Execution of SPARQL Queries Using Mixed Partitioning Strategies". (EDBT 2018).
   -	Victor Anthony Arrascue Ayala, Georg Lausen. "A Flexible N-Triples Loader for Hadoop. International Semantic Web Conference". (ISWC 2018).
+  - Victor Anthony Arrascue Ayala, Polina Koleva, Anas Alzogbi, Matteo Cossu, Michael Färber, Patrick Philipp, Guilherme Schievelbein, Io Taxidou, Georg Lausen. "Relational Schemata for Distributed SPARQL Query Processing". (SBD@SIGMOD 2019).
+  - Guilherme Schievelbein, Victor Anthony Arrascue Ayala, Fang Wei-Kleiner, Georg Lausen. "Exploiting Wide Property Tables Empowered by Inverse Properties for Efficient Distributed SPARQL Query Evaluation". (ISWC 2019).
   
 ## Support
 prost@informatik.uni-freiburg.de
