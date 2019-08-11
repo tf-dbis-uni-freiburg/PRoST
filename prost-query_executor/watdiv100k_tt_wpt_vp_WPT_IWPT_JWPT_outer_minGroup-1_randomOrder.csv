@@ -1,0 +1,3 @@
+Query,Time (ms),Number of results,Joins,Broadcast Joins,SortMerge Join,Join Nodes,TT Nodes,VP Nodes,WPT Nodes,IWPT Nodes,JWPT Nodes,Logical Plan,Analyzed Plan,Optimized Plan,Executed Plan
+qry.txt,26952,195,1,1,0,1,0,0,2,0,0
+qry.txt,26650,195,1,1,0,1,0,0,2,0,0

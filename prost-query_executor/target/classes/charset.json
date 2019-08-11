@@ -1,0 +1,54 @@
+{
+  "databaseName": "charset_db",
+  "properties": {
+    "ex:hasAuthor": {
+      "internalName": "ex_hasAuthor",
+      "tuplesNumber": 8,
+      "isComplex": true,
+      "isInverseComplex": true
+    },
+    "ex:hasPublisher": {
+      "internalName": "ex_hasPublisher",
+      "tuplesNumber": 1,
+      "isComplex": false,
+      "isInverseComplex": false
+    },
+    "ex:hasTitle": {
+      "internalName": "ex_hasTitle",
+      "tuplesNumber": 4,
+      "isComplex": true,
+      "isInverseComplex": false
+    },
+    "ex:hasYear": {
+      "internalName": "ex_hasYear",
+      "tuplesNumber": 3,
+      "isComplex": false,
+      "isInverseComplex": false
+    }
+  },
+  "characteristicSets": [
+    {
+      "distinctSubjects": 1,
+      "tuplesPerPredicate": {
+        "ex:hasAuthor": 1,
+        "ex:hasPublisher": 1,
+        "ex:hasTitle": 1,
+        "ex:hasYear": 1
+      }
+    },
+    {
+      "distinctSubjects": 4,
+      "tuplesPerPredicate": {
+        "ex:hasAuthor": 4
+      }
+    },
+    {
+      "distinctSubjects": 2,
+      "tuplesPerPredicate": {
+        "ex:hasAuthor": 3,
+        "ex:hasTitle": 3,
+        "ex:hasYear": 2
+      }
+    }
+  ]
+}

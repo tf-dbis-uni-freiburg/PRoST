@@ -3,6 +3,7 @@ package translator.triplesGroup;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashSet;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -14,6 +15,7 @@ import utils.Settings;
  */
 public class TriplesGroupsMapping {
 	private Multimap<String, TriplesGroup> triplesGroups = ArrayListMultimap.create();
+	private HashSet<TriplesGroup> visitedGroups;
 
 	/**
 	 * Takes a list of triple patterns and creates the appropriate groups according to the enabled data models.
@@ -22,6 +24,7 @@ public class TriplesGroupsMapping {
 	 * @param settings settings file with information about the enabled data models.
 	 */
 	public TriplesGroupsMapping(final List<Triple> triples, final Settings settings) {
+		visitedGroups = new HashSet<>();
 		if (settings.isUsingWPT()
 				|| settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter() || settings.isUsingJWPTInner()) {
 			createForwardGroups(triples);
@@ -116,6 +119,7 @@ public class TriplesGroupsMapping {
 		TriplesGroup largestGroup = null;
 		int largestGroupSize = 0;
 		for (final TriplesGroup group : this.triplesGroups.values()) {
+			if(visitedGroups.contains(group)) continue;
 			final int groupSize = group.size();
 			if (groupSize > largestGroupSize) {
 				largestGroup = group;
@@ -135,7 +139,9 @@ public class TriplesGroupsMapping {
 
 		assert (largestGroup != null && largestGroupSize > 0) : "No best group was extracted";
 
-		this.triplesGroups.remove(largestGroup.getCommonResource(), largestGroup);
+		visitedGroups.add(largestGroup);
+		
+		//this.triplesGroups.remove(largestGroup.getCommonResource(), largestGroup);
 
 		return largestGroup;
 	}

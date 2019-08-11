@@ -2,6 +2,8 @@ package translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -98,6 +100,7 @@ public class Translator {
 	 */
 	private Node buildTree(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
+		
 		Node currentNode = null;
 
 		while (!nodesQueue.isEmpty()) {
@@ -115,7 +118,7 @@ public class Translator {
 	}
 
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
-		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
+	    PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 		final List<Triple> unassignedTriples = new ArrayList<>();
 		final List<Triple> unassignedTriplesWithVariablePredicate = new ArrayList<>();
 
@@ -127,20 +130,24 @@ public class Translator {
 			}
 		}
 
+		HashSet<Triple> assignedTriples = new HashSet<>();
+
 		if (settings.isUsingWPT() || settings.isUsingIWPT() || settings.isUsingJWPTInner()
 				|| settings.isUsingJWPTOuter() || settings.isUsingJWPTLeftouter()) {
 			logger.info("Creating grouped nodes...");
 			final TriplesGroupsMapping groupsMapping = new TriplesGroupsMapping(unassignedTriples, settings);
 			while (groupsMapping.size() > 0) {
 				final TriplesGroup largestGroup = groupsMapping.extractBestTriplesGroup(settings);
-				if (largestGroup.size() < settings.getMinGroupSize()) {
+				
+				if (largestGroup.size() < 2S) {
 					break;
 				}
 				final List<Node> createdNodes = largestGroup.createNodes(settings, statistics, prefixes);
 				if (!createdNodes.isEmpty()) {
 					nodesQueue.addAll(createdNodes);
-					groupsMapping.removeTriples(largestGroup);
-					unassignedTriples.removeAll(largestGroup.getTriples());
+					//groupsMapping.removeTriples(largestGroup);
+					assignedTriples.addAll(largestGroup.getTriples());
+					//unassignedTriples.removeAll(largestGroup.getTriples());
 				}
 			}
 			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
@@ -205,12 +212,52 @@ public class Translator {
 			}
 		}
 
+		
+		unassignedTriples.removeAll(new ArrayList<Triple>(assignedTriples));
+
+		nodesQueue = clearRedundantNodes(nodesQueue);
+
+
 		if (unassignedTriples.size() > 0 || unassignedTriplesWithVariablePredicate.size() > 0) {
 			throw new RuntimeException("Cannot generate nodes queue. Some triple patterns are not assigned to a node.");
 		} else {
+		
 			return nodesQueue;
 		}
 	}
+
+	private PriorityQueue<Node> clearRedundantNodes(PriorityQueue<Node> nodesQueue) {
+		List<Node> nodesList = new ArrayList<>(nodesQueue);
+		PriorityQueue<Node> filteredNodes = new PriorityQueue<>(nodesQueue.size(), new NodeComparator());
+		for (int i = nodesQueue.size() - 1; i >= 0 ;i--) {
+			Node currentNode = nodesList.get(i);
+			Set<String> currentNodeVars = getNodeVariables(currentNode);
+			Set<String> othersVars = new HashSet<>();
+			for (int j = 0; j < nodesList.size() ;j++) {
+				if ( i != j ) {
+					Node neighbourNode = nodesList.get(j);
+					Set<String> neighbourVars = getNodeVariables(neighbourNode);
+					othersVars.addAll(neighbourVars);
+				} 
+			}
+			othersVars.retainAll(currentNodeVars);
+			if (othersVars.size() != currentNodeVars.size()) {
+				filteredNodes.add(currentNode);
+			}
+		}
+		return filteredNodes;
+	}
+
+	private Set<String> getNodeVariables(Node node) {
+		List<TriplePattern> triples = node.collectTriples();
+		Set<String> nodeVars = new HashSet<>();
+		for (TriplePattern triple : triples) {
+			nodeVars.add(triple.getSubject());
+			nodeVars.add(triple.getObject());
+		}
+		return nodeVars;
+	}	
+
 
 	/**
 	 * Creates VP nodes from a list of triples.

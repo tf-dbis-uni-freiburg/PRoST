@@ -1,0 +1,5 @@
+SELECT ?s ?o1 ?o2
+WHERE {
+	?s <ex:p0> ?o1 .
+	?s <ex:p1> ?o2 .
+}
