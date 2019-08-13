@@ -37,21 +37,21 @@ import utils.Settings;
 public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
-
+	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest1() {
+	//@Ignore("Optionals are not fully implemented yet.")
+	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest09_db");
-		initializeDb(statistics);
-		queryOnTT(statistics);
-		queryOnVp(statistics);
-		queryOnWpt(statistics);
-		queryOnIwpt(statistics);
-		queryOnJwptOuter(statistics);
-		queryOnJwptLeftOuter(statistics);
-	}
-
-	private void queryOnTT(final DatabaseStatistics statistics) {
+		Dataset<Row> fullDataset = initializeDb(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT(statistics, fullDataset);
+		queryOnVp(statistics, fullDataset);
+		queryOnWpt(statistics, fullDataset);
+		queryOnIwpt(statistics, fullDataset);
+		queryOnJwptOuter(statistics, fullDataset);
+		queryOnJwptLeftOuter(statistics, fullDataset);
+	}	
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -61,24 +61,28 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+		System.out.print("OptionalFilterTest: queryTest1");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -88,29 +92,23 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -120,24 +118,23 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -147,24 +144,23 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -174,24 +170,23 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -201,17 +196,16 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("genre", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "Science", null);
-		Row row2 = RowFactory.create("Title2", null, "20");
-		Row row3 = RowFactory.create("Title3", null, "30");
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", "30");
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre", "price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -276,14 +270,13 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest09_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\OptionalFilterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -301,27 +294,28 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
-	/*
+	
+	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest() {
+	//@Ignore("Optionals are not fully implemented yet.")
+	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest10_db");
-		initializeDb(statistics);
-		queryOnTT(statistics);
-		queryOnVp(statistics);
-		queryOnWpt(statistics);
-		queryOnIwpt(statistics);
-		queryOnJwptOuter(statistics);
-		queryOnJwptLeftOuter(statistics);
-	}
-
-	private void queryOnTT(final DatabaseStatistics statistics) {
+		Dataset<Row> fullDataset = initializeDb2(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT2(statistics, fullDataset);
+		queryOnVp2(statistics, fullDataset);
+		queryOnWpt2(statistics, fullDataset);
+		queryOnIwpt2(statistics, fullDataset);
+		queryOnJwptOuter2(statistics, fullDataset);
+		queryOnJwptLeftOuter2(statistics, fullDataset);
+	}	
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -331,25 +325,29 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+		System.out.print("OptionalFilterTest: queryTest2");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -359,30 +357,24 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -392,25 +384,24 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -420,25 +411,24 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -448,25 +438,24 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -476,25 +465,24 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("price", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", "50", null);
-		Row row2 = RowFactory.create("Title2", "35", "20");
-		Row row3 = RowFactory.create("Title3", null, null);
+		Row row1 = RowFactory.create("Title1", null);
+		Row row2 = RowFactory.create("Title2", "20");
+		Row row3 = RowFactory.create("Title3", null);
 		List<Row> rowList = ImmutableList.of(row1, row2, row3);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price", "reduced_price");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTest09_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest10_db");
 		spark().sql("USE queryTest10_db");
@@ -561,16 +549,16 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 
+		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest10_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\OptionalFilterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -588,9 +576,13 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
+		jwptLeftOuterLoader.load();
+
 		return ttDataset;
 	}
-*/
+	
 }
 
 /*
@@ -611,18 +603,34 @@ ex:book3		| ex:price			| "20"
 
 QUERY: Nested Optional with Filter
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title ?genre ?price
+SELECT ?title ?price
 WHERE
 {
 	?book <http://example.org/title> ?title.
-	OPTIONAL {?book <http://example.org/genre> ?genre}.
 	OPTIONAL {?book <http://example.org/price> ?price.FILTER(?price <= 30)}
 }
 -----------------------------------------------------------------------------------------------------------------
 
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
+Expected:
++------+-----+
+| title|price|
++------+-----+
+|Title1| null|
+|Title2|   20|
+|Title3|   30|
++------+-----+
+
+Actual:
++------+-----+
+| title|price|
++------+-----+
+|Title1|   50|
+|Title2|   30|
+|Title3|   20|
++------+-----+
+
 -----------------------------------------------------------------------------------------------------------------
 */
 
@@ -658,6 +666,22 @@ WHERE
 
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
+Expected:
++------+-------------+
+| title|reduced_price|
++------+-------------+
+|Title1|         null|
+|Title2|           20|
+|Title3|         null|
++------+-------------+
+
+Actual:
++------+-------------+
+| title|reduced_price|
++------+-------------+
+|Title1|           25|
+|Title2|           20|
+|Title3|           10|
++------+-------------+
 -----------------------------------------------------------------------------------------------------------------
 */

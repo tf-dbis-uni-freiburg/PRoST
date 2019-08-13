@@ -57,8 +57,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
 				classLoader.getResource("queryTestJoinToObject1and2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final JoinTree joinTree = translator.translateQuery();		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -73,7 +72,12 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-
+		System.out.print("JoinToObjectTest: queryTest1");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
@@ -92,16 +96,12 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		Row row1 = RowFactory.create("Title1", "Science");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -210,43 +210,18 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
-		t1.setP("<http://example.org/publishedBy>");
-		t1.setO("<http://springer.com/publisher>");
+		t1.setP("<http://example.org/title>");
+		t1.setO("Title1");
 
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book1>");
-		t2.setP("<http://example.org/title>");
-		t2.setO("Title1");
+		t2.setP("<http://example.org/genre>");
+		t2.setO("Science");
 
 		final TripleBean t3 = new TripleBean();
-		t3.setS("<http://example.org/book1>");
-		t3.setP("<http://example.org/genre>");
-		t3.setO("Science");
-
-		final TripleBean t4 = new TripleBean();
-		t4.setS("<http://example.org/book1>");
-		t4.setP("<http://example.org/writtenBy>");
-		t4.setO("<http://author1.com/author>");
-
-		final TripleBean t5 = new TripleBean();
-		t5.setS("<http://author1.com/author>");
-		t5.setP("<http://example.org/name>");
-		t5.setO("Author1");
-		
-		final TripleBean t6 = new TripleBean();
-		t6.setS("<http://springer.com/publisher>");
-		t6.setP("<http://example.org/name>");
-		t6.setO("Springer-Verlag");
-		
-		final TripleBean t7 = new TripleBean();
-		t7.setS("<http://example.org/book2>");
-		t7.setP("<http://example.org/publishedBy>");
-		t7.setO("<http://springer.com/publisher>");
-
-		final TripleBean t8 = new TripleBean();
-		t8.setS("<http://example.org/book2>");
-		t8.setP("<http://example.org/title>");
-		t8.setO("Title2");
+		t3.setS("<http://example.org/book2>");
+		t3.setP("<http://example.org/title>");
+		t3.setO("Title2");
 		
 
 
@@ -254,11 +229,6 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
-		triplesList.add(t4);
-		triplesList.add(t5);
-		triplesList.add(t6);
-		triplesList.add(t7);
-		triplesList.add(t8);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
@@ -266,7 +236,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest04_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\JoinToObjectTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -290,9 +260,9 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
@@ -333,7 +303,12 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-
+		System.out.print("JoinToObjectTest: queryTest2");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
@@ -353,16 +328,12 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		Row row2 = RowFactory.create("Title2", "Science");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "genre");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -475,59 +446,29 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
-		t1.setP("<http://example.org/publishedBy>");
-		t1.setO("<http://springer.com/publisher>");
+		t1.setP("<http://example.org/title>");
+		t1.setO("Title1");
 
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book1>");
-		t2.setP("<http://example.org/title>");
-		t2.setO("Title1");
+		t2.setP("<http://example.org/genre>");
+		t2.setO("Science");
 
 		final TripleBean t3 = new TripleBean();
-		t3.setS("<http://example.org/book1>");
-		t3.setP("<http://example.org/genre>");
-		t3.setO("Science");
-
+		t3.setS("<http://example.org/book2>");
+		t3.setP("<http://example.org/title>");
+		t3.setO("Title2");
+		
 		final TripleBean t4 = new TripleBean();
-		t4.setS("<http://example.org/book1>");
-		t4.setP("<http://example.org/writtenBy>");
-		t4.setO("<http://author1.com/author>");
-
-		final TripleBean t5 = new TripleBean();
-		t5.setS("<http://author1.com/author>");
-		t5.setP("<http://example.org/name>");
-		t5.setO("Author1");
-		
-		final TripleBean t6 = new TripleBean();
-		t6.setS("<http://springer.com/publisher>");
-		t6.setP("<http://example.org/name>");
-		t6.setO("Springer-Verlag");
-		
-		final TripleBean t7 = new TripleBean();
-		t7.setS("<http://example.org/book2>");
-		t7.setP("<http://example.org/publishedBy>");
-		t7.setO("<http://springer.com/publisher>");
-
-		final TripleBean t8 = new TripleBean();
-		t8.setS("<http://example.org/book2>");
-		t8.setP("<http://example.org/title>");
-		t8.setO("Title2");
-		
-		final TripleBean t9 = new TripleBean();
-		t9.setS("<http://example.org/book2>");
-		t9.setP("<http://example.org/genre>");
-		t9.setO("Science");
+		t4.setS("<http://example.org/book2>");
+		t4.setP("<http://example.org/genre>");
+		t4.setO("Science");
 
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
 		triplesList.add(t4);
-		triplesList.add(t5);
-		triplesList.add(t6);
-		triplesList.add(t7);
-		triplesList.add(t8);
-		triplesList.add(t9);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
@@ -535,7 +476,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest03_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\JoinToObjectTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -559,9 +500,9 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
@@ -574,16 +515,10 @@ PREFIX sp: <http://springer.com/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:publishedBy	| sp:publisher
 ex:book1		| ex:title			| "Title1"
 ex:book1		| ex:genre			| "Science"
-ex:book1		| ex:writtenBy		| at:author
 
-ex:book2		| ex:publishedBy	| sp:publisher
 ex:book2		| ex:title			| "Title2"
-
-at:author		| ex:name			| "Author1"
-sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:
@@ -608,22 +543,14 @@ RESULT:
 
 /*
 PREFIX ex: <http://example.org/#>.
-PREFIX at: <http://author1.com/#>.
-PREFIX sp: <http://springer.com/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:publishedBy	| sp:publisher
 ex:book1		| ex:title			| "Title1"
 ex:book1		| ex:genre			| "Science"
-ex:book1		| ex:writtenBy		| at:author
 
-ex:book2		| ex:publishedBy	| sp:publisher
 ex:book2		| ex:title			| "Title2"
 ex:book2		| ex:genre			| "Science"
-
-at:author		| ex:name			| "Author1"
-sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:

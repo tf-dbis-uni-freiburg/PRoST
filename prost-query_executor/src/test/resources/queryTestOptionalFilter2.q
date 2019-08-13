@@ -1,4 +1,4 @@
-SELECT ?title ?price ?reduced_price
+SELECT ?title ?reduced_price
 WHERE
 {
 	?book <http://example.org/title> ?title.

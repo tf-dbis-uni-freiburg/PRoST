@@ -65,13 +65,15 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	    	// DataFrame
 	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
 	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
-		expectedResult.printSchema();
-		expectedResult.show();
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.println(joinTree.toString());
+		
+		System.out.print("SingleTriplePatternTest: queryTest2");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -90,18 +92,13 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	    	data.add("Title2");
 	    	// DataFrame
 	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
-		
-	    expectedResult.printSchema();
-		expectedResult.show();	
+	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");	
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-			
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
+		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -206,53 +203,17 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
-		t1.setP("<http://example.org/publishedBy>");
-		t1.setO("<http://springer.com/publisher>");
+		t1.setP("<http://example.org/title>");
+		t1.setO("Title1");
 
 		final TripleBean t2 = new TripleBean();
-		t2.setS("<http://example.org/book1>");
+		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
-		t2.setO("Title1");
-
-		final TripleBean t3 = new TripleBean();
-		t3.setS("<http://example.org/book1>");
-		t3.setP("<http://example.org/genre>");
-		t3.setO("Science");
-
-		final TripleBean t4 = new TripleBean();
-		t4.setS("<http://example.org/book1>");
-		t4.setP("<http://example.org/writtenBy>");
-		t4.setO("<http://author1.com/author>");
-
-		final TripleBean t5 = new TripleBean();
-		t5.setS("<http://author1.com/author>");
-		t5.setP("<http://example.org/name>");
-		t5.setO("Author1");
-		
-		final TripleBean t6 = new TripleBean();
-		t6.setS("<http://springer.com/publisher>");
-		t6.setP("<http://example.org/name>");
-		t6.setO("Springer-Verlag");
-		
-		final TripleBean t7 = new TripleBean();
-		t7.setS("<http://example.org/book2>");
-		t7.setP("<http://example.org/publishedBy>");
-		t7.setO("<http://springer.com/publisher>");
-
-		final TripleBean t8 = new TripleBean();
-		t8.setS("<http://example.org/book2>");
-		t8.setP("<http://example.org/title>");
-		t8.setO("Title2");
+		t2.setO("Title2");
 
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
-		triplesList.add(t3);
-		triplesList.add(t4);
-		triplesList.add(t5);
-		triplesList.add(t6);
-		triplesList.add(t7);
-		triplesList.add(t8);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
@@ -260,7 +221,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest01_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -284,9 +245,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
@@ -327,7 +288,12 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("book", "title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+		System.out.print("SingleTriplePatternTest: queryTest1");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
@@ -347,17 +313,12 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		Row row2 = RowFactory.create("<http://example.org/book2>", "Title2");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-			    
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("book", "title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
-		nullableActualResult.printSchema();
-		nullableActualResult.show();		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -470,53 +431,17 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
-		t1.setP("<http://example.org/publishedBy>");
-		t1.setO("<http://springer.com/publisher>");
+		t1.setP("<http://example.org/title>");
+		t1.setO("Title1");
 
 		final TripleBean t2 = new TripleBean();
-		t2.setS("<http://example.org/book1>");
+		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
-		t2.setO("Title1");
-
-		final TripleBean t3 = new TripleBean();
-		t3.setS("<http://example.org/book1>");
-		t3.setP("<http://example.org/genre>");
-		t3.setO("Science");
-
-		final TripleBean t4 = new TripleBean();
-		t4.setS("<http://example.org/book1>");
-		t4.setP("<http://example.org/writtenBy>");
-		t4.setO("<http://author1.com/author>");
-
-		final TripleBean t5 = new TripleBean();
-		t5.setS("<http://author1.com/author>");
-		t5.setP("<http://example.org/name>");
-		t5.setO("Author1");
-		
-		final TripleBean t6 = new TripleBean();
-		t6.setS("<http://springer.com/publisher>");
-		t6.setP("<http://example.org/name>");
-		t6.setO("Springer-Verlag");
-		
-		final TripleBean t7 = new TripleBean();
-		t7.setS("<http://example.org/book2>");
-		t7.setP("<http://example.org/publishedBy>");
-		t7.setO("<http://springer.com/publisher>");
-
-		final TripleBean t8 = new TripleBean();
-		t8.setS("<http://example.org/book2>");
-		t8.setP("<http://example.org/title>");
-		t8.setO("Title2");
+		t2.setO("Title2");
 
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
-		triplesList.add(t3);
-		triplesList.add(t4);
-		triplesList.add(t5);
-		triplesList.add(t6);
-		triplesList.add(t7);
-		triplesList.add(t8);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
@@ -524,7 +449,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest02_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -548,12 +473,13 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
+
 }
 
 
@@ -564,16 +490,8 @@ PREFIX sp: <http://springer.com/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:publishedBy	| sp:publisher
 ex:book1		| ex:title			| "Title1"
-ex:book1		| ex:genre			| "Science"
-ex:book1		| ex:writtenBy		| at:author
-
-ex:book2		| ex:publishedBy	| sp:publisher
 ex:book2		| ex:title			| "Title2"
-
-at:author		| ex:name			| "Author1"
-sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:
@@ -603,16 +521,8 @@ PREFIX sp: <http://springer.com/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:publishedBy	| sp:publisher
 ex:book1		| ex:title			| "Title1"
-ex:book1		| ex:genre			| "Science"
-ex:book1		| ex:writtenBy		| at:author
-
-ex:book2		| ex:publishedBy	| sp:publisher
 ex:book2		| ex:title			| "Title2"
-
-at:author		| ex:name			| "Author1"
-sp:publisher	| ex:name			| "Springer-Verlag"
 ================================================================================================================
 
 QUERY:

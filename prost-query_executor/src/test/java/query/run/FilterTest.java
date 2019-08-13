@@ -38,20 +38,21 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
+	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest1() {
+	//@Ignore("Optionals are not fully implemented yet.")
+	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest07_db");
-		initializeDb(statistics);
-		queryOnTT(statistics);
-		queryOnVp(statistics);
-		queryOnWpt(statistics);
-		queryOnIwpt(statistics);
-		queryOnJwptOuter(statistics);
-		queryOnJwptLeftOuter(statistics);
-	}
-
-	private void queryOnTT(final DatabaseStatistics statistics) {
+		Dataset<Row> fullDataset = initializeDb(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT(statistics, fullDataset);
+		queryOnVp(statistics, fullDataset);
+		queryOnWpt(statistics, fullDataset);
+		queryOnIwpt(statistics, fullDataset);
+		queryOnJwptOuter(statistics, fullDataset);
+		queryOnJwptLeftOuter(statistics, fullDataset);
+	}	
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -71,11 +72,16 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+		System.out.print("FilterTest: queryTest1");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -90,21 +96,16 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		Row row1 = RowFactory.create("Title2", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -125,11 +126,10 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
-		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -153,7 +153,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -177,7 +177,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -237,17 +237,16 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-
+		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest07_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\FiterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -265,28 +264,28 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
+		jwptLeftOuterLoader.load();
 
 		return ttDataset;
 	}
 	
-	/*
+	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
+	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
-		initializeDb(statistics);
-		queryOnTT(statistics);
-		queryOnVp(statistics);
-		queryOnWpt(statistics);
-		queryOnIwpt(statistics);
-		queryOnJwptOuter(statistics);
-		queryOnJwptLeftOuter(statistics);
-	}
-
-	private void queryOnTT(final DatabaseStatistics statistics) {
+		Dataset<Row> fullDataset = initializeDb2(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT2(statistics, fullDataset);
+		queryOnVp2(statistics, fullDataset);
+		queryOnWpt2(statistics, fullDataset);
+		queryOnIwpt2(statistics, fullDataset);
+		queryOnJwptOuter2(statistics, fullDataset);
+		queryOnJwptLeftOuter2(statistics, fullDataset);
+	}	
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -298,22 +297,25 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+		System.out.print("FilterTest: queryTest2");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -325,27 +327,20 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -357,11 +352,9 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -373,7 +366,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -385,11 +378,9 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -400,7 +391,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -412,11 +403,9 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -427,7 +416,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -439,11 +428,9 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title3", "30");
-		Row row4 = RowFactory.create("Title4", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row1 = RowFactory.create("Title2", "40");
+		Row row2 = RowFactory.create("Title3", "30");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -454,7 +441,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTest08_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08_db");
 		spark().sql("USE queryTest08_db");
@@ -514,17 +501,16 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-
+		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest08_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\FiterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -542,23 +528,28 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
+		jwptLeftOuterLoader.load();
+
 		return ttDataset;
 	}
 	
+	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
+	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest3() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08b_db");
-		initializeDb(statistics);
-		queryOnTT(statistics);
-		queryOnVp(statistics);
-		queryOnWpt(statistics);
-		queryOnIwpt(statistics);
-		queryOnJwptOuter(statistics);
-		queryOnJwptLeftOuter(statistics);
-	}
-
-	private void queryOnTT(final DatabaseStatistics statistics) {
+		Dataset<Row> fullDataset = initializeDb3(statistics);
+		fullDataset = fullDataset.orderBy("s", "p", "o");
+		queryOnTT3(statistics, fullDataset);
+		queryOnVp3(statistics, fullDataset);
+		queryOnWpt3(statistics, fullDataset);
+		queryOnIwpt3(statistics, fullDataset);
+		queryOnJwptOuter3(statistics, fullDataset);
+		queryOnJwptLeftOuter3(statistics, fullDataset);
+	}	
+	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -571,21 +562,24 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+		System.out.print("FilterTest: queryTest3");
+		expectedResult.printSchema();
+		expectedResult.show();
+		System.out.println(joinTree.toString());	
+		nullableActualResult.printSchema();
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics) {
+	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -598,26 +592,19 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		expectedResult.printSchema();
-		expectedResult.show();
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
-				
-		nullableActualResult.printSchema();
-		nullableActualResult.show();
+				actualResult.schema().asNullable());		
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics) {
+	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -630,10 +617,8 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -641,11 +626,10 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
-		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics) {
+	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -658,10 +642,8 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -672,7 +654,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -685,10 +667,8 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -699,7 +679,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) {
+	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest08b_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -712,10 +692,8 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
 		Row row1 = RowFactory.create("Title1", "50");
-		Row row2 = RowFactory.create("Title2", null);
-		Row row3 = RowFactory.create("Title3", null);
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		Row row2 = RowFactory.create("Title4", "20");
+		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
@@ -726,7 +704,7 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+	private Dataset<Row> initializeDb3(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTest08b_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08b_db");
 		spark().sql("USE queryTest08b_db");
@@ -783,20 +761,20 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 		triplesList.add(t7);
 		triplesList.add(t8);
 
+
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-
+		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest08b_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\FiterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
 		final VerticalPartitioningLoader vpLoader = new VerticalPartitioningLoader(loaderSettings, spark(), statistics);
 		vpLoader.load();
 
-		statistics.computeCharacteristicSetsStatistics(spark());
 		statistics.computePropertyStatistics(spark());
 
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(loaderSettings, spark(), statistics);
@@ -814,9 +792,14 @@ public class FilterTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
+		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
+		jwptLeftOuterLoader.load();
+
 		return ttDataset;
 	}
-	*/
+	
+	
 }
 
 /*
@@ -843,7 +826,19 @@ WHERE
 
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
+Expected:
++------+-----+
+| title|price|
++------+-----+
+|Title2|   20|
++------+-----+
+
+Actual:
++------+-----+
+| title|price|
++------+-----+
+|Title2|   20|
++------+-----+
 -----------------------------------------------------------------------------------------------------------------
 */
 
@@ -876,7 +871,21 @@ WHERE
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
+Expected:
++------+-----+
+| title|price|
++------+-----+
+|Title2|   40|
+|Title3|   30|
++------+-----+
+
+Actual:
++------+-----+
+| title|price|
++------+-----+
+|Title2|   40|
+|Title3|   30|
++------+-----+
 -----------------------------------------------------------------------------------------------------------------
 */
 
@@ -909,6 +918,20 @@ WHERE
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-?
+Expected:
++------+-----+
+| title|price|
++------+-----+
+|Title1|   50|
+|Title4|   20|
++------+-----+
+
+Actual:
++------+-----+
+| title|price|
++------+-----+
+|Title1|   50|
+|Title4|   20|
++------+-----+
 -----------------------------------------------------------------------------------------------------------------
 */

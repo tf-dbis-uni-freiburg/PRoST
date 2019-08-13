@@ -34,13 +34,13 @@ import utils.Settings;
  *
  * @author Victor Anthony Arrascue Ayala
  */
-public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Serializable {
+public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest06_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest13_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,29 +53,26 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.print("JoinToSubjectTest: queryTest1");
+		System.out.print("DistinctTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
 		System.out.println(joinTree.toString());	
@@ -85,25 +82,22 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -111,25 +105,22 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -137,25 +128,22 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -163,25 +151,22 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -189,83 +174,68 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
+				classLoader.getResource("queryTestDistinct1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("publisher", DataTypes.StringType, true),
-				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
+		Row row1 = RowFactory.create("Title1");
+		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-
+	
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest06_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest06_db");
-		spark().sql("USE queryTest06_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTest13_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest13_db");
+		spark().sql("USE queryTest13_db");
 
 				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
 		t1.setP("<http://example.org/publishedBy>");
-		t1.setO("<http://springer.com/publisher>");
+		t1.setO("Springer-Verlag");
 
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book1>");
 		t2.setP("<http://example.org/title>");
 		t2.setO("Title1");
-		
+
 		final TripleBean t3 = new TripleBean();
-		t3.setS("<http://springer.com/publisher>");
-		t3.setP("<http://example.org/name>");
-		t3.setO("Springer-Verlag");
-		
+		t3.setS("<http://example.org/book2>");
+		t3.setP("<http://example.org/title>");
+		t3.setO("Title1");
+
 		final TripleBean t4 = new TripleBean();
 		t4.setS("<http://example.org/book2>");
 		t4.setP("<http://example.org/publishedBy>");
-		t4.setO("<http://coppenrath.com/publisher>");
-
-		final TripleBean t5 = new TripleBean();
-		t5.setS("<http://example.org/book2>");
-		t5.setP("<http://example.org/title>");
-		t5.setO("Title2");
+		t4.setO("Coppenrath-Verlag");
 		
-		final TripleBean t6 = new TripleBean();
-		t6.setS("<http://coppenrath.com/publisher>");
-		t6.setP("<http://example.org/name>");
-		t6.setO("Coppenrath-Verlag");
-
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
 		triplesList.add(t4);
-		triplesList.add(t5);
-		triplesList.add(t6);
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest06_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\JoinToSubjectTest").replace('\\', '/'))
+				new loader.Settings.Builder("queryTest13_db").withInputPath((System.getProperty(
+						"user.dir") + "\\target\\test_output\\DistinctTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -299,40 +269,36 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 
 /*
 PREFIX ex: <http://example.org/#>.
-PREFIX at: <http://author1.com/#>.
-PREFIX sp: <http://springer.com/#>.
-PREFIX co: <http://coppenrath.com/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:publishedBy	| sp:publisher
 ex:book1		| ex:title			| "Title1"
+ex:book1		| ex:publishedBy	| "Springer-Verlag"
+ex:book2		| ex:title			| "Title1"
+ex:book2		| ex:publishedBy	| "Coppenrath-Verlag"
 
-ex:book2		| ex:publishedBy	| co:publisher
-ex:book2		| ex:title			| "Title2"
-
-sp:publisher	| ex:name			| "Springer-Verlag"
-co:publisher	| ex:name			| "Coppenrath-Verlag"
 ================================================================================================================
 
 QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title ?publisher ?name
-WHERE
-{
-	?book <http://example.org/title> ?title.
-	?book <http://example.org/publishedBy> ?publisher.
-	?publisher <http://example.org/name> ?name.
-}
+SELECT DISTINCT ?title 
+WHERE { ?book <http://example.org/title> ?title. }
 -----------------------------------------------------------------------------------------------------------------
 
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
-+------+--------------------+-----------------+
-| title|           publisher|             name|
-+------+--------------------+-----------------+
-|Title1|<http://springer....|  Springer-Verlag|
-|Title2|<http://coppenrat...|Coppenrath-Verlag|
-+------+--------------------+-----------------+
+Expected:
++------+
+| title|
++------+
+|Title1|
++------+
+
+Actual:
++------+
+| title|
++------+
+|Title1|
++------+
 -----------------------------------------------------------------------------------------------------------------
 */
