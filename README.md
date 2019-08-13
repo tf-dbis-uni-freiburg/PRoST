@@ -42,11 +42,11 @@ To build PRoST run on the parent directory:
 You need to have a local Hadoop environment. In particular you need to set up the environment variable "HADOOP_HOME" to point to your Hadoop distribution.
 Install the same version of Hadoop we are using, which is: hadoop-2.7.1, and set the default jdk version to Java 8.
 
-For Windows users: you need to winutils.exe binary with the above-mentioned distribution of Hadoop.
-Further details see here: https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html
+**For Windows users:** you need to winutils.exe binary with the above-mentioned distribution of Hadoop.
+Further details see here: https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html.
 Make sure to install the latest version of the VC++ Redistributable and change the writing permissions of the hive temporary folter.
 
-For Linux users: there is also plenty of documentation. 
+**For Linux users:** there is also plenty of documentation. 
 You can follow instructions from: https://doctuts.readthedocs.io/en/latest/hadoop.html
 
 To run the test cases:
@@ -68,7 +68,7 @@ The input RDF graph is loaded from the HDFS path specified with the -i option.
 
 The option -o contains the name of the database in which PRoST will store the graph using its own representation.
 
-PRoST-loader default settings are defined in the file prost-loader-default.ini. An alternative settings file can be used with the argument -pref <settings_file.ini>.
+PRoST-loader default settings are defined in the file *prost-loader-default.ini*. An alternative settings file can be used with the argument *-pref <settings_file.ini>*.
 
 The datasets can be loaded into the different partitioning strategies as long as the setting dropDB is set to false. When set to true, all pre-existing tables in the database are deleted. Note that a Triple Table (TT) is required to load the data with the other models.
 
@@ -98,7 +98,7 @@ To query the data use the following command:
     Example:
 	spark2-submit --driver-java-options -ea --class run.Main PRoST-Query.jar -i /DbPedia/q1.txt -db dbpedia -o q1_dbpedia
 
-This command will execute the queries using the combination of the partitioning strategies set in the file prost-query-executor-default.ini. An alternative settings file can be used with the optional argument -pref <settings.ini>.
+This command will execute the queries using the combination of the partitioning strategies set in the file *prost-query-executor-default.ini*. An alternative settings file can be used with the optional argument *-pref <settings.ini>*.
 
 Any combination of partitioning strategies can be used to execute queries, as long as all triple patterns can be included in a node using one of the enabled partitioning strategies. Optionally, a .cvs file can be created with benchmark information collected during the execution of the queries.
 
