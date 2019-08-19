@@ -32,7 +32,7 @@ import utils.Settings;
  * ALL supported logical partitioning strategies (at the moment WPT, IWPT, JWPT,
  * and VP?), i.e. these tests verify are about SPARQL semantics.
  *
- * @author Victor Anthony Arrascue Ayala
+ * @author Kristin Plettau
  */
 public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
@@ -276,7 +276,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	
 	
 	@Test
-	//@Ignore("Optionals are not fully implemented yet.")
+	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
