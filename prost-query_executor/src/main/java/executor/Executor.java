@@ -10,7 +10,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import joinTree.JoinTree;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.log4j.Logger;
@@ -20,6 +19,7 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.QueryExecution;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -42,32 +42,31 @@ public class Executor {
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").enableHiveSupport().getOrCreate();
 		this.sqlContext = spark.sqlContext();
-
-		// use the selected database
 		this.sqlContext.sql("USE " + settings.getDatabaseName());
-		//logger.info("USE " + databaseName);
 
 		// only if partition by subject
 		//partitionBySubject();
 	}
 
-	/*
+	/**
 	 * Reads and execute a join tree, starting from the root node.Moreover, it
-	 * performs the Spark computation and measure the time required.
+	 * 	 * performs the Spark computation and measure the time required. Measured time includes time to write the
+	 * 	 * results, if applicable.
+	 * @param query The Sparql query object to be executed.
 	 */
-	public void execute(final JoinTree queryTree) {
+	public void execute(final Query query) {
 		final long executionTime;
 		final long totalStartTime = System.currentTimeMillis();
 
 		final long startTime;
-		final Dataset<Row> results = queryTree.compute(this.sqlContext);
+		final Dataset<Row> results = query.compute(this.sqlContext);
 
 		startTime = System.currentTimeMillis();
-
 
 		if (settings.getOutputFilePath() != null) {
 			results.write().mode(SaveMode.Overwrite).parquet(settings.getOutputFilePath());
 		}
+		// count operation forces the computation of the query, in the case where the results are not saved.
 		final long resultsCount = results.count();
 
 		executionTime = System.currentTimeMillis() - startTime;
@@ -77,7 +76,7 @@ public class Executor {
 		logger.info("Total execution time: " + totalExecutionTime);
 
 		if (settings.isSavingBenchmarkFile()) {
-			final Statistics.Builder statisticsBuilder = new Statistics.Builder(queryTree.getQueryName());
+			final Statistics.Builder statisticsBuilder = new Statistics.Builder(query.getPath());
 			statisticsBuilder.executionTime(executionTime);
 			statisticsBuilder.resultsCount(resultsCount);
 
@@ -89,7 +88,7 @@ public class Executor {
 			statisticsBuilder.sortMergeJoinsCount(org.apache.commons.lang3.StringUtils.countMatches(queryPlan,
 					"SortMergeJoin"));
 
-			statisticsBuilder.withCountedNodes(queryTree);
+			statisticsBuilder.withCountedNodes(query);
 			statisticsBuilder.withPlansAsStrings(queryExecution);
 			executionStatistics.add(statisticsBuilder.build());
 		}

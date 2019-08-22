@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +11,10 @@ import utils.Settings;
 import utils.Utils;
 
 /**
- * A node of the JoinTree that refers to the Vertical Partitioning. Does not support patterns containing a variable
+ * A node of the bgpTree that refers to the Vertical Partitioning. Does not support patterns containing a variable
  * predicate.
  */
-public class VPNode extends Node {
+public class VPNode extends BgpNode {
 	private final TriplePattern triplePattern;
 
 	public VPNode(final TriplePattern triplePattern, final DatabaseStatistics statistics, final Settings settings) {

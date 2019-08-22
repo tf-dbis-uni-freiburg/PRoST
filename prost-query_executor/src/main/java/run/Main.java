@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.Properties;
 
 import executor.Executor;
-import joinTree.JoinTree;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.EmergentSchema;
 import utils.Settings;
 
@@ -54,7 +53,7 @@ public class Main {
 		if (file.isFile()) {
 
 			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
+			final Query translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
 					statistics, settings);
 
 			executor.execute(translatedQuery);
@@ -76,7 +75,7 @@ public class Main {
 				logger.info("Starting: " + fileName);
 
 				// translation phase
-				final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
+				final Query translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
 						statistics, settings);
 
 				// execution phase
@@ -90,9 +89,8 @@ public class Main {
 		}
 	}
 
-	private static JoinTree translateSingleQuery(final String query, final DatabaseStatistics statistics,
-												 final Settings settings) {
-		final Translator translator = new Translator(settings, statistics, query);
-		return translator.translateQuery();
+	private static Query translateSingleQuery(final String queryPath, final DatabaseStatistics statistics,
+											  final Settings settings) throws Exception {
+		return new Query(queryPath, statistics, settings);
 	}
 }

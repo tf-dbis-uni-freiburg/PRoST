@@ -1,108 +1,61 @@
-package translator;
+package translator.algebraTree;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
 import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.sparql.algebra.Algebra;
-import com.hp.hpl.jena.sparql.algebra.Op;
-import com.hp.hpl.jena.sparql.algebra.OpWalker;
-import com.hp.hpl.jena.sparql.core.Var;
-import joinTree.ElementType;
-import joinTree.IWPTNode;
-import joinTree.JWPTNode;
-import joinTree.JoinNode;
-import joinTree.JoinTree;
-import joinTree.Node;
-import joinTree.TTNode;
-import joinTree.TriplePattern;
-import joinTree.VPNode;
-import joinTree.WPTNode;
+import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
+import translator.algebraTree.bgpTree.ElementType;
+import translator.algebraTree.bgpTree.IWPTNode;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.JoinNode;
+import translator.algebraTree.bgpTree.BgpNode;
+import translator.algebraTree.bgpTree.TTNode;
+import translator.algebraTree.bgpTree.TriplePattern;
+import translator.algebraTree.bgpTree.VPNode;
+import translator.algebraTree.bgpTree.WPTNode;
 import org.apache.log4j.Logger;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SQLContext;
 import statistics.DatabaseStatistics;
+import translator.NodeComparator;
 import translator.triplesGroup.TriplesGroup;
 import translator.triplesGroup.TriplesGroupsMapping;
-import utils.EmergentSchema;
 import utils.Settings;
 
 /**
- * This class parses the SPARQL query, build a {@link JoinTree} and save its
- * serialization in a file.
- *
- * @author Matteo Cossu
- * @author Polina Koleva
+ * An algebra tree node containing a Basic Graph Pattern.
  */
-public class Translator {
+public class Bgp extends Operation {
 	private static final Logger logger = Logger.getLogger("PRoST");
-	private final DatabaseStatistics statistics;
-	private final Settings settings;
-	private final String queryPath;
-	private PrefixMapping prefixes;
+	private final List<Triple> triples;
+	private final BgpNode bgpRootNode;
 
-	public Translator(final Settings settings, final DatabaseStatistics statistics, final String queryPath) {
-		this.settings = settings;
-		this.statistics = statistics;
-		this.queryPath = queryPath;
+	Bgp(final OpBGP jenaAlgebraTree, final DatabaseStatistics statistics, final Settings settings,
+		final PrefixMapping prefixes) {
+		this.triples = jenaAlgebraTree.getPattern().getList();
+		this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
 	}
 
-	public JoinTree translateQuery() {
-		// parse the query and extract prefixes
-		final Query query = QueryFactory.read("file:" + queryPath);
-		prefixes = query.getPrefixMapping();
-
-		logger.info("** SPARQL QUERY **\n" + query + "\n****************");
-
-		// extract variables, list of triples and filter
-		final Op opQuery = Algebra.compile(query);
-		final QueryVisitor queryVisitor = new QueryVisitor(prefixes);
-		OpWalker.walk(opQuery, queryVisitor);
-
-		final QueryTree mainTree = queryVisitor.getMainQueryTree();
-		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
-
-		// build main tree
-		Node rootNode = buildTree(mainTree.getTriples());
-		for (final QueryTree optionalTree : queryVisitor.getOptionalQueryTrees()) {
-			final Node optionalNode = buildTree(optionalTree.getTriples());
-			rootNode = new JoinNode(rootNode, optionalNode, "leftouter", statistics, settings);
-			//TODO apply filters from optionalNodes
-		}
-		final JoinTree tree = new JoinTree(rootNode, queryPath);
-
-		tree.setFilter(mainTree.getFilter());
-
-		// set projections
-		if (projectionVariables != null) {
-			// set the root node with the variables that need to be projected
-			// only for the main tree
-			final ArrayList<String> projectionList = new ArrayList<>();
-			for (final Var projectionVariable : projectionVariables) {
-				projectionList.add(projectionVariable.getVarName());
-			}
-			tree.setProjectionList(projectionList);
-		}
-
-		tree.setDistinct(query.isDistinct());
-
-		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
-		return tree;
+	public Dataset<Row> computeOperation(final SQLContext sqlContext) {
+		bgpRootNode.computeNodeData(sqlContext);
+		return bgpRootNode.getSparkNodeData();
 	}
 
 	/**
-	 * Constructs the join tree.
+	 * Constructs the bgp tree.
 	 */
-	private Node buildTree(final List<Triple> triples) {
-		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
-		Node currentNode = null;
+	private BgpNode computeRootNode(final DatabaseStatistics statistics, final Settings settings,
+									final PrefixMapping prefixes) {
+		final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
+		BgpNode currentNode = null;
 
 		while (!nodesQueue.isEmpty()) {
 			currentNode = nodesQueue.poll();
-			final Node relatedNode = findRelateNode(currentNode, nodesQueue);
+			final BgpNode relatedNode = findRelateNode(currentNode, nodesQueue);
 
 			if (relatedNode != null) {
 				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
@@ -114,8 +67,9 @@ public class Translator {
 		return currentNode;
 	}
 
-	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
-		final PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
+	private PriorityQueue<BgpNode> getNodesQueue(final List<Triple> triples, final Settings settings,
+												 final DatabaseStatistics statistics, final PrefixMapping prefixes) {
+		final PriorityQueue<BgpNode> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
 		final List<Triple> unassignedTriples = new ArrayList<>();
 		final List<Triple> unassignedTriplesWithVariablePredicate = new ArrayList<>();
 
@@ -136,7 +90,7 @@ public class Translator {
 				if (largestGroup.size() < settings.getMinGroupSize()) {
 					break;
 				}
-				final List<Node> createdNodes = largestGroup.createNodes(settings, statistics, prefixes);
+				final List<BgpNode> createdNodes = largestGroup.createNodes(settings, statistics, prefixes);
 				if (!createdNodes.isEmpty()) {
 					nodesQueue.addAll(createdNodes);
 					groupsMapping.removeTriples(largestGroup);
@@ -150,13 +104,13 @@ public class Translator {
 		if (settings.isUsingVP()) {
 			// VP only
 			logger.info("Creating VP nodes...");
-			createVpNodes(unassignedTriples, nodesQueue);
+			createVpNodes(unassignedTriples, nodesQueue, statistics, settings, prefixes);
 			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
 					+ unassignedTriplesWithVariablePredicate.size()));
 		}
 		if (settings.isUsingTT()) {
 			logger.info("Creating TT nodes...");
-			createTTNodes(unassignedTriples, nodesQueue);
+			createTTNodes(unassignedTriples, nodesQueue, statistics, settings, prefixes);
 			logger.info("Done! Triple patterns without nodes: " + (unassignedTriples.size()
 					+ unassignedTriplesWithVariablePredicate.size()));
 		}
@@ -184,10 +138,10 @@ public class Translator {
 			} else {
 				//no best pt node type, uses general best option
 				if (settings.isUsingTT()) {
-					createTTNodes(tripleAsList, nodesQueue);
+					createTTNodes(tripleAsList, nodesQueue, statistics, settings, prefixes);
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingVP()) {
-					createVpNodes(tripleAsList, nodesQueue);
+					createVpNodes(tripleAsList, nodesQueue, statistics, settings, prefixes);
 					unassignedTriplesWithVariablePredicate.remove(triple);
 				} else if (settings.isUsingWPT()) {
 					nodesQueue.add(new WPTNode(tripleAsList, prefixes, statistics, settings));
@@ -213,81 +167,12 @@ public class Translator {
 	}
 
 	/**
-	 * Creates VP nodes from a list of triples.
-	 *
-	 * @param unassignedTriples Triples for which VP nodes will be created
-	 * @param nodesQueue        PriorityQueue where created nodes are added to
-	 */
-	private void createVpNodes(final List<Triple> unassignedTriples, final PriorityQueue<Node> nodesQueue) {
-		final List<Triple> triples = new ArrayList<>(unassignedTriples);
-		for (final Triple t : triples) {
-			final Node newNode = new VPNode(new TriplePattern(t, prefixes), statistics, settings);
-			nodesQueue.add(newNode);
-			unassignedTriples.remove(t);
-		}
-	}
-
-	/**
-	 * Creates TT nodes from a list of triples.
-	 *
-	 * @param triples    Triples for which TT nodes will be created
-	 * @param nodesQueue PriorityQueue where created nodes are added to
-	 */
-	private void createTTNodes(final List<Triple> triples, final PriorityQueue<Node> nodesQueue) {
-		for (final Triple t : triples) {
-			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics, settings));
-		}
-		triples.clear();
-	}
-
-	/**
-	 * Groups the input triples by subject considering the emergent schema. If two
-	 * triples have the same subject, but they are not part of the same property
-	 * table, they won't be grouped.
-	 *
-	 * @param triples triples to be grouped
-	 * @return hash map of triples grouped by the subject considering the emergent schema
-	 */
-	private HashMap<String, HashMap<String, List<Triple>>> getEmergentSchemaSubjectGroups(final List<Triple> triples) {
-		// key - table names, (subject, triples)
-		final HashMap<String, HashMap<String, List<Triple>>> subjectGroups = new HashMap<>();
-		for (final Triple triple : triples) {
-			if (!triple.getPredicate().isVariable()) {
-				final String subject = triple.getSubject().toString(prefixes);
-				// find in which table this triple is stored, based on the predicate
-				final String subjectTableName = EmergentSchema.getInstance()
-						.getTable(statistics.getProperties().get(triple.getPredicate().toString()).getInternalName());
-				// if we already have a triple for the table
-				if (subjectGroups.containsKey(subjectTableName)) {
-					final HashMap<String, List<Triple>> subjects = subjectGroups.get(subjectTableName);
-					// if we have a triple with the same subject
-					if (subjects.containsKey(subject)) {
-						subjectGroups.get(subjectTableName).get(subject).add(triple);
-					} else {
-						final List<Triple> subjTriples = new ArrayList<>();
-						subjTriples.add(triple);
-						subjectGroups.get(subjectTableName).put(triple.getSubject().toString(prefixes), subjTriples);
-					}
-				} else {
-					// add new table and a new subject to it
-					final HashMap<String, List<Triple>> subjectGroup = new HashMap<>();
-					final List<Triple> subjTriples = new ArrayList<>();
-					subjTriples.add(triple);
-					subjectGroup.put(triple.getSubject().toString(prefixes), subjTriples);
-					subjectGroups.put(subjectTableName, subjectGroup);
-				}
-			}
-		}
-		return subjectGroups;
-	}
-
-	/**
 	 * Given a source node, finds another node with at least one variable in common,
 	 * if there isn't return null.
 	 */
-	private Node findRelateNode(final Node sourceNode, final PriorityQueue<Node> availableNodes) {
+	private BgpNode findRelateNode(final BgpNode sourceNode, final PriorityQueue<BgpNode> availableNodes) {
 		for (final TriplePattern tripleSource : sourceNode.collectTriples()) {
-			for (final Node node : availableNodes) {
+			for (final BgpNode node : availableNodes) {
 				for (final TriplePattern tripleDest : node.collectTriples()) {
 					if (existsVariableInCommon(tripleSource, tripleDest)) {
 						return node;
@@ -313,7 +198,6 @@ public class Translator {
 			variablesTripleA.add(tripleA.getObject());
 		}
 
-
 		final List<String> variablesTripleB = new ArrayList<>();
 		if (tripleB.getSubjectType() == ElementType.VARIABLE) {
 			variablesTripleB.add(tripleB.getSubject());
@@ -333,5 +217,46 @@ public class Translator {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Creates TT nodes from a list of triples.
+	 *
+	 * @param triples    Triples for which TT nodes will be created
+	 * @param nodesQueue PriorityQueue where created nodes are added to
+	 */
+	private void createTTNodes(final List<Triple> triples, final PriorityQueue<BgpNode> nodesQueue,
+							   final DatabaseStatistics statistics, final Settings settings,
+							   final PrefixMapping prefixes) {
+		for (final Triple t : triples) {
+			nodesQueue.add(new TTNode(new TriplePattern(t, prefixes), statistics, settings));
+		}
+		triples.clear();
+	}
+
+	/**
+	 * Creates VP nodes from a list of triples.
+	 *
+	 * @param unassignedTriples Triples for which VP nodes will be created
+	 * @param nodesQueue        PriorityQueue where created nodes are added to
+	 */
+	private void createVpNodes(final List<Triple> unassignedTriples, final PriorityQueue<BgpNode> nodesQueue,
+							   final DatabaseStatistics statistics, final Settings settings,
+							   final PrefixMapping prefixes) {
+		final List<Triple> triples = new ArrayList<>(unassignedTriples);
+		for (final Triple t : triples) {
+			final BgpNode newNode = new VPNode(new TriplePattern(t, prefixes), statistics, settings);
+			nodesQueue.add(newNode);
+			unassignedTriples.remove(t);
+		}
+	}
+
+	public BgpNode getRootNode() {
+		return this.bgpRootNode;
+	}
+
+	@Override
+	public String toString() {
+		return this.bgpRootNode.toString();
 	}
 }

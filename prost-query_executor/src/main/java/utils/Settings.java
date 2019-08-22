@@ -390,6 +390,9 @@ public class Settings {
 		return savingSparkPlans;
 	}
 
+	/**
+	 * Builder class for a Settings object.
+	 */
 	public static class Builder {
 		//General settings
 		private String databaseName;

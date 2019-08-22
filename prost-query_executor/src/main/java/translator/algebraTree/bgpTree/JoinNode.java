@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import utils.Settings;
 import utils.Utils;
 
 /**
- * A node of a join tree that contains the result of a join between two other
+ * A node of a bgp tree that contains the result of a join between two other
  * nodes. It has two children. Its child can be another join node, if it is not
  * a leaf in the tree. Its list of triples is a union of its children's triples.
  * <p>
@@ -19,25 +19,15 @@ import utils.Utils;
  * @author Polina Koleva
  */
 public class JoinNode extends MVNode {
-	private Node leftChild;
-	private Node rightChild;
-	private String joinType;
+	private final BgpNode leftChild;
+	private final BgpNode rightChild;
 
-	public JoinNode(final Node leftChild, final Node rightChild,
+	public JoinNode(final BgpNode leftChild, final BgpNode rightChild,
 					final DatabaseStatistics statistics, final Settings settings) {
 		super(statistics, settings);
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
 		this.setTripleGroup(getTriples());
-	}
-
-	public JoinNode(final Node leftChild, final Node rightChild, final String joinType,
-					final DatabaseStatistics statistics, final Settings settings) {
-		super(statistics, settings);
-		this.leftChild = leftChild;
-		this.rightChild = rightChild;
-		this.setTripleGroup(getTriples());
-		this.joinType = joinType;
 	}
 
 	@Override
@@ -48,20 +38,17 @@ public class JoinNode extends MVNode {
 		// execute a join between the children
 		final List<String> joinVariables = Utils.commonVariables(getRightChild().getSparkNodeData().columns(),
 				getLeftChild().getSparkNodeData().columns());
-		if (joinType == null) {
-			this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
-					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
-		} else {
-			this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
-					scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq(), joinType));
-		}
+
+		this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
+				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
+
 	}
 
-	public Node getLeftChild() {
+	public BgpNode getLeftChild() {
 		return leftChild;
 	}
 
-	public Node getRightChild() {
+	public BgpNode getRightChild() {
 		return rightChild;
 	}
 
@@ -85,7 +72,7 @@ public class JoinNode extends MVNode {
 	 */
 	@Override
 	public double heuristicNodePriority() {
-		double priority = 0;
+		final double priority = 0;
 		final double leftChildPriority = this.leftChild.heuristicNodePriority();
 		final double rightChildPriority = this.rightChild.heuristicNodePriority();
 		/*if (leftChildPriority == 0.0) {
@@ -93,30 +80,17 @@ public class JoinNode extends MVNode {
 		} else if (rightChildPriority == 0.0) {
 			return leftChildPriority;
 		} else {*/
-		if (joinType != null && joinType.equals("leftouter")) {
-			priority = leftChildPriority;
-		} else {
-			priority = rightChildPriority * leftChildPriority;
-		}
-		return priority;
+
+		return rightChildPriority * leftChildPriority;
 	}
 
 	@Override
 	public String toString() {
-		if (joinType == null) {
-			return "{" + "Join node (" + this.getPriority() + "): " + this.size()
-					+ " }"
-					+ " ["
-					+ "\n Left child: " + leftChild.toString()
-					+ "\n Right child: " + rightChild.toString()
-					+ "\n]";
-		} else {
-			return "{" + "Join node (" + this.joinType + ") (" + this.getPriority() + "): " + this.size()
-					+ " }"
-					+ " ["
-					+ "\n Left child: " + leftChild.toString()
-					+ "\n Right child: " + rightChild.toString()
-					+ "\n]";
-		}
+		return "{" + "Join node (" + this.getPriority() + "): " + this.size()
+				+ " }"
+				+ " ["
+				+ "\n Left child: " + leftChild.toString()
+				+ "\n Right child: " + rightChild.toString()
+				+ "\n]";
 	}
 }

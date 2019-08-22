@@ -129,7 +129,7 @@ public class DatabaseStatistics {
 			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
 				final Vector<String> v = iterator.next().toVector();
-				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.valueOf(v.getElem(1, 1)));
+				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.parseLong(v.getElem(1, 1)));
 			}
 			this.characteristicSets.add(characteristicSetStatistics);
 		}

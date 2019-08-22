@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import utils.Settings;
 import utils.Utils;
 
 /**
- * A node of the JoinTree that refers to the Triple Table.
+ * A node of the bgpTree that refers to the Triple Table.
  */
-public class TTNode extends Node {
+public class TTNode extends BgpNode {
 	private TriplePattern triplePattern;
 
 	/*

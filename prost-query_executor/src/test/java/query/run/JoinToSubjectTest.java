@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -20,10 +19,9 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
-
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -39,7 +37,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest() {
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest06_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -52,162 +50,155 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	  
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("JoinToSubjectTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+		System.out.println(query.toString());
 		nullableActualResult.printSchema();
 		nullableActualResult.show();		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinToSubject1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("publisher", DataTypes.StringType, true),
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
-		Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", "<http://springer.com/publisher>", "Springer-Verlag");
+		final Row row2 = RowFactory.create("Title2", "<http://coppenrath.com/publisher>", "Coppenrath-Verlag");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute().orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -219,7 +210,6 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest06_db");
 		spark().sql("USE queryTest06_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");

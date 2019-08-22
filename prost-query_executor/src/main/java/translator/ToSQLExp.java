@@ -50,7 +50,6 @@ import com.hp.hpl.jena.sparql.expr.E_StrUpperCase;
 import com.hp.hpl.jena.sparql.expr.E_Subtract;
 import com.hp.hpl.jena.sparql.expr.E_UnaryMinus;
 import com.hp.hpl.jena.sparql.expr.E_UnaryPlus;
-import com.hp.hpl.jena.sparql.expr.ExprFunction0;
 import com.hp.hpl.jena.sparql.expr.ExprFunction1;
 import com.hp.hpl.jena.sparql.expr.ExprFunction2;
 
@@ -236,9 +235,4 @@ public class ToSQLExp {
 		}
 		return null;
 	}
-
-	public static String getSqlExpr(final ExprFunction0 func) {
-		return null;
-	}
-
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.Node;
+import translator.algebraTree.bgpTree.BgpNode;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
@@ -34,13 +34,13 @@ public abstract class TriplesGroup {
 	abstract String getCommonResource();
 
 	/**
-	 * Creates a {@link Node} object for this group of triples.
+	 * Creates a {@link BgpNode} object for this group of triples.
 	 * @param settings {@link Settings} object containing information about available data models, and whether nodes
 	 *                                    with grouped triple patterns is enabled.
 	 * @return The list of created nodes. Returns null if no group could be created.
 	 */
-	public abstract List<Node> createNodes(final Settings settings, final DatabaseStatistics statistics,
-										   final PrefixMapping prefixes);
+	public abstract List<BgpNode> createNodes(final Settings settings, final DatabaseStatistics statistics,
+											  final PrefixMapping prefixes);
 
 	/**
 	 * Returns a list containing only the triple patterns whose subject resource is equal to

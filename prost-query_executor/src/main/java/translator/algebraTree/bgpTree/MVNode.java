@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import utils.Settings;
  *
  * @author Polina Koleva
  */
-public abstract class MVNode extends Node {
+public abstract class MVNode extends BgpNode {
 
 	private List<TriplePattern> tripleGroup;
 

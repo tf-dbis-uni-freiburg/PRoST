@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -16,7 +15,7 @@ import org.apache.spark.sql.Row;
 import org.junit.Test;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -32,7 +31,7 @@ public class VariablePredicateTests extends JavaDataFrameSuiteBase implements Se
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest() {
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -44,71 +43,65 @@ public class VariablePredicateTests extends JavaDataFrameSuiteBase implements Se
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}
 
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		assertDataFrameEquals(result, fullDataset);
 	}
 
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
 				result.schema().asNullable());
 		assertDataFrameEquals(nullableResult, fullDataset);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
 				result.schema().asNullable());
 		assertDataFrameEquals(nullableResult, fullDataset);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
 				result.schema().asNullable());
 		assertDataFrameEquals(nullableResult, fullDataset);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
 				result.schema().asNullable());
 		assertDataFrameEquals(nullableResult, fullDataset);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTest.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		final Dataset<Row> result = joinTree.compute(spark().sqlContext()).orderBy("s", "p", "o");
+		final Query query = new Query(classLoader.getResource("queryTest.q").getPath(), statistics,
+				settings);
+		final Dataset<Row> result = query.compute().orderBy("s", "p", "o");
 		final Dataset<Row> nullableResult = sqlContext().createDataFrame(result.collectAsList(),
 				result.schema().asNullable());
 		assertDataFrameEquals(nullableResult, fullDataset);
@@ -181,10 +174,6 @@ public class VariablePredicateTests extends JavaDataFrameSuiteBase implements Se
 		final JoinedWidePropertyTableLoader jwptLeftOuterLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
-
-		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
-				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}

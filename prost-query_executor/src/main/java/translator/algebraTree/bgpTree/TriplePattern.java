@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;

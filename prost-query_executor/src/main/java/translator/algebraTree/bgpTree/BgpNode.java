@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import static java.lang.Math.min;
 
@@ -14,18 +14,18 @@ import statistics.DatabaseStatistics;
 import utils.Settings;
 
 /**
- * An abstract class that each node of the JoinTree has to extend. Each node has
+ * An abstract class that each node of the bgpTree has to extend. Each node has
  * a parent and data frame that contains the data of the node.
  *
  * @author Polina Koleva
  */
-public abstract class Node {
+public abstract class BgpNode {
 	private final DatabaseStatistics statistics;
 	private final Settings settings;
 	private Dataset<Row> sparkNodeData;
 	private Double priority;
 
-	public Node(final DatabaseStatistics statistics, final Settings settings) {
+	BgpNode(final DatabaseStatistics statistics, final Settings settings) {
 		this.statistics = statistics;
 		this.settings = settings;
 	}
@@ -33,7 +33,7 @@ public abstract class Node {
 	/**
 	 * Compute the Dataset&lt;Row> to the data referring to this node.
 	 */
-	abstract void computeNodeData(SQLContext sqlContext);
+	public abstract void computeNodeData(SQLContext sqlContext);
 
 	/**
 	 * Get a list of triples that each node contains. For example, {@link VPNode}
@@ -141,7 +141,7 @@ public abstract class Node {
 		return cardinality;
 	}
 
-	Dataset<Row> getSparkNodeData() {
+	public Dataset<Row> getSparkNodeData() {
 		return sparkNodeData;
 	}
 
@@ -161,7 +161,7 @@ public abstract class Node {
 		JWPT_LEFTOUTER("joined_wide_property_table_leftouter"),
 		JWPT_INNER("joined_wide_property_table_inner");
 
-		private String tableName;
+		private final String tableName;
 
 		DataModel(final String tableName) {
 			this.tableName = tableName;

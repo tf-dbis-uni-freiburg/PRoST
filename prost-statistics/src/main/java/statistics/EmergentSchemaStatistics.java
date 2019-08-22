@@ -3,8 +3,8 @@ package statistics;
 import java.util.HashSet;
 
 public class EmergentSchemaStatistics {
-	private HashSet<String> properties;
-	private String tableName;
+	private final HashSet<String> properties;
+	private final String tableName;
 
 	EmergentSchemaStatistics(final HashSet<String> properties, final String tableName){
 		this.properties = properties;

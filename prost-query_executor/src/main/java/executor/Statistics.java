@@ -1,16 +1,23 @@
 package executor;
 
-import joinTree.IWPTNode;
-import joinTree.JWPTNode;
-import joinTree.JoinNode;
-import joinTree.JoinTree;
-import joinTree.Node;
-import joinTree.TTNode;
-import joinTree.VPNode;
-import joinTree.WPTNode;
+import translator.algebraTree.bgpTree.IWPTNode;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.JoinNode;
+import translator.algebraTree.bgpTree.BgpNode;
+import translator.algebraTree.bgpTree.TTNode;
+import translator.algebraTree.bgpTree.VPNode;
+import translator.algebraTree.bgpTree.WPTNode;
 import org.apache.spark.sql.execution.QueryExecution;
+import translator.Query;
+import translator.algebraTree.Bgp;
+import translator.algebraTree.CompoundOperation;
+import translator.algebraTree.Operation;
+import translator.algebraTree.SimpleOperation;
 
-class Statistics {
+/**
+ * Execution statistics. Used to create the benchmark file.
+ */
+final class Statistics {
 	private String queryName;
 
 	private long executionTime;
@@ -152,8 +159,8 @@ class Statistics {
 			return this;
 		}
 
-		Builder withCountedNodes(final JoinTree tree) {
-			countNodes(tree.getRoot());
+		Builder withCountedNodes(final Query tree) {
+			countNodes(tree.getAlgebraTree());
 			return this;
 		}
 
@@ -165,7 +172,7 @@ class Statistics {
 			return this;
 		}
 
-		private void countNodes(final Node node) {
+		private void countNodes(final BgpNode node) {
 			if (node instanceof JoinNode) {
 				this.joinNodesCount++;
 				countNodes(((JoinNode) node).getLeftChild());
@@ -180,6 +187,17 @@ class Statistics {
 				iwptNodesCount++;
 			} else if (node instanceof JWPTNode) {
 				jwptNodesCount++;
+			}
+		}
+
+		private void countNodes(final Operation node) {
+			if (node instanceof SimpleOperation) {
+				countNodes(((SimpleOperation) node).getSubOperation());
+			} else if (node instanceof CompoundOperation) {
+				countNodes(((CompoundOperation) node).getLeftSubOperation());
+				countNodes(((CompoundOperation) node).getRightSubOperation());
+			} else if (node instanceof Bgp) {
+				countNodes(((Bgp) node).getRootNode());
 			}
 		}
 

@@ -6,9 +6,9 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.JWPTNode;
-import joinTree.Node;
-import joinTree.WPTNode;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.BgpNode;
+import translator.algebraTree.bgpTree.WPTNode;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
@@ -16,7 +16,7 @@ import utils.Settings;
  * A group of triple patterns with a common subject resource.
  */
 public class ForwardTriplesGroup extends TriplesGroup {
-	private List<Triple> triplesGroup = new ArrayList<>();
+	private final List<Triple> triplesGroup = new ArrayList<>();
 
 	ForwardTriplesGroup(final Triple triple) {
 		triplesGroup.add(triple);
@@ -51,9 +51,9 @@ public class ForwardTriplesGroup extends TriplesGroup {
 		return new ArrayList<>();
 	}
 
-	public List<Node> createNodes(final Settings settings, final DatabaseStatistics statistics,
-								  final PrefixMapping prefixes) {
-		final List<Node> createdNodes = new ArrayList<>();
+	public List<BgpNode> createNodes(final Settings settings, final DatabaseStatistics statistics,
+									 final PrefixMapping prefixes) {
+		final List<BgpNode> createdNodes = new ArrayList<>();
 		//TODO add existing logic for emergentSchema
 
 		if (settings.isGroupingTriples()) {

@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import utils.Settings;
 import utils.Utils;
 
 /**
- * A node of the JoinTree that refers to the Property Table.
+ * A node of the bgpTree that refers to the Property Table.
  */
 public class WPTNode extends MVNode {
 

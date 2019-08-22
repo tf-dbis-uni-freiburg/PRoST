@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -18,12 +17,11 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -39,8 +37,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 	
 	@Test
-	//@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest() {
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest09_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -51,163 +48,157 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		queryOnJwptOuter(statistics, fullDataset);
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}	
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		System.out.print("OptionalFilterTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+		System.out.println(query.toString());
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", "30");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "30");
+		final Row row3 = RowFactory.create("Title3", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
@@ -217,7 +208,6 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest09_db");
 		spark().sql("USE queryTest09_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
@@ -253,7 +243,6 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		t7.setS("<http://example.org/book1>");
 		t7.setP("<http://example.org/genre>");
 		t7.setO("Science");
-		
 
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
@@ -300,11 +289,9 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 
 		return ttDataset;
 	}
-	
-	
+
 	@Test
-	//@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest2() {
+	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest10_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -315,169 +302,163 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		queryOnJwptOuter2(statistics, fullDataset);
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		System.out.print("OptionalFilterTest: queryTest2");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+		System.out.println(query.toString());
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestOptionalFilter2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics,
+				settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("reduced_price", DataTypes.StringType, true),
 				});
 		// price > 30 and reduced_price <= 20
-		Row row1 = RowFactory.create("Title1", null);
-		Row row2 = RowFactory.create("Title2", "20");
-		Row row3 = RowFactory.create("Title3", null);
-		List<Row> rowList = ImmutableList.of(row1, row2, row3);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Title1", null);
+		final Row row2 = RowFactory.create("Title2", "20");
+		final Row row3 = RowFactory.create("Title3", null);
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "reduced_price");
+		final Dataset<Row> actualResult = query.compute();
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());
+				actualResult.schema().asNullable()).orderBy("title", "reduced_price");
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
@@ -486,7 +467,6 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		spark().sql("DROP DATABASE IF EXISTS queryTest09_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest10_db");
 		spark().sql("USE queryTest10_db");
-
 				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
@@ -549,7 +529,6 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 
-		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest10_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OptionalFilterTest").replace('\\', '/'))
@@ -618,15 +597,6 @@ Expected:
 | title|price|
 +------+-----+
 |Title1| null|
-|Title2|   20|
-|Title3|   30|
-+------+-----+
-
-Actual:
-+------+-----+
-| title|price|
-+------+-----+
-|Title1|   50|
 |Title2|   30|
 |Title3|   20|
 +------+-----+
@@ -654,7 +624,7 @@ ex:book3		| ex:reduced_price	| "10"
 
 QUERY: Nested Optional with Filter
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title ?price ?reduced_price
+SELECT ?title ?reduced_price
 WHERE
 {
 	?book <http://example.org/title> ?title.
@@ -675,13 +645,6 @@ Expected:
 |Title3|         null|
 +------+-------------+
 
-Actual:
-+------+-------------+
-| title|reduced_price|
-+------+-------------+
-|Title1|           25|
-|Title2|           20|
-|Title3|           10|
-+------+-------------+
+
 -----------------------------------------------------------------------------------------------------------------
 */

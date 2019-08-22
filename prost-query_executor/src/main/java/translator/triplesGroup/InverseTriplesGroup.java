@@ -6,9 +6,9 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.IWPTNode;
-import joinTree.JWPTNode;
-import joinTree.Node;
+import translator.algebraTree.bgpTree.IWPTNode;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.BgpNode;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
@@ -16,7 +16,7 @@ import utils.Settings;
  * A group of triple patterns with a common object resource.
  */
 public class InverseTriplesGroup extends TriplesGroup {
-	private List<Triple> triplesGroup = new ArrayList<>();
+	private final List<Triple> triplesGroup = new ArrayList<>();
 
 	InverseTriplesGroup(final Triple triple) {
 		this.triplesGroup.add(triple);
@@ -51,9 +51,9 @@ public class InverseTriplesGroup extends TriplesGroup {
 		return this.triplesGroup;
 	}
 
-	public List<Node> createNodes(final Settings settings, final DatabaseStatistics statistics,
-								  final PrefixMapping prefixes) {
-		final List<Node> createdNodes = new ArrayList<>();
+	public List<BgpNode> createNodes(final Settings settings, final DatabaseStatistics statistics,
+									 final PrefixMapping prefixes) {
+		final List<BgpNode> createdNodes = new ArrayList<>();
 		if (settings.isGroupingTriples()) {
 			if (settings.isUsingIWPT()) {
 				createdNodes.add(new IWPTNode(this.triplesGroup, prefixes, statistics, settings));

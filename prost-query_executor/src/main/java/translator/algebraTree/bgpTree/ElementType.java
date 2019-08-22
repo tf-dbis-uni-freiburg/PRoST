@@ -1,4 +1,4 @@
-package joinTree;
+package translator.algebraTree.bgpTree;
 
 /**
  * The type of a rdf triple's subject or object.
