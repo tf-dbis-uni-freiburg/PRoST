@@ -1,7 +1,5 @@
-SELECT ?title ?publisher ?name
+SELECT ?book ?genre
 WHERE
 {
-	?book <http://example.org/title> ?title.
-	?book <http://example.org/publishedBy> ?publisher.
-	?publisher <http://example.org/name> ?name.
+	?book <http://example.org/genre> ?genre.
 }

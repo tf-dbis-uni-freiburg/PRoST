@@ -58,7 +58,6 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 				classLoader.getResource("queryTestSingleTriple1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
-		
 		//EXPECTED
 		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("book", DataTypes.StringType, true),
@@ -71,7 +70,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("book", "a", "title");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("book", "p", "title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("SingleTriplePatternTest: queryTest1");
@@ -83,120 +82,123 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
+
+	/*
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		List<String> data = new ArrayList<String>();
-	    	data.add("Title1");
-	    	data.add("Title2");
-	    	// DataFrame
-	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");	
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("book", DataTypes.StringType, true),
+				});
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-
+	
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		List<String> data = new ArrayList<String>();
-	    	data.add("Title1");
-	    	data.add("Title2");
-	    	// DataFrame
-	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("book", DataTypes.StringType, true),
+				});
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		List<String> data = new ArrayList<String>();
-	    	data.add("Title1");
-	    	data.add("Title2");
-	    	// DataFrame
-	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("book", DataTypes.StringType, true),
+				});
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		List<String> data = new ArrayList<String>();
-	    	data.add("Title1");
-	    	data.add("Title2");
-	    	// DataFrame
-	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("book", DataTypes.StringType, true),
+				});
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		List<String> data = new ArrayList<String>();
-	    	data.add("Title1");
-	    	data.add("Title2");
-	    	// DataFrame
-	    	Dataset<Row> singleColResult = spark().createDataset(data, Encoders.STRING()).toDF();
-	    	Dataset<Row> expectedResult = singleColResult.selectExpr("split(value, ',')[0] as title");
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("book", DataTypes.StringType, true),
+				});
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
+	*/
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTest01_db CASCADE");
@@ -255,6 +257,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 		return ttDataset;
 	}
+	
 	/*
 	@Test
 	public void queryTest2() {
@@ -273,26 +276,24 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest02_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestSingleTriple2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
-		
-
+		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
+			      settings);
+				
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("book", DataTypes.StringType, true),
-				DataTypes.createStructField("title", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org/book1>", "Title1"); //"Science"
-		Row row2 = RowFactory.create("<http://example.org/book2>", "Title2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-			    
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("book", "title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.print("SingleTriplePatternTest: queryTest1");
+		
+		System.out.print("SingleTriplePatternTest: queryTest2");
 		expectedResult.printSchema();
 		expectedResult.show();
 		System.out.println(joinTree.toString());	
@@ -485,19 +486,19 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	@Test
-	public void queryTest() {
+	public void queryTest3() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01b_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
+		Dataset<Row> fullDataset = initializeDb3(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT(statistics, fullDataset);
-		queryOnVp(statistics, fullDataset);
-		queryOnWpt(statistics, fullDataset);
-		queryOnIwpt(statistics, fullDataset);
-		queryOnJwptOuter(statistics, fullDataset);
-		queryOnJwptLeftOuter(statistics, fullDataset);
+		queryOnTT3(statistics, fullDataset);
+		queryOnVp3(statistics, fullDataset);
+		queryOnWpt3(statistics, fullDataset);
+		queryOnIwpt3(statistics, fullDataset);
+		queryOnJwptOuter3(statistics, fullDataset);
+		queryOnJwptLeftOuter3(statistics, fullDataset);
 	}
 
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -525,7 +526,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -548,7 +549,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -571,7 +572,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -594,7 +595,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -617,7 +618,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest01b_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
@@ -640,7 +641,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+	private Dataset<Row> initializeDb3(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTest01b_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01b_db");
 		spark().sql("USE queryTest01b_db");
@@ -703,8 +704,6 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 /*
 PREFIX ex: <http://example.org/#>.
-PREFIX at: <http://author1.com/#>.
-PREFIX sp: <http://springer.com/#>.
 
 TABLE:
 ================================================================================================================
@@ -712,16 +711,44 @@ ex:book1		| ex:title			| "Title1"
 ex:book2		| ex:title			| "Title2"
 ================================================================================================================
 
-QUERY:
+1. QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT DISTINCT ?title
+SELECT ?book
 WHERE
-{
-    ?book <http://example.org/title> ?title.
-}
+{?book ?p ?title.}
 -----------------------------------------------------------------------------------------------------------------
 
-RESULT:
+1. RESULT:
+-----------------------------------------------------------------------------------------------------------------
+Expected:
+
+
+Actual:
+-----------------------------------------------------------------------------------------------------------------
+
+2. QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT ?p
+WHERE
+{?book ?p ?title.}
+-----------------------------------------------------------------------------------------------------------------
+
+2. RESULT:
+-----------------------------------------------------------------------------------------------------------------
+Expected:
+
+
+Actual:
+-----------------------------------------------------------------------------------------------------------------
+
+3. QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT ?title
+WHERE
+{?book ?p ?title.}
+-----------------------------------------------------------------------------------------------------------------
+
+3. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
 +------+
@@ -733,29 +760,30 @@ Expected:
 
 Actual:
 -----------------------------------------------------------------------------------------------------------------
-*/
 
-/*
-PREFIX ex: <http://example.org/#>.
-PREFIX at: <http://author1.com/#>.
-PREFIX sp: <http://springer.com/#>.
-
-TABLE:
-================================================================================================================
-ex:book1		| ex:title			| "Title1"
-ex:book2		| ex:title			| "Title2"
-================================================================================================================
-
-QUERY:
+4. QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT DISTINCT ?book ?title
+SELECT ?book ?p
 WHERE
-{
-	?book <http://example.org/title> ?title.
-}
+{?book ?p ?title.}
 -----------------------------------------------------------------------------------------------------------------
 
-RESULT:
+4. RESULT:
+-----------------------------------------------------------------------------------------------------------------
+Expected:
+
+
+Actual:
+-----------------------------------------------------------------------------------------------------------------
+
+5. QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT ?book ?title
+WHERE
+{?book ?p ?title.}
+-----------------------------------------------------------------------------------------------------------------
+
+5. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
 +--------------------+------+
@@ -767,4 +795,35 @@ Expected:
 
 Actual:
 -----------------------------------------------------------------------------------------------------------------
+
+6. QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT ?p ?title
+WHERE
+{?book ?p ?title.}
+-----------------------------------------------------------------------------------------------------------------
+
+6. RESULT:
+-----------------------------------------------------------------------------------------------------------------
+Expected:
+
+
+Actual:
+-----------------------------------------------------------------------------------------------------------------
+
+7. QUERY:
+-----------------------------------------------------------------------------------------------------------------
+SELECT *
+WHERE
+{?book ?p ?title.}
+-----------------------------------------------------------------------------------------------------------------
+
+7. RESULT:
+-----------------------------------------------------------------------------------------------------------------
+Expected:
+
+
+Actual:
+-----------------------------------------------------------------------------------------------------------------
+
 */

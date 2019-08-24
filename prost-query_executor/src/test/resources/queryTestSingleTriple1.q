@@ -1,5 +1,5 @@
-SELECT DISTINCT ?title
+SELECT *
 WHERE
 {
-    ?book <http://example.org/title> ?title.
+    ?book ?p ?title.
 }

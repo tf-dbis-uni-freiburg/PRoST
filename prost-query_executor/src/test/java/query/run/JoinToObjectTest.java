@@ -32,7 +32,7 @@ import utils.Settings;
  * ALL supported logical partitioning strategies (at the moment WPT, IWPT, JWPT,
  * and VP?), i.e. these tests verify are about SPARQL semantics.
  *
- * @author Victor Kristin Plettau
+ * @author Kristin Plettau
  */
 public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;

@@ -39,7 +39,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
+//	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest09_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
@@ -303,7 +303,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	
 	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
+//	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest10_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);

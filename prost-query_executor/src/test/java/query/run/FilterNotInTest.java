@@ -34,7 +34,7 @@ import utils.Settings;
  *
  * @author Kristin Plettau
  */
-public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
+public class FilterNotInTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
@@ -54,7 +54,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 
 		//EXPECTED
@@ -70,7 +70,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.print("NotInTest: queryTest1");
+		System.out.print("FilterNotInTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
 		System.out.println(joinTree.toString());	
@@ -83,7 +83,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
@@ -107,7 +107,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
@@ -132,7 +132,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 
 		//EXPECTED
@@ -156,7 +156,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
@@ -180,7 +180,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		final Settings settings = new Settings.Builder("queryTest21_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestNotIn1.q").getPath());
+				classLoader.getResource("queryTestFilterNotIn1.q").getPath());
 		final JoinTree joinTree = translator.translateQuery();
 		
 		//EXPECTED
@@ -240,7 +240,7 @@ public class NotInTest extends JavaDataFrameSuiteBase implements Serializable {
 		
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTest21_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\NotInTest").replace('\\', '/'))
+						"user.dir") + "\\target\\test_output\\FilterNotInTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -289,7 +289,7 @@ QUERY:
 SELECT ?name
 WHERE 
 {
-  ?x ex:name ?name .
+  ?x <http://example.org/name> ?name .
   FILTER NOT IN{"A", "B"}
 }
 -----------------------------------------------------------------------------------------------------------------

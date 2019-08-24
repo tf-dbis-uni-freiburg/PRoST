@@ -1,6 +1,6 @@
 SELECT ?name
 WHERE 
 {
-  ?x ex:name ?name .
+  ?x <http://example.org/name> ?name .
   FILTER NOT IN{"A", "B"}
 }

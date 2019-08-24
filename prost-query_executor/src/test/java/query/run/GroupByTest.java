@@ -60,15 +60,14 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("Title1");
+		Row row2 = RowFactory.create("Title2");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("GroupByTest: queryTest1");
@@ -308,25 +307,30 @@ ex:book2		| ex:sales			| "5"
 
 QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title (SUM(?sales) AS ?sales)
+SELECT ?title
 WHERE
 {
 	?book <http://example.org/title> ?title.
-	?book <http://example.org/sales> ?sales.
 }
 GROUP BY ?title
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-+------+-----+
-| title|sales|
-+------+-----+
-|Title1|   4 |
-|Title2|   7 |
-+------+-----+
++------+
+| title|
++------+
+|Title1|
+|Title2|
++------+
 
 Actual:
++------+
+| title|
++------+
+|Title1|
+|Title2|
++------+
 
 -----------------------------------------------------------------------------------------------------------------
 */

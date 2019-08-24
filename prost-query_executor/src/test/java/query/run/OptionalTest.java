@@ -276,7 +276,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	
 	
 	@Test
-	@Ignore("Optionals are not fully implemented yet.")
+//	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);

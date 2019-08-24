@@ -40,7 +40,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	@Ignore("Unions are not fully implemented yet.")
+//	@Ignore("Unions are not fully implemented yet.")
 	public void queryTest() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest11_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
@@ -300,7 +300,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	
 	@Test
-	@Ignore("Unions are not fully implemented yet.")
+//	@Ignore("Unions are not fully implemented yet.")
 	public void queryTest2() {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest11a_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
