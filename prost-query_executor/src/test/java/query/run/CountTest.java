@@ -53,9 +53,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -68,13 +68,13 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("CountTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -83,9 +83,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -98,7 +98,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -108,9 +108,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -123,7 +123,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -134,9 +134,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -149,7 +149,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -159,9 +159,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -174,7 +174,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -184,9 +184,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest20_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestCount1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -199,7 +199,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		

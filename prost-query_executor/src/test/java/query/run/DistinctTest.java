@@ -55,9 +55,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 		
 
 		//EXPECTED
@@ -69,13 +69,13 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("DistinctTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -84,9 +84,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -97,7 +97,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -107,9 +107,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -120,7 +120,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -130,9 +130,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -143,7 +143,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -153,9 +153,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -166,7 +166,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -176,9 +176,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestDistinct1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -189,7 +189,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				

@@ -55,9 +55,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 		
 
 		//EXPECTED
@@ -72,13 +72,13 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("LinearQueryTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -87,9 +87,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -103,7 +103,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -113,9 +113,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -129,7 +129,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -139,9 +139,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -155,7 +155,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -165,9 +165,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -181,7 +181,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				
@@ -191,9 +191,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest14_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestLinearQuery1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -207,7 +207,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "publisher", "name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 				

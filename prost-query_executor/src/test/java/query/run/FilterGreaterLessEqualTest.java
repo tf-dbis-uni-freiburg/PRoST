@@ -55,9 +55,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -69,13 +69,13 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("FilterGreaterLessEqualTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -84,9 +84,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -98,7 +98,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -108,9 +108,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -122,7 +122,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -132,9 +132,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -146,7 +146,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -156,9 +156,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -170,7 +170,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -180,9 +180,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -194,7 +194,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -287,9 +287,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -301,13 +301,13 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("FilterGreaterLessEqualTest: queryTest2");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -316,9 +316,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -330,7 +330,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -340,9 +340,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -354,7 +354,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -364,9 +364,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -378,7 +378,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -388,9 +388,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -402,7 +402,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -412,9 +412,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07b_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter4.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -426,7 +426,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -519,9 +519,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -533,13 +533,13 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("FilterGreaterLessEqualTest: queryTest3");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -548,9 +548,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -562,7 +562,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -572,9 +572,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -586,7 +586,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -596,9 +596,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -610,7 +610,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -620,9 +620,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -634,7 +634,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -644,9 +644,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07c_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter5.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -658,7 +658,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -751,9 +751,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -766,13 +766,13 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("FilterGreaterLessEqualTest: queryTest4");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -781,9 +781,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnVp4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -796,7 +796,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -806,9 +806,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnWpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -821,7 +821,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -831,9 +831,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnIwpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -846,7 +846,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -856,9 +856,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -871,7 +871,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -881,9 +881,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	private void queryOnJwptLeftOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest07d_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestFilter6.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -896,7 +896,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		

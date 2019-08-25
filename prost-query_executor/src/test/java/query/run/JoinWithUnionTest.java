@@ -55,9 +55,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();		
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+				
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -71,13 +71,13 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("JoinWithUnion: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -86,9 +86,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -102,7 +102,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -112,9 +112,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -128,7 +128,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -138,9 +138,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -154,7 +154,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -164,9 +164,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -180,7 +180,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -190,9 +190,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion1.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion1.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -206,7 +206,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -315,9 +315,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();		
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+				
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -332,13 +332,13 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("JoinWithUnion: queryTest2");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -347,9 +347,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -364,7 +364,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -374,9 +374,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -391,7 +391,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -401,9 +401,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -418,7 +418,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -428,9 +428,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -445,7 +445,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -455,9 +455,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11a_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion2.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion2.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -472,7 +472,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("x", "y");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x", "y");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -579,9 +579,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();		
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+				
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -594,13 +594,13 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("JoinWithUnion: queryTest3");
 		expectedResult.printSchema();
 		expectedResult.show();
-		System.out.println(joinTree.toString());	
+
 		nullableActualResult.printSchema();
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
@@ -609,9 +609,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -624,7 +624,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -634,9 +634,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -649,7 +649,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -659,9 +659,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -674,7 +674,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -684,9 +684,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -699,7 +699,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -709,9 +709,9 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
 		final Settings settings = new Settings.Builder("queryTest11b_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		final Translator translator = new Translator(settings, statistics,
-				classLoader.getResource("queryTestJoinWithUnion3.q").getPath());
-		final JoinTree joinTree = translator.translateQuery();
+		
+		final Query query = new Query(classLoader.getResource("queryTestJoinWithUnion3.q").getPath(), statistics, settings);
+		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
@@ -724,7 +724,7 @@ public class JoinWithUnionTest extends JavaDataFrameSuiteBase implements Seriali
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = joinTree.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		

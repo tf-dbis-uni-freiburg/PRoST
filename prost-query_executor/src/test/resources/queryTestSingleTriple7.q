@@ -1,3 +1,3 @@
-SELECT ?book
+SELECT *
 WHERE
 {?book ?p ?title.}

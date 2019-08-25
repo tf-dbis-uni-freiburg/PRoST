@@ -34,14 +34,13 @@ import utils.Settings;
  *
  * @author Kristin Plettau
  */
-public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Serializable {
+public class NotExistsTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	@Ignore("FILTER isLiteral?")
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest15_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest17_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -52,10 +51,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 
 		//EXPECTED
@@ -71,7 +70,7 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "mail");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.print("FilterIsLiteralTest: queryTest1");
+		System.out.print("NotExistsTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
 
@@ -81,10 +80,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -105,10 +104,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -130,10 +129,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 
 		//EXPECTED
@@ -154,10 +153,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -178,10 +177,10 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest15_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTest17_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsLiteral1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestNotExists1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -202,9 +201,9 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest15_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest15_db");
-		spark().sql("USE queryTest15_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTest17_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest17_db");
+		spark().sql("USE queryTest17_db");
 
 				
 		// creates test tt table
@@ -240,8 +239,8 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest15_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\FilterIsLiteralTest").replace('\\', '/'))
+				new loader.Settings.Builder("queryTest17_db").withInputPath((System.getProperty(
+						"user.dir") + "\\target\\test_output\\NotExistsTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -279,34 +278,39 @@ PREFIX ex: <http://example.org/#>.
 
 TABLE:
 ================================================================================================================
-ex:book1		| ex:title			| "Title1"
+ex:A		| ex:name			| "Title1"
 ex:book1		| ex:mail			| "book1@books.example"
 
 ex:book2		| ex:title			| "Title2"
 ex:book2		| ex:mail			| "<mailto:book2@books.example>"
+
 ================================================================================================================
 
 QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title ?mail
-WHERE
+SELECT ?name
+WHERE 
 {
-	?book <http://example.org/title> ?title.
-	?book <http://example.org/mail> ?mail. FILTER isLiteral(?mail)
+  ?x ex:name ?name .
+  FILTER NOT EXISTS { ?x ex:knows ?who }
 }
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-+------+-------------------+
-| title|mail               |
-+------+-------------------+
-|Title1|book1@books.example|
-+------+-------------------+
++------+-----+
+| title|price|
++------+-----+
+|Title2|   40|
+|Title3|   30|
++------+-----+
 
 Actual:
-org.apache.spark.sql.catalyst.parser.ParseException: 
-no viable alternative at input '<EOF>'(line 1, pos 2)
-
++------+-----+
+| title|price|
++------+-----+
+|Title2|   40|
+|Title3|   30|
++------+-----+
 -----------------------------------------------------------------------------------------------------------------
 */
