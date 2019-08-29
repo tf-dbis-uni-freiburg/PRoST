@@ -1,6 +1,7 @@
 package run;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,6 +64,9 @@ public class Main {
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
 		} else if (file.isDirectory()) {
+			if (file.list().length == 0) {
+				throw new FileNotFoundException("Queries directory " + settings.getQueriesInputPath() + " is empty.");
+			}
 			final List<String> queryFiles = Arrays.asList(file.list());
 
 			// if random order applied, shuffle the queries
@@ -86,6 +90,8 @@ public class Main {
 				logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
+		} else {
+			throw new FileNotFoundException("Directory " + settings.getQueriesInputPath() + " does not exists empty.");
 		}
 	}
 
