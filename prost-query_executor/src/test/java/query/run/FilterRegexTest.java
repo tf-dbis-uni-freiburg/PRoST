@@ -40,7 +40,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest19_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterRegex1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -51,7 +51,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -79,7 +79,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -102,7 +102,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -126,7 +126,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -149,7 +149,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -172,7 +172,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
@@ -195,9 +195,9 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest19_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest19_db");
-		spark().sql("USE queryTest19_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestFilterRegex1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestFilterRegex1_db");
+		spark().sql("USE queryTestFilterRegex1_db");
 		
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 
@@ -206,7 +206,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest19_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestFilterRegex1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterRegexTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

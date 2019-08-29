@@ -40,7 +40,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest14_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestLinearQuery1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,7 +53,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -85,7 +85,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -111,7 +111,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -137,7 +137,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -163,7 +163,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -189,7 +189,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest14_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestLinearQuery1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestLinearQuery1.q").getPath(), statistics, settings);
@@ -215,9 +215,9 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest14_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest14_db");
-		spark().sql("USE queryTest14_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestLinearQuery1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestLinearQuery1_db");
+		spark().sql("USE queryTestLinearQuery1_db");
 
 				
 		// creates test tt table
@@ -264,7 +264,7 @@ public class LinearQueryTest extends JavaDataFrameSuiteBase implements Serializa
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest14_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestLinearQuery1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\LinearQueryTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

@@ -40,7 +40,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest20_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestCount_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -51,7 +51,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -81,7 +81,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -106,7 +106,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -132,7 +132,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -157,7 +157,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -182,7 +182,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest20_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestCount_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestCount1.q").getPath(), statistics, settings);
@@ -207,9 +207,9 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest20_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest20_db");
-		spark().sql("USE queryTest20_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestCount_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestCount_db");
+		spark().sql("USE queryTestCount_db");
 
 				
 		// creates test tt table
@@ -236,7 +236,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/book2>");
 		t5.setP("<http://example.org/title>");
-		t5.setO("Title1");
+		t5.setO("Title2");
 		
 		final TripleBean t6 = new TripleBean();
 		t6.setS("<http://example.org/book2>");
@@ -264,7 +264,7 @@ public class CountTest extends JavaDataFrameSuiteBase implements Serializable {
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest20_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestCount_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\CountTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

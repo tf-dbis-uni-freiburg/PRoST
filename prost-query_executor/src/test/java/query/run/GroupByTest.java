@@ -40,7 +40,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest18_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestGroupBy1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -51,7 +51,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -80,7 +80,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -105,7 +105,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -131,7 +131,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -156,7 +156,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -181,7 +181,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest18_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGroupBy1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestGroupBy1.q").getPath(), statistics, settings);
@@ -206,9 +206,9 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest18_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest18_db");
-		spark().sql("USE queryTest18_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestGroupBy1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestGroupBy1_db");
+		spark().sql("USE queryTestGroupBy1_db");
 
 				
 		// creates test tt table
@@ -256,7 +256,7 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest18_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestGroupBy1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\GroupByTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

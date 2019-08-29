@@ -42,7 +42,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest1() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest05_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptional1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -54,7 +54,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -84,7 +84,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -109,7 +109,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -134,7 +134,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -159,7 +159,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -184,7 +184,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest05_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional1.q").getPath(), statistics, settings);
@@ -209,9 +209,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest05_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest05_db");
-		spark().sql("USE queryTest05_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestOptional1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOptional1_db");
+		spark().sql("USE queryTestOptional1_db");
 
 				
 		// creates test tt table
@@ -242,7 +242,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest05_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestOptional1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -278,7 +278,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	@Test
 //	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptional2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -290,7 +290,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -321,7 +321,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -347,7 +347,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -373,7 +373,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -399,7 +399,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -425,7 +425,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptional2.q").getPath(), statistics, settings);
@@ -451,9 +451,9 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest08_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08_db");
-		spark().sql("USE queryTest08_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestOptional2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOptional2_db");
+		spark().sql("USE queryTestOptional2_db");
 
 				
 		// creates test tt table
@@ -490,7 +490,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest08_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestOptional2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OptionalTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

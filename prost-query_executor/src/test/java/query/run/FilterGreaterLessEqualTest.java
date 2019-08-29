@@ -42,7 +42,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest1() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest07_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestGreaterLessEqual1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,7 +53,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}	
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -82,7 +82,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -106,7 +106,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -130,7 +130,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -154,7 +154,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -178,7 +178,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter1.q").getPath(), statistics, settings);
@@ -202,9 +202,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest07_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest07_db");
-		spark().sql("USE queryTest07_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestGreaterLessEqual1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestGreaterLessEqual1_db");
+		spark().sql("USE queryTestGreaterLessEqual1_db");
 
 				
 		// creates test tt table
@@ -239,7 +239,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest07_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestGreaterLessEqual1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterGreaterLessEqualTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -274,7 +274,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest07b_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestGreaterLessEqual2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -285,7 +285,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -314,7 +314,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -338,7 +338,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -362,7 +362,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -386,7 +386,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -410,7 +410,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07b_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter4.q").getPath(), statistics, settings);
@@ -434,9 +434,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest07b_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest07b_db");
-		spark().sql("USE queryTest07b_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestGreaterLessEqual2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestGreaterLessEqual2_db");
+		spark().sql("USE queryTestGreaterLessEqual2_db");
 
 				
 		// creates test tt table
@@ -471,7 +471,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest07b_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestGreaterLessEqual2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterGreaterLessEqualTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -506,7 +506,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest3() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest07_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestGreaterLessEqual3_db");
 		Dataset<Row> fullDataset = initializeDb3(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT3(statistics, fullDataset);
@@ -517,7 +517,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		queryOnJwptLeftOuter3(statistics, fullDataset);
 	}	
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -546,7 +546,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 	
 	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -570,7 +570,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -594,7 +594,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -618,7 +618,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -642,7 +642,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07c_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual3_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter5.q").getPath(), statistics, settings);
@@ -666,9 +666,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private Dataset<Row> initializeDb3(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest07c_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest07c_db");
-		spark().sql("USE queryTest07c_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestGreaterLessEqual3_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestGreaterLessEqual3_db");
+		spark().sql("USE queryTestGreaterLessEqual3_db");
 
 				
 		// creates test tt table
@@ -703,7 +703,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest07c_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestGreaterLessEqual3_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterGreaterLessEqualTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -738,7 +738,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest4() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest07_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestGreaterLessEqual4_db");
 		Dataset<Row> fullDataset = initializeDb4(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT4(statistics, fullDataset);
@@ -749,7 +749,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		queryOnJwptLeftOuter4(statistics, fullDataset);
 	}	
 	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -779,7 +779,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 	
 	private void queryOnVp4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -804,7 +804,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnWpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -829,7 +829,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnIwpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -854,7 +854,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -879,7 +879,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private void queryOnJwptLeftOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest07d_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestGreaterLessEqual4_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter6.q").getPath(), statistics, settings);
@@ -904,9 +904,9 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 	}
 
 	private Dataset<Row> initializeDb4(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest07d_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest07d_db");
-		spark().sql("USE queryTest07d_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestGreaterLessEqual4_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestGreaterLessEqual4_db");
+		spark().sql("USE queryTestGreaterLessEqual4_db");
 
 				
 		// creates test tt table
@@ -941,7 +941,7 @@ public class FilterGreaterLessEqualTest extends JavaDataFrameSuiteBase implement
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest07d_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestGreaterLessEqual4_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterGreaterLessEqualTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

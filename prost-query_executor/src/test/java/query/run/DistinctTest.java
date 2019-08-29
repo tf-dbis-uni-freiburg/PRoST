@@ -40,7 +40,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest13_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestDistinct_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,7 +53,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -82,7 +82,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -105,7 +105,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -128,7 +128,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -151,7 +151,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -174,7 +174,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest13_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
@@ -197,9 +197,9 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	}
 	
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest13_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest13_db");
-		spark().sql("USE queryTest13_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestDistinct_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestDistinct_db");
+		spark().sql("USE queryTestDistinct_db");
 
 				
 		// creates test tt table
@@ -234,7 +234,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest13_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestDistinct_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\DistinctTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

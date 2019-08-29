@@ -34,13 +34,13 @@ import utils.Settings;
  *
  * @author Kristin Plettau
  */
-public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializable {
+public class JoinOnObjectTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest06_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestJoinOnObject1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,10 +53,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 		
 
@@ -84,10 +84,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -109,10 +109,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -134,10 +134,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 
 		//EXPECTED
@@ -159,10 +159,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -184,10 +184,10 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest06_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnObject1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToObject1.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnObject1.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -209,9 +209,9 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest06_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest06_db");
-		spark().sql("USE queryTest06_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestJoinOnObject1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestJoinOnObject1_db");
+		spark().sql("USE queryTestJoinOnObject1_db");
 
 				
 		// creates test tt table
@@ -234,7 +234,7 @@ public class JoinToObjectTest extends JavaDataFrameSuiteBase implements Serializ
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest06_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestJoinOnObject1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\JoinToObjectTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

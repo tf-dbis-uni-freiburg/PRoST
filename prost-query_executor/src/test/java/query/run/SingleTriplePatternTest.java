@@ -40,7 +40,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -52,7 +52,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics, settings);
 				
@@ -82,7 +82,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics, settings);
 				
@@ -104,7 +104,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
 			      settings);
@@ -127,7 +127,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
 			      settings);
@@ -150,7 +150,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
 			      settings);
@@ -173,7 +173,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple1.q").getPath(), statistics,
 			      settings);
@@ -197,9 +197,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01_db");
-		spark().sql("USE queryTest01_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern1_db");
+		spark().sql("USE queryTestSingleTriplePattern1_db");
 
 				
 		// creates test tt table
@@ -222,7 +222,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -257,7 +257,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest02_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -270,7 +270,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	  
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -298,7 +298,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -321,7 +321,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -344,7 +344,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -367,7 +367,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -390,7 +390,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest02_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple2.q").getPath(), statistics,
 			      settings);
@@ -413,9 +413,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest02_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest02_db");
-		spark().sql("USE queryTest02_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern2_db");
+		spark().sql("USE queryTestSingleTriplePattern2_db");
 
 				
 		// creates test tt table
@@ -438,7 +438,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest02_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -472,7 +472,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest3() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01b_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern3_db");
 		Dataset<Row> fullDataset = initializeDb3(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT3(statistics, fullDataset);
@@ -484,7 +484,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -512,7 +512,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -533,7 +533,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -554,7 +554,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -575,7 +575,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -596,7 +596,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01b_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern3_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple3.q").getPath(), statistics,
 			      settings);
@@ -617,9 +617,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb3(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01b_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01b_db");
-		spark().sql("USE queryTest01b_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern3_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern3_db");
+		spark().sql("USE queryTestSingleTriplePattern3_db");
 
 				
 		// creates test tt table
@@ -642,7 +642,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01b_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern3_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -676,7 +676,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest4() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01c_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern4_db");
 		Dataset<Row> fullDataset = initializeDb4(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT4(statistics, fullDataset);
@@ -688,7 +688,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -717,7 +717,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -739,7 +739,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -761,7 +761,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -783,7 +783,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -805,7 +805,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01c_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern4_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple4.q").getPath(), statistics,
 			      settings);
@@ -827,9 +827,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb4(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01c_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01c_db");
-		spark().sql("USE queryTest01c_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern4_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern4_db");
+		spark().sql("USE queryTestSingleTriplePattern4_db");
 
 				
 		// creates test tt table
@@ -852,7 +852,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01c_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern4_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -886,7 +886,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest5() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01d_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern5_db");
 		Dataset<Row> fullDataset = initializeDb5(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT5(statistics, fullDataset);
@@ -898,7 +898,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -927,7 +927,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -949,7 +949,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -971,7 +971,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -993,7 +993,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -1015,7 +1015,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter5(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01d_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern5_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple5.q").getPath(), statistics,
 			      settings);
@@ -1037,9 +1037,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb5(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01d_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01d_db");
-		spark().sql("USE queryTest01d_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern5_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern5_db");
+		spark().sql("USE queryTestSingleTriplePattern5_db");
 
 				
 		// creates test tt table
@@ -1062,7 +1062,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01d_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern5_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -1096,7 +1096,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest6() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01e_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern6_db");
 		Dataset<Row> fullDataset = initializeDb6(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT6(statistics, fullDataset);
@@ -1108,7 +1108,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1137,7 +1137,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1159,7 +1159,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1181,7 +1181,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1203,7 +1203,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1225,7 +1225,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter6(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01e_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern6_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple6.q").getPath(), statistics,
 			      settings);
@@ -1247,9 +1247,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb6(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01e_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01e_db");
-		spark().sql("USE queryTest01e_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern6_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern6_db");
+		spark().sql("USE queryTestSingleTriplePattern6_db");
 
 				
 		// creates test tt table
@@ -1272,7 +1272,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01e_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern6_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -1306,7 +1306,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	
 	@Test
 	public void queryTest7() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest01f_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern7_db");
 		Dataset<Row> fullDataset = initializeDb7(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT7(statistics, fullDataset);
@@ -1318,7 +1318,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1348,7 +1348,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 	
 	private void queryOnVp7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1371,7 +1371,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnWpt7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1394,7 +1394,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnIwpt7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1417,7 +1417,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptOuter7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1440,7 +1440,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnJwptLeftOuter7(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest01f_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSingleTriplePattern7_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestSingleTriple7.q").getPath(), statistics,
 			      settings);
@@ -1463,9 +1463,9 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private Dataset<Row> initializeDb7(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest01f_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest01f_db");
-		spark().sql("USE queryTest01f_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSingleTriplePattern7_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSingleTriplePattern7_db");
+		spark().sql("USE queryTestSingleTriplePattern7_db");
 
 				
 		// creates test tt table
@@ -1488,7 +1488,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest01f_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSingleTriplePattern7_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SingleTriplePatternTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

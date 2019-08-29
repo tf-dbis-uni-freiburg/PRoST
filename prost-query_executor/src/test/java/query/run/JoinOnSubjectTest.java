@@ -34,13 +34,13 @@ import utils.Settings;
  *
  * @author Kristin Plettau
  */
-public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Serializable {
+public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest04_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestJoinOnSubject1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -53,10 +53,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	  
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 				
 
 		//EXPECTED
@@ -82,10 +82,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -106,10 +106,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -130,10 +130,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 
 		//EXPECTED
@@ -154,10 +154,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -178,10 +178,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest04_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -202,9 +202,9 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest04_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest04_db");
-		spark().sql("USE queryTest04_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestJoinOnSubject1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestJoinOnSubject1_db");
+		spark().sql("USE queryTestJoinOnSubject1_db");
 
 				
 		// creates test tt table
@@ -235,7 +235,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest04_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestJoinOnSubject1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\JoinToSubjectTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -269,7 +269,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest03_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestJoinOnSubject2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -282,10 +282,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	
 	  
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingTTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 
@@ -313,10 +313,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -338,10 +338,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -363,10 +363,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 
 		//EXPECTED
@@ -388,10 +388,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -413,10 +413,10 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest03_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
-		final Query query = new Query(classLoader.getResource("queryTestJoinToSubject1and2.q").getPath(), statistics, settings);
+		final Query query = new Query(classLoader.getResource("queryTestJoinOnSubject1and2.q").getPath(), statistics, settings);
 		
 		
 		//EXPECTED
@@ -438,9 +438,9 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest03_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest03_db");
-		spark().sql("USE queryTest03_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestJoinOnSubject2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestJoinOnSubject2_db");
+		spark().sql("USE queryTestJoinOnSubject2_db");
 
 				
 		// creates test tt table
@@ -475,7 +475,7 @@ public class JoinToSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest03_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestJoinOnSubject2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\JoinToSubjectTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

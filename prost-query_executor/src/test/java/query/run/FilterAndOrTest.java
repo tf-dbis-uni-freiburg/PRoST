@@ -41,7 +41,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestAndOr1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -52,7 +52,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -82,7 +82,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -107,7 +107,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -133,7 +133,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -158,7 +158,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -183,7 +183,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter2.q").getPath(), statistics, settings);
@@ -208,9 +208,9 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest08_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08_db");
-		spark().sql("USE queryTest08_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestAndOr1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestAndOr1_db");
+		spark().sql("USE queryTestAndOr1_db");
 
 				
 		// creates test tt table
@@ -269,7 +269,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest08_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestAndOr1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterAndOrTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -305,7 +305,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest3() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest08b_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestAndOr2_db");
 		Dataset<Row> fullDataset = initializeDb3(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT3(statistics, fullDataset);
@@ -316,7 +316,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 		queryOnJwptLeftOuter3(statistics, fullDataset);
 	}	
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -346,7 +346,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 	
 	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -371,7 +371,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -396,7 +396,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -421,7 +421,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -446,7 +446,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest08b_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestAndOr2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestFilter3.q").getPath(), statistics, settings);
@@ -471,9 +471,9 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 	}
 
 	private Dataset<Row> initializeDb3(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest08b_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest08b_db");
-		spark().sql("USE queryTest08b_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestAndOr2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestAndOr2_db");
+		spark().sql("USE queryTestAndOr2_db");
 
 				
 		// creates test tt table
@@ -533,7 +533,7 @@ public class FilterAndOrTest extends JavaDataFrameSuiteBase implements Serializa
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest08b_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestAndOr2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterAndOrTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

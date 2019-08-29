@@ -40,7 +40,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 
 	@Test
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest19_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSumTest1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -51,7 +51,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
 		
@@ -78,7 +78,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
@@ -102,7 +102,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
@@ -127,7 +127,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
@@ -151,7 +151,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
@@ -175,7 +175,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest19_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestSumTest1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestSum1.q").getPath(), statistics, settings);
@@ -199,9 +199,9 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest19_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest19_db");
-		spark().sql("USE queryTest19_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestSumTest1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestSumTest1_db");
+		spark().sql("USE queryTestSumTest1_db");
 
 				
 		// creates test tt table
@@ -238,7 +238,7 @@ public class SumTest extends JavaDataFrameSuiteBase implements Serializable {
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest19_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestSumTest1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\SumTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();

@@ -41,7 +41,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	@Test
 //	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest09_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptionalFilter1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
@@ -52,7 +52,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}	
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -83,7 +83,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 	
 	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -109,7 +109,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -135,7 +135,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -161,7 +161,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -187,7 +187,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest09_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -213,9 +213,9 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest09_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest09_db");
-		spark().sql("USE queryTest09_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestOptionalFilter1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOptionalFilter1_db");
+		spark().sql("USE queryTestOptionalFilter1_db");
 
 				
 		// creates test tt table
@@ -269,7 +269,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		ttDataset.write().saveAsTable("tripletable");
 
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest09_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestOptionalFilter1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OptionalFilterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
@@ -305,7 +305,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	@Test
 //	@Ignore("Optionals are not fully implemented yet.")
 	public void queryTest2() {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTest10_db");
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptionalFilter2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT2(statistics, fullDataset);
@@ -316,7 +316,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -348,7 +348,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 	
 	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingVPNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -375,7 +375,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -402,7 +402,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingIWPTNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -429,7 +429,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTOuterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -456,7 +456,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
-		final Settings settings = new Settings.Builder("queryTest10_db").usingJWPTLeftouterNodes().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);
@@ -483,9 +483,9 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTest09_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTest10_db");
-		spark().sql("USE queryTest10_db");
+		spark().sql("DROP DATABASE IF EXISTS queryTestOptionalFilter2_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOptionalFilter2_db");
+		spark().sql("USE queryTestOptionalFilter2_db");
 
 				
 		// creates test tt table
@@ -551,7 +551,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTest10_db").withInputPath((System.getProperty(
+				new loader.Settings.Builder("queryTestOptionalFilter2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OptionalFilterTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
