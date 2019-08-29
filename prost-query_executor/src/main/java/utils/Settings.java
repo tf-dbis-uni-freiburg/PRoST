@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import org.apache.commons.cli.CommandLine;
@@ -82,6 +83,8 @@ public class Settings {
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
 			this.savingBenchmarkFile = settings.get("executor", "savingBenchmarkFile", boolean.class);
 			this.savingSparkPlans = settings.get("executor", "savingSparkPlans", boolean.class);
+		} else {
+			throw new FileNotFoundException("Settings file " + this.settingsPath + " not found.");
 		}
 
 		if (savingBenchmarkFile && benchmarkFilePath == null) {
