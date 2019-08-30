@@ -1,6 +1,7 @@
 package run;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,11 +9,10 @@ import java.util.List;
 import java.util.Properties;
 
 import executor.Executor;
-import joinTree.JoinTree;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.EmergentSchema;
 import utils.Settings;
 
@@ -54,7 +54,7 @@ public class Main {
 		if (file.isFile()) {
 
 			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
+			final Query translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
 					statistics, settings);
 
 			executor.execute(translatedQuery);
@@ -64,6 +64,9 @@ public class Main {
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
 		} else if (file.isDirectory()) {
+			if (file.list().length == 0) {
+				throw new FileNotFoundException("Queries directory " + settings.getQueriesInputPath() + " is empty.");
+			}
 			final List<String> queryFiles = Arrays.asList(file.list());
 
 			// if random order applied, shuffle the queries
@@ -76,7 +79,7 @@ public class Main {
 				logger.info("Starting: " + fileName);
 
 				// translation phase
-				final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
+				final Query translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
 						statistics, settings);
 
 				// execution phase
@@ -87,12 +90,13 @@ public class Main {
 				logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
+		} else {
+			throw new FileNotFoundException("Directory " + settings.getQueriesInputPath() + " does not exists empty.");
 		}
 	}
 
-	private static JoinTree translateSingleQuery(final String query, final DatabaseStatistics statistics,
-												 final Settings settings) {
-		final Translator translator = new Translator(settings, statistics, query);
-		return translator.translateQuery();
+	private static Query translateSingleQuery(final String queryPath, final DatabaseStatistics statistics,
+											  final Settings settings) throws Exception {
+		return new Query(queryPath, statistics, settings);
 	}
 }

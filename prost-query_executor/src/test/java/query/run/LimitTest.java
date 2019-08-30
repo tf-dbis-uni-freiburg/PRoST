@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -23,7 +22,7 @@ import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -39,7 +38,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest() {
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestLimit1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -50,7 +49,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		queryOnJwptOuter(statistics, fullDataset);
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}	
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
@@ -78,7 +77,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);		
@@ -101,7 +100,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
@@ -125,7 +124,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
@@ -148,7 +147,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
@@ -171,7 +170,7 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);

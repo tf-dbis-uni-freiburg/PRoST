@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -23,7 +22,7 @@ import org.spark_project.guava.collect.ImmutableList;
 
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -39,7 +38,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest() {
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestJoinOnSubject1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -52,7 +51,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	  
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -81,7 +80,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -105,7 +104,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -129,7 +128,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -153,7 +152,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -177,7 +176,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -268,7 +267,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	@Test
-	public void queryTest2() {
+	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestJoinOnSubject2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -281,7 +280,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 	}
 	
 	  
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -312,7 +311,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -337,7 +336,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -362,7 +361,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -387,7 +386,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -412,7 +411,7 @@ public class JoinOnSubjectTest extends JavaDataFrameSuiteBase implements Seriali
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestJoinOnSubject2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		

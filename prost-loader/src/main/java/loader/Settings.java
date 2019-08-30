@@ -74,8 +74,8 @@ public class Settings {
 			this.vpPartitionedBySubject = settings.get("physicalPartitioning", "vps", boolean.class);
 
 			this.droppingDB = settings.get("misc", "dropDB", boolean.class);
-		} else if (!settingsPath.equals(DEFAULT_SETTINGS_FILE)) {
-			throw new FileNotFoundException();
+		} else  {
+			throw new FileNotFoundException("Settings file " + this.settingsPath + " not found.");
 		}
 		validate();
 		printLoggerInformation();

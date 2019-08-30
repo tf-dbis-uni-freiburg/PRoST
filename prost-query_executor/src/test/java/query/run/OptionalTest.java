@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -23,7 +22,7 @@ import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -41,7 +40,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	
 	@Test
 	//@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest1() {
+	public void queryTest1() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptional1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -53,7 +52,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		queryOnJwptLeftOuter(statistics, fullDataset);
 	}
 
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -83,7 +82,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -108,7 +107,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -133,7 +132,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -158,7 +157,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -183,7 +182,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -277,7 +276,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 	
 	@Test
 //	@Ignore("Optionals are not fully implemented yet.")
-	public void queryTest2() {
+	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOptional2_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -289,7 +288,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}
 	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -320,7 +319,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -346,7 +345,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -372,7 +371,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -398,7 +397,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -424,7 +423,7 @@ public class OptionalTest extends JavaDataFrameSuiteBase implements Serializable
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOptional2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		

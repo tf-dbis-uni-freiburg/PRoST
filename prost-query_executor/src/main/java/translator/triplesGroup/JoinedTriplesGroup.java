@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
-import joinTree.JWPTNode;
-import joinTree.Node;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.BgpNode;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
@@ -72,12 +72,12 @@ public class JoinedTriplesGroup extends TriplesGroup {
 		return this.inverseTriples;
 	}
 
-	public List<Node> createNodes(final Settings settings, final DatabaseStatistics statistics,
-								  final PrefixMapping prefixes) {
+	public List<BgpNode> createNodes(final Settings settings, final DatabaseStatistics statistics,
+									 final PrefixMapping prefixes) {
 		assert settings.isUsingJWPTLeftouter() || settings.isUsingJWPTOuter() || settings.isUsingJWPTInner() : "Tried"
 				+ " to created nodes for a JoinedTriplesGroup when no joined data model is enabled";
 
-		final List<Node> createdNodes = new ArrayList<>();
+		final List<BgpNode> createdNodes = new ArrayList<>();
 		if (settings.isGroupingTriples()) {
 			createdNodes.add(new JWPTNode(this, prefixes, statistics, settings));
 			return createdNodes;

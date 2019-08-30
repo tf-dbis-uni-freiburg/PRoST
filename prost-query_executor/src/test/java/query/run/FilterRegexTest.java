@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -23,7 +22,7 @@ import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
-import translator.Translator;
+import translator.Query;
 import utils.Settings;
 
 /**
@@ -39,7 +38,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest2() {
+	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterRegex1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
@@ -50,7 +49,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		queryOnJwptOuter2(statistics, fullDataset);
 		queryOnJwptLeftOuter2(statistics, fullDataset);
 	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -78,7 +77,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -101,7 +100,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -125,7 +124,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -148,7 +147,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -171,7 +170,7 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		

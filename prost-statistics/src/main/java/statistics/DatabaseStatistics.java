@@ -66,14 +66,13 @@ public class DatabaseStatistics {
 		this.characteristicSets = new ArrayList<>();
 	}
 
-	public static DatabaseStatistics loadFromFile(final String path) {
+	public static DatabaseStatistics loadFromFile(final String path) throws FileNotFoundException {
 		final Gson gson = new Gson();
 		try {
 			final BufferedReader br = new BufferedReader(new FileReader(path));
 			return gson.fromJson(br, DatabaseStatistics.class);
 		} catch (final FileNotFoundException e) {
-
-			return new DatabaseStatistics(path.substring(0, path.length() - 5));//remove the substring ".json"
+			throw new FileNotFoundException("Statistics file " + path + " does not exist.");
 		}
 	}
 
@@ -129,7 +128,7 @@ public class DatabaseStatistics {
 			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
 				final Vector<String> v = iterator.next().toVector();
-				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.valueOf(v.getElem(1, 1)));
+				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.parseLong(v.getElem(1, 1)));
 			}
 			this.characteristicSets.add(characteristicSetStatistics);
 		}
