@@ -860,6 +860,9 @@ Actual:
 |Title2|
 |Title4|
 +------+
+java.lang.AssertionError: Not Equal Sample: 
+(1,([Title3],[Title2])), (2,([Title2],[Title3]))
+
 -----------------------------------------------------------------------------------------------------------------
 */
 
@@ -889,22 +892,30 @@ WHERE  { { ?book <http://example.org/1/title>  ?x } UNION { ?book <http://exampl
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-+------+-------+
-|   x  |   y   |
-+------+-------+
-|Title1|       |
-|Title3|       |
-|      |Title2 |
-|      |Title4 |
-+------+-------+
++------+------+
+|     x|     y|
++------+------+
+|Title1|  null|
+|Title3|  null|
+|  null|Title2|
+|  null|Title4|
++------+------+
+
+Actual:
++------+------+
+|     x|     y|
++------+------+
+|  null|Title2|
+|  null|Title4|
+|Title1|  null|
+|Title3|  null|
++------+------+
 
 Error:
-org.apache.spark.sql.AnalysisException: cannot resolve '`x`' given input columns: [book, y];;
-'Project ['x, y#1875]
-+- Project [s#963 AS book#1874, o#965 AS y#1875]
-   +- Filter (p#964 = <http://example.org/2/title>)
-      +- SubqueryAlias tripletable
-         +- Relation[s#963,p#964,o#965] parquet
+java.lang.AssertionError: Not Equal Sample: 
+(0,([Title1,null],[null,Title2])), (1,([Title3,null],[null,Title4])), 
+(2,([null,Title2],[Title1,null])), (3,([null,Title4],[Title3,null]))
+
 -----------------------------------------------------------------------------------------------------------------
 */
 

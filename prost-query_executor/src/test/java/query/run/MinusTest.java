@@ -33,42 +33,40 @@ import utils.Settings;
  *
  * @author Kristin Plettau
  */
-public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializable {
+public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest2() throws Exception {
-		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterRegex1_db");
-		Dataset<Row> fullDataset = initializeDb2(statistics);
+	public void queryTest() throws Exception {
+		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestMinus1_db");
+		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT2(statistics, fullDataset);
-		queryOnVp2(statistics, fullDataset);
-		queryOnWpt2(statistics, fullDataset);
-		queryOnIwpt2(statistics, fullDataset);
-		queryOnJwptOuter2(statistics, fullDataset);
-		queryOnJwptLeftOuter2(statistics, fullDataset);
+		queryOnTT(statistics, fullDataset);
+		queryOnVp(statistics, fullDataset);
+		queryOnWpt(statistics, fullDataset);
+		queryOnIwpt(statistics, fullDataset);
+		queryOnJwptOuter(statistics, fullDataset);
+		queryOnJwptLeftOuter(statistics, fullDataset);
 	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
-		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingTTNodes().usingCharacteristicSets().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		System.out.print("FilterRegexTest: queryTest1");
+		System.out.print("MinusTest: queryTest1");
 		expectedResult.printSchema();
 		expectedResult.show();
 
@@ -77,136 +75,160 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
-		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
-		
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingVPNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
+				
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
-		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);		
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());		
+				actualResult.schema().asNullable());	
 		
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingIWPTNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
 		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
-
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
-		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
-		
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingJWPTOuterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
+			
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestFilterRegex1_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();
-		
-		final Query query = new Query(classLoader.getResource("queryTestFilterRegex1.q").getPath(), statistics, settings);
-		
-		
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingJWPTLeftouterNodes().build();
+		final ClassLoader classLoader = getClass().getClassLoader();		
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
+				
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("x", DataTypes.StringType, true),
+				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("<http://example.org>", "string containing example");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-
+		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("x");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
-		spark().sql("DROP DATABASE IF EXISTS queryTestFilterRegex1_db CASCADE");
-		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestFilterRegex1_db");
-		spark().sql("USE queryTestFilterRegex1_db");
+	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+		spark().sql("DROP DATABASE IF EXISTS queryTestMinus1_db CASCADE");
+		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestMinus1_db");
+		spark().sql("USE queryTestMinus1_db");
+
+		
+		// creates test tt table
+		final TripleBean t1 = new TripleBean();
+		t1.setS("<http://example.org/A>");
+		t1.setP("<http://example.org/name>");
+		t1.setO("A");
+		
+		final TripleBean t2 = new TripleBean();
+		t2.setS("<http://example.org/B>");
+		t2.setP("<http://example.org/name>");
+		t2.setO("B");
+		
+		final TripleBean t3 = new TripleBean();
+		t3.setS("<http://example.org/C>");
+		t3.setP("<http://example.org/name>");
+		t3.setO("C");
+
+		final TripleBean t4 = new TripleBean();
+		t4.setS("<http://example.org/A>");
+		t4.setP("<http://example.org/knows>");
+		t4.setO("B");
+		
+		final TripleBean t5 = new TripleBean();
+		t5.setS("<http://example.org/C>");
+		t5.setP("<http://example.org/knows>");
+		t5.setO("A");
+		
 		
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
+		triplesList.add(t1);
+		triplesList.add(t2);
+		triplesList.add(t3);
+		triplesList.add(t4);
+		triplesList.add(t5);
+
 
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
 		
 		final loader.Settings loaderSettings =
-				new loader.Settings.Builder("queryTestFilterRegex1_db").withInputPath((System.getProperty(
-						"user.dir") + "\\target\\test_output\\FilterRegexTest").replace('\\', '/'))
+				new loader.Settings.Builder("queryTestMinus1_db").withInputPath((System.getProperty(
+						"user.dir") + "\\target\\test_output\\MinusTest").replace('\\', '/'))
 						.generateVp().generateWpt().generateIwpt().generateJwptOuter()
 						.generateJwptLeftOuter().generateJwptInner().build();
 
@@ -240,25 +262,37 @@ public class FilterRegexTest extends JavaDataFrameSuiteBase implements Serializa
 }
 
 /*
+PREFIX ex: <http://example.org/#>.
+
+TABLE:
+================================================================================================================
+ex:A		| ex:name			| "A"
+ex:B		| ex:name			| "B"
+ex:C		| ex:name			| "C"
+
+ex:A		| ex:knows			| "B"
+ex:C		| ex:knows			| "A"
+
+================================================================================================================
 
 QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?x 
+SELECT ?name
 WHERE 
 {
-  values ?x { <http://example.org> "string example" "string" }
-  FILTER( regex(str(?x), "exam" ))
+  ?person <http://example.org/name> ?name .
+  ?person <http://example.org/knows> ?who.
+  MINUS { ?person <http://example.org/knows> <http://example.org/B> } 
 }
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
--------------------------------
-| x                           |
-===============================
-| <http://example.org>        |
-| "string containing example" |
--------------------------------
++----+
+|name|
++----+
+|   C|
++----+
 
 Actual:
 

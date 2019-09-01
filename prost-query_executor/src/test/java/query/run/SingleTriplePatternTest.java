@@ -37,17 +37,18 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
+	
 	@Test
 	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern1_db");
 		Dataset<Row> fullDataset = initializeDb(statistics);
 		fullDataset = fullDataset.orderBy("s", "p", "o");
 		queryOnTT(statistics, fullDataset);
-//		queryOnVp(statistics, fullDataset);
-//		queryOnWpt(statistics, fullDataset);
-//		queryOnIwpt(statistics, fullDataset);
-//		queryOnJwptOuter(statistics, fullDataset);
-//		queryOnJwptLeftOuter(statistics, fullDataset);
+		queryOnVp(statistics, fullDataset);
+		queryOnWpt(statistics, fullDataset);
+		queryOnIwpt(statistics, fullDataset);
+		queryOnJwptOuter(statistics, fullDataset);
+		queryOnJwptLeftOuter(statistics, fullDataset);
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
@@ -58,16 +59,14 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 		//EXPECTED
 		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("book", DataTypes.StringType, true),
-				DataTypes.createStructField("p", DataTypes.StringType, true),
-				DataTypes.createStructField("title", DataTypes.StringType, true),
 				});
-		final Row row1 = RowFactory.create("<http://example.org/book1>", "<http://example.org/title>", "Title1");
-		final Row row2 = RowFactory.create("<http://example.org/book2>", "<http://example.org/title>", "Title2");
+		final Row row1 = RowFactory.create("<http://example.org/book1>");
+		final Row row2 = RowFactory.create("<http://example.org/book2>");
 		final List<Row> rowList = ImmutableList.of(row1, row2);
 		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book", "p", "title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("SingleTriplePatternTest: queryTest1");
@@ -882,7 +881,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 		return ttDataset;
 	}
-	
+
 	@Test
 	public void queryTest5() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSingleTriplePattern5_db");
@@ -1518,6 +1517,7 @@ public class SingleTriplePatternTest extends JavaDataFrameSuiteBase implements S
 
 		return ttDataset;
 	}
+	
 }
 
 
@@ -1540,9 +1540,21 @@ WHERE
 1. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-
++--------------------+
+|                book|
++--------------------+
+|<http://example.o...|
+|<http://example.o...|
++--------------------+
 
 Actual:
++--------------------+
+|                book|
++--------------------+
+|<http://example.o...|
+|<http://example.o...|
++--------------------+
+
 -----------------------------------------------------------------------------------------------------------------
 
 2. QUERY:
@@ -1555,9 +1567,20 @@ WHERE
 2. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-
++--------------------+
+|                   p|
++--------------------+
+|<http://example.o...|
+|<http://example.o...|
++--------------------+
 
 Actual:
++--------------------+
+|                   p|
++--------------------+
+|<http://example.o...|
+|<http://example.o...|
++--------------------+
 -----------------------------------------------------------------------------------------------------------------
 
 3. QUERY:
@@ -1578,6 +1601,12 @@ Expected:
 +------+
 
 Actual:
++------+
+| title|
++------+
+|Title1|
+|Title2|
++------+
 -----------------------------------------------------------------------------------------------------------------
 
 4. QUERY:
@@ -1590,9 +1619,20 @@ WHERE
 4. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-
++--------------------+--------------------+
+|                book|                   p|
++--------------------+--------------------+
+|<http://example.o...|<http://example.o...|
+|<http://example.o...|<http://example.o...|
++--------------------+--------------------+
 
 Actual:
++--------------------+--------------------+
+|                book|                   p|
++--------------------+--------------------+
+|<http://example.o...|<http://example.o...|
+|<http://example.o...|<http://example.o...|
++--------------------+--------------------+
 -----------------------------------------------------------------------------------------------------------------
 
 5. QUERY:
@@ -1613,6 +1653,12 @@ Expected:
 +--------------------+------+
 
 Actual:
++--------------------+------+
+|                book| title|
++--------------------+------+
+|<http://example.o...|Title1|
+|<http://example.o...|Title2|
++--------------------+------+
 -----------------------------------------------------------------------------------------------------------------
 
 6. QUERY:
@@ -1625,9 +1671,20 @@ WHERE
 6. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-
++--------------------+------+
+|                   p| title|
++--------------------+------+
+|<http://example.o...|Title1|
+|<http://example.o...|Title2|
++--------------------+------+
 
 Actual:
++--------------------+------+
+|                   p| title|
++--------------------+------+
+|<http://example.o...|Title1|
+|<http://example.o...|Title2|
++--------------------+------+
 -----------------------------------------------------------------------------------------------------------------
 
 7. QUERY:
@@ -1640,9 +1697,20 @@ WHERE
 7. RESULT:
 -----------------------------------------------------------------------------------------------------------------
 Expected:
-
++--------------------+--------------------+------+
+|                book|                   p| title|
++--------------------+--------------------+------+
+|<http://example.o...|<http://example.o...|Title1|
+|<http://example.o...|<http://example.o...|Title2|
++--------------------+--------------------+------+
 
 Actual:
++--------------------+--------------------+------+
+|                book|                   p| title|
++--------------------+--------------------+------+
+|<http://example.o...|<http://example.o...|Title1|
+|<http://example.o...|<http://example.o...|Title2|
++--------------------+--------------------+------+
 -----------------------------------------------------------------------------------------------------------------
 
 */

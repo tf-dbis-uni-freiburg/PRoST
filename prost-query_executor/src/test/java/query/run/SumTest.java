@@ -304,6 +304,8 @@ Expected:
 +------+-----+
 
 Actual:
+com.hp.hpl.jena.query.QueryParseException: Variable used when already in-scope: 
+?sales in ((AGG ?.0 SUM(?sales)) AS ?sales)
 
 -----------------------------------------------------------------------------------------------------------------
 */

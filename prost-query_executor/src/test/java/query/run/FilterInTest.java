@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -24,7 +23,6 @@ import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
 import translator.Query;
-import translator.Translator;
 import utils.Settings;
 
 /**

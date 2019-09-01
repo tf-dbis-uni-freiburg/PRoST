@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -24,7 +23,6 @@ import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
 import translator.Query;
-import translator.Translator;
 import utils.Settings;
 
 /**
@@ -60,7 +58,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -86,7 +84,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -107,7 +105,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -128,7 +126,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -149,7 +147,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -170,7 +168,7 @@ public class FilterExistsTest extends JavaDataFrameSuiteBase implements Serializ
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("name");
+		Row row1 = RowFactory.create("C");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
@@ -281,8 +279,8 @@ QUERY: People where it's stated that they know at least one person.
 SELECT ?name
 WHERE 
 {
-  ?person ex:name ?name .
-  FILTER EXISTS { ?person ex:knows ?who . FILTER(?who != ?person) }
+  ?person <http://example.org/name> ?name .
+  FILTER EXISTS { ?person <http://example.org/knows> ?who . FILTER(?who != ?person) }
 }
 -----------------------------------------------------------------------------------------------------------------
 RESULT:

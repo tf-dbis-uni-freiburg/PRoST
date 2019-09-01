@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
-import joinTree.JoinTree;
 import loader.InverseWidePropertyTableLoader;
 import loader.JoinedWidePropertyTableLoader;
 import loader.VerticalPartitioningLoader;
@@ -24,7 +23,6 @@ import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
 import statistics.DatabaseStatistics;
 import translator.Query;
-import translator.Translator;
 import utils.Settings;
 
 /**
@@ -40,7 +38,7 @@ public class FilterIsLiteralTest extends JavaDataFrameSuiteBase implements Seria
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	@Ignore("FILTER isLiteral?")
+	//@Ignore("FILTER isLiteral?")
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterIsLiteral1_db");
 		Dataset<Row> fullDataset = initializeDb2(statistics);

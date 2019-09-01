@@ -58,15 +58,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1");
-		Row row2 = RowFactory.create("Title2");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("GroupByTest: queryTest1");
@@ -87,16 +87,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -112,16 +111,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
 		
@@ -138,16 +136,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -163,16 +160,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -188,16 +184,15 @@ public class GroupByTest extends JavaDataFrameSuiteBase implements Serializable 
 		
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("sales", DataTypes.StringType, true),
+				DataTypes.createStructField("book", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Title1", "4");
-		Row row2 = RowFactory.create("Title2", "7");
+		Row row1 = RowFactory.create("<http://example.org/book1>");
+		Row row2 = RowFactory.create("<http://example.org/book2>");
 		List<Row> rowList = ImmutableList.of(row1, row2);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "sales");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("book");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -306,12 +301,12 @@ ex:book2		| ex:sales			| "5"
 
 QUERY:
 -----------------------------------------------------------------------------------------------------------------
-SELECT ?title
+SELECT ?book
 WHERE
 {
-	?book <http://example.org/title> ?title.
+	?book <http://example.org/sales> ?sales.
 }
-GROUP BY ?title
+GROUP BY ?book
 -----------------------------------------------------------------------------------------------------------------
 RESULT:
 -----------------------------------------------------------------------------------------------------------------

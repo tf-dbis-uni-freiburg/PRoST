@@ -1,6 +1,6 @@
 SELECT ?name
 WHERE 
 {
-  ?person ex:name ?name .
-  FILTER EXISTS { ?person ex:knows ?who . FILTER(?who != ?person) }
+  ?person <http://example.org/name> ?name .
+  FILTER EXISTS { ?person <http://example.org/knows> ?who . FILTER(?who != ?person) }
 }
