@@ -7,6 +7,7 @@ import com.hp.hpl.jena.sparql.algebra.op.OpDistinct;
 import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
 import com.hp.hpl.jena.sparql.algebra.op.OpLeftJoin;
 import com.hp.hpl.jena.sparql.algebra.op.OpProject;
+import com.hp.hpl.jena.sparql.algebra.op.OpSlice;
 import com.hp.hpl.jena.sparql.algebra.op.OpTopN;
 import com.hp.hpl.jena.sparql.algebra.op.OpUnion;
 import org.apache.spark.sql.Dataset;
@@ -64,8 +65,8 @@ public abstract class Operation {
 			} else if (jenaAlgebraTree instanceof OpUnion) {
 				return new Union(((OpUnion) jenaAlgebraTree).getLeft(), ((OpUnion) jenaAlgebraTree).getRight(),
 						statistics, settings, prefixes);
-			} else if (jenaAlgebraTree instanceof OpTopN) {
-				return new Limit((OpTopN) jenaAlgebraTree, statistics,settings,prefixes);
+			} else if (jenaAlgebraTree instanceof OpSlice) {
+				return new Limit((OpSlice) jenaAlgebraTree, statistics,settings,prefixes);
 			} else {
 				throw new Exception("Operation not yet implemented");
 			}
