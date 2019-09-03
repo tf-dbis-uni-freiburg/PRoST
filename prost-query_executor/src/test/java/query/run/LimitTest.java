@@ -17,7 +17,6 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
@@ -40,32 +39,35 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 	@Test
 	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestLimit1_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT(statistics, fullDataset);
-		queryOnVp(statistics, fullDataset);
-		queryOnWpt(statistics, fullDataset);
-		queryOnIwpt(statistics, fullDataset);
-		queryOnJwptOuter(statistics, fullDataset);
-		queryOnJwptLeftOuter(statistics, fullDataset);
-	}	
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		initializeDb(statistics);
+		final Dataset<Row> expectedResult = createQueryExpectedDataset();
+
+		queryOnTT(statistics, expectedResult);
+		queryOnVp(statistics, expectedResult);
+		queryOnWpt(statistics, expectedResult);
+		queryOnIwpt(statistics, expectedResult);
+		queryOnJwptOuter(statistics, expectedResult);
+		queryOnJwptLeftOuter(statistics, expectedResult);
+	}
+
+	private Dataset<Row> createQueryExpectedDataset(){
+		//EXPECTED
+		final StructType schema = DataTypes.createStructType(new StructField[]{
+				DataTypes.createStructField("title", DataTypes.StringType, true)
+		});
+		final Row row1 = RowFactory.create("Title1");
+		final Row row2 = RowFactory.create("Title2");
+		final List<Row> rowList = ImmutableList.of(row1, row2);
+		return spark().createDataFrame(rowList, schema);
+	}
+
+	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
-		
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("LimitTest: queryTest1");
@@ -77,116 +79,65 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);		
 		
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
 				
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());		
-		
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
 		
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
 				
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestLimit1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestLimit1.q").getPath(), statistics, settings);
 				
-		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
-				DataTypes.createStructField("title", DataTypes.StringType, true),
-				DataTypes.createStructField("count", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "3");
-		Row row2 = RowFactory.create("Title2", "2");
-		List<Row> rowList = ImmutableList.of(row1, row2);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "count");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		
@@ -198,7 +149,6 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestLimit1_db");
 		spark().sql("USE queryTestLimit1_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
@@ -251,13 +201,12 @@ public class LimitTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
-	
 }
 
 /*
