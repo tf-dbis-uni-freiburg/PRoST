@@ -8,13 +8,19 @@ import org.apache.spark.sql.SQLContext;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
+/**
+ * Implementation of LIMIT operation.
+ */
 public class Limit extends SimpleOperation {
 	private Integer limit;
 
 	Limit(final OpSlice jenaAlgebraTree, final DatabaseStatistics statistics, final Settings settings,
 		  final PrefixMapping prefixes) throws Exception {
 		super(jenaAlgebraTree.getSubOp(), statistics, settings, prefixes);
-		this.limit = (int)jenaAlgebraTree.getLength();
+		this.limit = (int) jenaAlgebraTree.getLength();
+		if (jenaAlgebraTree.getStart() > 0) {
+			throw new Exception("OFFSET operation is not supported");
+		}
 	}
 
 	public Dataset<Row> computeOperation(final SQLContext sqlContext) {

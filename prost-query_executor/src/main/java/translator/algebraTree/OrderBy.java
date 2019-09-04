@@ -13,6 +13,9 @@ import org.apache.spark.sql.SQLContext;
 import statistics.DatabaseStatistics;
 import utils.Settings;
 
+/**
+ * Implementation of a sorting operation.
+ */
 public class OrderBy extends SimpleOperation {
 	private final ArrayList<Pair<String, Direction>> sortVariables = new ArrayList<>();
 
