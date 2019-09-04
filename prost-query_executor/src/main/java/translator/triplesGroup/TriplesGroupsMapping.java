@@ -40,6 +40,10 @@ public class TriplesGroupsMapping {
 		}
 	}
 
+	public Multimap<String, TriplesGroup> getTriplesGroups() {
+		return triplesGroups;
+	}
+
 	/**
 	 * Creates triple groups with a common subject resource.
 	 */

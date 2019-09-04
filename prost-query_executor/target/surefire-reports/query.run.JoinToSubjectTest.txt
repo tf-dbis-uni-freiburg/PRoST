@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: query.run.JoinToSubjectTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 9.672 sec <<< FAILURE!
-queryTest(query.run.JoinToSubjectTest)  Time elapsed: 9.655 sec  <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 11.082 sec <<< FAILURE!
+queryTest(query.run.JoinToSubjectTest)  Time elapsed: 11.062 sec  <<< ERROR!
 java.lang.IllegalArgumentException: Error while instantiating 'org.apache.spark.sql.hive.HiveSessionState':
 	at org.apache.spark.sql.SparkSession$.org$apache$spark$sql$SparkSession$$reflect(SparkSession.scala:981)
 	at org.apache.spark.sql.SparkSession.sessionState$lzycompute(SparkSession.scala:110)

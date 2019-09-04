@@ -1,6 +1,7 @@
 package translator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,8 @@ import com.hp.hpl.jena.sparql.algebra.Algebra;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import joinTree.ElementType;
 import joinTree.IWPTNode;
 import joinTree.JWPTNode;
@@ -27,6 +30,7 @@ import joinTree.VPNode;
 import joinTree.WPTNode;
 import org.apache.log4j.Logger;
 import statistics.DatabaseStatistics;
+import statistics.PropertyStatistics;
 import translator.triplesGroup.TriplesGroup;
 import translator.triplesGroup.TriplesGroupsMapping;
 import utils.EmergentSchema;
@@ -99,7 +103,7 @@ public class Translator {
 	 * Constructs the join tree.
 	 */
 	private Node buildTree(final List<Triple> triples) {
-		final PriorityQueue<Node> nodesQueue = getNodesQueue(triples);
+		final PriorityQueue<Node> nodesQueue = getDetailedNodesQueue(triples);
 		
 		Node currentNode = null;
 
@@ -115,6 +119,156 @@ public class Translator {
 			}
 		}
 		return currentNode;
+	}
+
+	private PriorityQueue<Node> getDetailedNodesQueue(final List<Triple> triples) {
+		PriorityQueue<Node> nodesQueue = new PriorityQueue<>(triples.size(), new NodeComparator());
+		final List<Triple> unassignedTriples = new ArrayList<>();
+
+		for (final Triple triple : triples) {
+			unassignedTriples.add(triple);
+		}
+		TriplesGroupsMapping groupsMapping = new TriplesGroupsMapping(unassignedTriples, settings);
+		Multimap<String, TriplesGroup> triplesGroups = groupsMapping.getTriplesGroups();
+		List<TriplesGroup> uniqueTriples = new ArrayList<>();
+		for (String vr: triplesGroups.keys()) {
+			Collection<TriplesGroup> trigrps =  triplesGroups.get(vr);
+			for (TriplesGroup trigrp : trigrps) {
+				boolean isUnique = true;
+				for (TriplesGroup oldGroup: uniqueTriples) {
+					List<Triple> oldTriples = oldGroup.getTriples();
+					List<Triple> currentTriples = trigrp.getTriples();
+					if (oldTriples.equals(currentTriples)) {
+						isUnique = false;
+						break;
+					}
+				}
+				if (isUnique) {
+					uniqueTriples.add(trigrp);
+				}
+			}
+		}
+		List<TriplesGroup> bestGroups = getMinimalTripleGroup(triples, uniqueTriples);
+		
+		for (TriplesGroup triplesGroup: bestGroups) {
+			List<Node> createdNodes = triplesGroup.createNodes(settings, statistics, prefixes);
+			nodesQueue.addAll(createdNodes);
+
+		}
+	
+
+		return nodesQueue;
+
+	}
+
+	private List<TriplesGroup> getMinimalTripleGroup(List<Triple> triples, List<TriplesGroup> allTripleGroups) {
+		int n = allTripleGroups.size();
+		List<TriplesGroup> bestGroups = allTripleGroups;
+		int minSize = n;
+		long groupCost = evaluateTripleGroupCost(allTripleGroups);
+		S
+		for (int i = 0; i < (1 << n); i++) {
+			List<TriplesGroup> candidateGroups = new ArrayList<TriplesGroup>();
+			for (int j = 0; j < n; j++) {
+				if ( (i & (1 << j)) > 0) {
+					candidateGroups.add(allTripleGroups.get(j));
+				}
+			}
+			
+			if (! areAllTriplesCovered(triples, candidateGroups)) {
+				continue;
+			}
+
+			if (candidateGroups.size() == minSize) {
+				long newCost = evaluateTripleGroupCost(candidateGroups);
+				if (newCost < groupCost) {
+					groupCost = newCost;
+					bestGroups = candidateGroups;
+				}
+			}
+
+			else if (candidateGroups.size() < minSize) {
+				bestGroups = candidateGroups;
+				minSize = candidateGroups.size();
+			}
+
+
+		}
+		return bestGroups;
+	}
+
+	private long evaluateTripleGroupCost(List<TriplesGroup> candidateGroups) {
+		long sumOfJoins = 0;
+		for (int i = 0; i < candidateGroups.size(); i++) {
+			TriplesGroup firstGroup = candidateGroups.get(i);
+			HashSet<String> firstVars = getTripleGroupVars(firstGroup);
+			for (int j = i + 1; j < candidateGroups.size(); j++) {
+				TriplesGroup secondGroup = candidateGroups.get(j);
+				HashSet<String> secondVars = getTripleGroupVars(secondGroup);
+				secondVars.retainAll(firstVars);
+				if (secondVars.size() == 0) {
+					continue;
+				}
+
+
+				for (String var: secondVars) {
+					int product = calculateJoinSizeOnVar(var, firstGroup, secondGroup);
+					sumOfJoins += product;
+				}
+
+			}
+		}
+		return sumOfJoins;
+	}
+
+	private int calculateJoinSizeOnVar(String var, TriplesGroup firstGroup, TriplesGroup secondGroup) {
+		int first = 1;
+		int second = 1;
+		HashMap<String, PropertyStatistics> properties = statistics.getProperties();
+		for (Triple triple: firstGroup.getTriples()) {
+			String subject = triple.getSubject().toString();
+			String object = triple.getObject().toString();
+			if (var.equals(subject) || var.equals(object)) {
+				String predicate = "<" + triple.getPredicate().toString() + ">";
+		
+				first = properties.get(predicate).getTuplesNumber();
+			}
+		}
+
+		for (Triple triple: secondGroup.getTriples()) {
+			String subject = triple.getSubject().toString();
+			String object = triple.getObject().toString();
+			if (var.equals(subject) || var.equals(object)) {
+				String predicate = "<" + triple.getPredicate().toString() + ">";
+				
+				second = properties.get(predicate).getTuplesNumber();
+			}
+		}
+		return first * second;
+	}
+
+	private HashSet<String> getTripleGroupVars(TriplesGroup group) {
+		HashSet<String> vars = new HashSet<String>();
+		for (Triple triple: group.getTriples()) {
+			String subject = triple.getSubject().toString();
+			String object = triple.getObject().toString();
+			vars.add(subject);
+			vars.add(object);
+		}
+		return vars;
+	}
+
+	private boolean areAllTriplesCovered(List<Triple> triples, List<TriplesGroup> candidateGroups) {
+		HashSet<Triple> allCandidateTriples = new HashSet<>();
+		for (TriplesGroup candidate: candidateGroups) {
+			if (triples.size() == allCandidateTriples.size()) {
+				return true;
+			}
+			List<Triple> candidateTriples = candidate.getTriples();
+			HashSet<Triple> candidateSet = new HashSet<Triple>(candidateTriples);
+			allCandidateTriples.addAll(candidateSet);
+		}
+		return triples.size() == allCandidateTriples.size();
 	}
 
 	private PriorityQueue<Node> getNodesQueue(final List<Triple> triples) {
@@ -139,7 +293,7 @@ public class Translator {
 			while (groupsMapping.size() > 0) {
 				final TriplesGroup largestGroup = groupsMapping.extractBestTriplesGroup(settings);
 				
-				if (largestGroup.size() < 2S) {
+				if (largestGroup.size() < 2) {
 					break;
 				}
 				final List<Node> createdNodes = largestGroup.createNodes(settings, statistics, prefixes);
