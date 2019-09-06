@@ -17,6 +17,7 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
@@ -37,10 +38,10 @@ public class OffsetTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	//@Ignore("Optionals are not fully implemented yet.")
+	@Ignore("Offsets not supported by PRoST and SPARK SQL. Offset support is not reasonable in distributed databases.")
 	public void queryTest1() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOffset1_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
+		initializeDb(statistics);
 
 		queryOnTT(statistics);
 		queryOnVp(statistics);
@@ -210,7 +211,6 @@ public class OffsetTest extends JavaDataFrameSuiteBase implements Serializable {
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOffset1_db");
 		spark().sql("USE queryTestOffset1_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/person1>");
@@ -298,26 +298,26 @@ public class OffsetTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
 	
 	@Test
-	//@Ignore("Optionals are not fully implemented yet.")
+	@Ignore("Offsets not supported by PRoST and SPARK SQL. Offset support is not reasonable in distributed databases.")
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOffset2_db");
-		Dataset<Row> fullDataset = initializeDb2(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
+		initializeDb2(statistics);
 		queryOnTT2(statistics);
 		queryOnVp2(statistics);
 		queryOnWpt2(statistics);
 		queryOnIwpt2(statistics);
 		queryOnJwptOuter2(statistics);
 		queryOnJwptLeftOuter2(statistics);
-	}	
+	}
+
 	private void queryOnTT2(final DatabaseStatistics statistics)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOffset2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
@@ -484,7 +484,6 @@ public class OffsetTest extends JavaDataFrameSuiteBase implements Serializable {
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOffset2_db");
 		spark().sql("USE queryTestOffset2_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/person1>");
@@ -572,14 +571,12 @@ public class OffsetTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
-	
-	
 }
 
 /*
