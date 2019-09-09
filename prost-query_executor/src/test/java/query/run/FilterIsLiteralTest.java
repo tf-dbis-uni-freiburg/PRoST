@@ -304,8 +304,10 @@ Expected:
 +------+-------------------+
 
 Actual:
-org.apache.spark.sql.catalyst.parser.ParseException: 
-no viable alternative at input '<EOF>'(line 1, pos 2)
 
+final TripleBean t1 = new TripleBean();
+t1.setS("<http://example.org/book2>");
+t1.setP("<http://example.org/mail>");
+t1.setO("<mailto:book2@books.example>"); -> not possible
 -----------------------------------------------------------------------------------------------------------------
 */
