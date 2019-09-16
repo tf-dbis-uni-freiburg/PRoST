@@ -17,7 +17,6 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.spark_project.guava.collect.ImmutableList;
 import query.utilities.TripleBean;
@@ -37,7 +36,6 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
-	
 	@Test
 	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOrderBy1_db");
@@ -49,26 +47,27 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		queryOnIwpt1(statistics, fullDataset);
 		queryOnJwptOuter1(statistics, fullDataset);
 		queryOnJwptLeftOuter1(statistics, fullDataset);
-	}	
-	private void queryOnTT1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	}
+
+	private void queryOnTT1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("OrderByTest: queryTest1");
@@ -79,129 +78,129 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
-				
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());				
-		
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();	
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -210,18 +209,18 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOrderBy1_db");
 		spark().sql("USE queryTestOrderBy1_db");
 
-				
+
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
 		t1.setP("<http://example.org/title>");
 		t1.setO("Title1");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
 		t2.setO("Title2");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/book3>");
 		t3.setP("<http://example.org/title>");
@@ -231,22 +230,22 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		t4.setS("<http://example.org/book4>");
 		t4.setP("<http://example.org/title>");
 		t4.setO("Title4");
-		
+
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/book1>");
 		t5.setP("<http://example.org/price>");
 		t5.setO("50");
-		
+
 		final TripleBean t6 = new TripleBean();
 		t6.setS("<http://example.org/book2>");
 		t6.setP("<http://example.org/price>");
 		t6.setO("40");
-		
+
 		final TripleBean t7 = new TripleBean();
 		t7.setS("<http://example.org/book3>");
 		t7.setP("<http://example.org/price>");
 		t7.setO("60");
-		
+
 		final TripleBean t8 = new TripleBean();
 		t8.setS("<http://example.org/book4>");
 		t8.setP("<http://example.org/price>");
@@ -262,11 +261,10 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		triplesList.add(t7);
 		triplesList.add(t8);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestOrderBy1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OrderByTest").replace('\\', '/'))
@@ -293,13 +291,13 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
-	
+
 	@Test
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOrderBy2_db");
@@ -311,26 +309,27 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		queryOnIwpt2(statistics, fullDataset);
 		queryOnJwptOuter2(statistics, fullDataset);
 		queryOnJwptLeftOuter2(statistics, fullDataset);
-	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	}
+
+	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("OrderByTest: queryTest2");
@@ -340,131 +339,130 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());		
-				
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
-		
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title4", "20");
-		Row row2 = RowFactory.create("Title2", "40");
-		Row row3 = RowFactory.create("Title1", "50");
-		Row row4 = RowFactory.create("Title3", "60");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title4", "20");
+		final Row row2 = RowFactory.create("Title2", "40");
+		final Row row3 = RowFactory.create("Title1", "50");
+		final Row row4 = RowFactory.create("Title3", "60");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -473,18 +471,17 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOrderBy2_db");
 		spark().sql("USE queryTestOrderBy2_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
 		t1.setP("<http://example.org/title>");
 		t1.setO("Title1");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
 		t2.setO("Title2");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/book3>");
 		t3.setP("<http://example.org/title>");
@@ -494,22 +491,22 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		t4.setS("<http://example.org/book4>");
 		t4.setP("<http://example.org/title>");
 		t4.setO("Title4");
-		
+
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/book1>");
 		t5.setP("<http://example.org/price>");
 		t5.setO("50");
-		
+
 		final TripleBean t6 = new TripleBean();
 		t6.setS("<http://example.org/book2>");
 		t6.setP("<http://example.org/price>");
 		t6.setO("40");
-		
+
 		final TripleBean t7 = new TripleBean();
 		t7.setS("<http://example.org/book3>");
 		t7.setP("<http://example.org/price>");
 		t7.setO("60");
-		
+
 		final TripleBean t8 = new TripleBean();
 		t8.setS("<http://example.org/book4>");
 		t8.setP("<http://example.org/price>");
@@ -525,11 +522,10 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		triplesList.add(t7);
 		triplesList.add(t8);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestOrderBy2_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OrderByTest").replace('\\', '/'))
@@ -556,13 +552,13 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
-	
+
 	@Test
 	public void queryTest3() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOrderBy3_db");
@@ -574,26 +570,27 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		queryOnIwpt3(statistics, fullDataset);
 		queryOnJwptOuter3(statistics, fullDataset);
 		queryOnJwptLeftOuter3(statistics, fullDataset);
-	}	
-	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	}
+
+	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("OrderByTest: queryTest3");
@@ -603,129 +600,129 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());		
-				
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title3", "60");
-		Row row2 = RowFactory.create("Title1", "50");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title3", "60");
+		final Row row2 = RowFactory.create("Title1", "50");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -734,18 +731,18 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOrderBy3_db");
 		spark().sql("USE queryTestOrderBy3_db");
 
-				
+
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
 		t1.setP("<http://example.org/title>");
 		t1.setO("Title1");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
 		t2.setO("Title2");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/book3>");
 		t3.setP("<http://example.org/title>");
@@ -755,22 +752,22 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		t4.setS("<http://example.org/book4>");
 		t4.setP("<http://example.org/title>");
 		t4.setO("Title4");
-		
+
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/book1>");
 		t5.setP("<http://example.org/price>");
 		t5.setO("50");
-		
+
 		final TripleBean t6 = new TripleBean();
 		t6.setS("<http://example.org/book2>");
 		t6.setP("<http://example.org/price>");
 		t6.setO("40");
-		
+
 		final TripleBean t7 = new TripleBean();
 		t7.setS("<http://example.org/book3>");
 		t7.setP("<http://example.org/price>");
 		t7.setO("60");
-		
+
 		final TripleBean t8 = new TripleBean();
 		t8.setS("<http://example.org/book4>");
 		t8.setP("<http://example.org/price>");
@@ -786,11 +783,10 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		triplesList.add(t7);
 		triplesList.add(t8);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestOrderBy3_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OrderByTest").replace('\\', '/'))
@@ -817,13 +813,13 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
-	
+
 	@Test
 	public void queryTest4() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestOrderBy4_db");
@@ -835,26 +831,27 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		queryOnIwpt4(statistics, fullDataset);
 		queryOnJwptOuter4(statistics, fullDataset);
 		queryOnJwptLeftOuter4(statistics, fullDataset);
-	}	
-	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	}
+
+	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
 		System.out.print("OrderByTest: queryTest4");
@@ -864,129 +861,129 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());		
-				
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
 				DataTypes.createStructField("price", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("Title1", "60");
-		Row row2 = RowFactory.create("Title3", "60");
-		Row row3 = RowFactory.create("Title2", "40");
-		Row row4 = RowFactory.create("Title4", "20");
-		List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("Title1", "60");
+		final Row row2 = RowFactory.create("Title3", "60");
+		final Row row3 = RowFactory.create("Title2", "40");
+		final Row row4 = RowFactory.create("Title4", "20");
+		final List<Row> rowList = ImmutableList.of(row1, row2, row3, row4);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
-		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title", "price");
+		final Dataset<Row> actualResult = query.compute(spark().sqlContext());
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
@@ -995,18 +992,18 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestOrderBy4_db");
 		spark().sql("USE queryTestOrderBy4_db");
 
-				
+
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
 		t1.setP("<http://example.org/title>");
 		t1.setO("Title1");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/book2>");
 		t2.setP("<http://example.org/title>");
 		t2.setO("Title2");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/book3>");
 		t3.setP("<http://example.org/title>");
@@ -1016,22 +1013,22 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		t4.setS("<http://example.org/book4>");
 		t4.setP("<http://example.org/title>");
 		t4.setO("Title4");
-		
+
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/book1>");
 		t5.setP("<http://example.org/price>");
 		t5.setO("60");
-		
+
 		final TripleBean t6 = new TripleBean();
 		t6.setS("<http://example.org/book2>");
 		t6.setP("<http://example.org/price>");
 		t6.setO("40");
-		
+
 		final TripleBean t7 = new TripleBean();
 		t7.setS("<http://example.org/book3>");
 		t7.setP("<http://example.org/price>");
 		t7.setO("60");
-		
+
 		final TripleBean t8 = new TripleBean();
 		t8.setS("<http://example.org/book4>");
 		t8.setP("<http://example.org/price>");
@@ -1047,11 +1044,10 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 		triplesList.add(t7);
 		triplesList.add(t8);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestOrderBy4_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\OrderByTest").replace('\\', '/'))
@@ -1078,9 +1074,9 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
 		return ttDataset;
 	}
