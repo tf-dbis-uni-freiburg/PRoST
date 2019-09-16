@@ -27,7 +27,7 @@ public class OrderBy extends SimpleOperation {
 			final String sortExpression = JenaExpressionConverter.jenaExpressionToSqlExpression(sortCondition.getExpression());
 			final int jenaDirection = sortCondition.getDirection();
 			final Direction direction;
-			if (jenaDirection == -2) {
+			if (jenaDirection == -2 || jenaDirection == 1) {
 				direction = Direction.ASC;
 			} else {
 				direction = Direction.DESC;
