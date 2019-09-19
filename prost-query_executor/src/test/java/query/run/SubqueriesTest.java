@@ -36,7 +36,7 @@ import utils.Settings;
 public class SubqueriesTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
-	/*
+	
 	@Test
 	public void queryTest1() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSubquery1_db");
@@ -532,7 +532,7 @@ public class SubqueriesTest extends JavaDataFrameSuiteBase implements Serializab
 
 		return ttDataset;
 	}
-	*/
+	
 	@Test
 	public void queryTest3() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestSubquery3_db");
