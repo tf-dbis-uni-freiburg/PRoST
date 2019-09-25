@@ -58,7 +58,7 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="query.run.JoinWithUnionTest" name="queryTest1" time="0.036">
+  <testcase classname="query.run.JoinWithUnionTest" name="queryTest1" time="0.03">
     <skipped/>
   </testcase>
 </testsuite>

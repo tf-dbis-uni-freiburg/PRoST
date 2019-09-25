@@ -48,8 +48,10 @@ public class Main {
 		final File file = new File(settings.getQueriesInputPath());
 
 		// create an executor
-		final Executor executor = new Executor(settings);
+		final Executor executor = new Executor(settings, statistics);
 
+		//executor.createCharacteristicsFile();
+		
 		// single file
 		if (file.isFile()) {
 
@@ -87,7 +89,7 @@ public class Main {
 				logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
 				executor.saveResultsCsv(settings.getBenchmarkFilePath());
 			}
-		}
+		} 
 	}
 
 	private static JoinTree translateSingleQuery(final String query, final DatabaseStatistics statistics,

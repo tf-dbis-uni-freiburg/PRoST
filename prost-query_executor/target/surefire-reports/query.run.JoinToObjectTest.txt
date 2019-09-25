@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: query.run.JoinToObjectTest
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 13.204 sec <<< FAILURE!
-queryTest(query.run.JoinToObjectTest)  Time elapsed: 13.174 sec  <<< ERROR!
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 13.048 sec <<< FAILURE!
+queryTest(query.run.JoinToObjectTest)  Time elapsed: 13.023 sec  <<< ERROR!
 java.lang.IllegalArgumentException: Error while instantiating 'org.apache.spark.sql.hive.HiveSessionState':
 	at org.apache.spark.sql.SparkSession$.org$apache$spark$sql$SparkSession$$reflect(SparkSession.scala:981)
 	at org.apache.spark.sql.SparkSession.sessionState$lzycompute(SparkSession.scala:110)
@@ -93,7 +93,7 @@ Caused by: java.lang.RuntimeException: The root scratch dir: /tmp/hive on HDFS s
 	at org.apache.hadoop.hive.ql.session.SessionState.createSessionDirs(SessionState.java:554)
 	at org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:508)
 	... 71 more
-queryTest2(query.run.JoinToObjectTest)  Time elapsed: 0.001 sec  <<< ERROR!
+queryTest2(query.run.JoinToObjectTest)  Time elapsed: 0 sec  <<< ERROR!
 java.lang.NullPointerException
 	at query.run.JoinToObjectTest.initializeDb2(JoinToObjectTest.java:470)
 	at query.run.JoinToObjectTest.queryTest2(JoinToObjectTest.java:303)

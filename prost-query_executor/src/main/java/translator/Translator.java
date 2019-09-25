@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
@@ -18,6 +20,10 @@ import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import joinTree.ElementType;
 import joinTree.IWPTNode;
 import joinTree.JWPTNode;
@@ -49,6 +55,7 @@ public class Translator {
 	private final Settings settings;
 	private final String queryPath;
 	private PrefixMapping prefixes;
+	private HashMap<String, Double> tripleGroupOccurences;
 
 	public Translator(final Settings settings, final DatabaseStatistics statistics, final String queryPath) {
 		this.settings = settings;
@@ -63,10 +70,13 @@ public class Translator {
 
 		logger.info("** SPARQL QUERY **\n" + query + "\n****************");
 
+
 		// extract variables, list of triples and filter
 		final Op opQuery = Algebra.compile(query);
 		final QueryVisitor queryVisitor = new QueryVisitor(prefixes);
 		OpWalker.walk(opQuery, queryVisitor);
+
+		fillTripleSizesMap();
 
 		final QueryTree mainTree = queryVisitor.getMainQueryTree();
 		final List<Var> projectionVariables = queryVisitor.getProjectionVariables();
@@ -97,6 +107,20 @@ public class Translator {
 
 		logger.info("** Spark JoinTree **\n" + tree + "\n****************");
 		return tree;
+	}
+
+	private void fillTripleSizesMap() {
+		tripleGroupOccurences = new HashMap<>();
+		Gson gson = new Gson();
+	
+		try {
+			JsonParser parser = new JsonParser();
+			String json = parser.parse(new FileReader("characteristics.json")).toString();
+			tripleGroupOccurences = gson.fromJson(json, HashMap.class);
+		}	 
+		catch (Exception e) {
+
+		}
 	}
 
 	/**
@@ -166,10 +190,11 @@ public class Translator {
 		List<TriplesGroup> bestGroups = allTripleGroups;
 		int minSize = n;
 		long groupCost = evaluateTripleGroupCost(allTripleGroups);
-		S
+		
 		for (int i = 0; i < (1 << n); i++) {
 			List<TriplesGroup> candidateGroups = new ArrayList<TriplesGroup>();
 			for (int j = 0; j < n; j++) {
+				
 				if ( (i & (1 << j)) > 0) {
 					candidateGroups.add(allTripleGroups.get(j));
 				}
@@ -194,58 +219,70 @@ public class Translator {
 
 
 		}
+		
 		return bestGroups;
 	}
 
 	private long evaluateTripleGroupCost(List<TriplesGroup> candidateGroups) {
-		long sumOfJoins = 0;
-		for (int i = 0; i < candidateGroups.size(); i++) {
-			TriplesGroup firstGroup = candidateGroups.get(i);
-			HashSet<String> firstVars = getTripleGroupVars(firstGroup);
-			for (int j = i + 1; j < candidateGroups.size(); j++) {
-				TriplesGroup secondGroup = candidateGroups.get(j);
-				HashSet<String> secondVars = getTripleGroupVars(secondGroup);
-				secondVars.retainAll(firstVars);
-				if (secondVars.size() == 0) {
-					continue;
+		long answer = 0;
+		for (TriplesGroup grp: candidateGroups ) {
+
+			List<Triple> grpTriples = grp.getTriples();
+			if (grpTriples.size() == 1) {
+				answer += getSingularGroupSize(grpTriples.get(0));
+			} 
+			else  {
+				Triple first = grpTriples.get(0);
+				Triple second = grpTriples.get(1);
+				String firstPredicate = first.getPredicate().toString();
+				String secondPredicate = second.getPredicate().toString();
+				if (firstPredicate.compareTo(secondPredicate) < 0) {
+					answer += getDoubleGroupSize(first, second);
 				}
-
-
-				for (String var: secondVars) {
-					int product = calculateJoinSizeOnVar(var, firstGroup, secondGroup);
-					sumOfJoins += product;
+				else {
+					answer += getDoubleGroupSize(second, first);
 				}
-
 			}
 		}
-		return sumOfJoins;
+
+		return answer;
 	}
 
-	private int calculateJoinSizeOnVar(String var, TriplesGroup firstGroup, TriplesGroup secondGroup) {
-		int first = 1;
-		int second = 1;
+
+
+	private long getDoubleGroupSize(Triple first, Triple second) {
+		String relationBetweenTriples = getCommonVariablePlacing(first, second); 
+		String firstPredicate = "<" + first.getPredicate().toString() + ">";
+		String secondPredicate = "<" + second.getPredicate().toString() + ">";
+		String charKey = firstPredicate + "-" + secondPredicate + "-" + relationBetweenTriples;
+		double answer = tripleGroupOccurences.get(charKey);
+		return (long) answer;
+	}
+
+
+
+	private String getCommonVariablePlacing(Triple first, Triple second) {
+		if (first.getSubject().toString().equals(second.getSubject().toString())) {
+			return "SS";
+		}
+
+		if (first.getObject().toString().equals(second.getObject().toString())) {
+			return "OO";
+		}
+
+		if (first.getSubject().toString().equals(second.getObject().toString())) {
+			return "SO";
+		}
+		return "OS";
+	}
+
+	private long getSingularGroupSize(Triple triple) {
+		String predicate = "<" + triple.getPredicate().toString() + ">";
 		HashMap<String, PropertyStatistics> properties = statistics.getProperties();
-		for (Triple triple: firstGroup.getTriples()) {
-			String subject = triple.getSubject().toString();
-			String object = triple.getObject().toString();
-			if (var.equals(subject) || var.equals(object)) {
-				String predicate = "<" + triple.getPredicate().toString() + ">";
-		
-				first = properties.get(predicate).getTuplesNumber();
-			}
-		}
-
-		for (Triple triple: secondGroup.getTriples()) {
-			String subject = triple.getSubject().toString();
-			String object = triple.getObject().toString();
-			if (var.equals(subject) || var.equals(object)) {
-				String predicate = "<" + triple.getPredicate().toString() + ">";
-				
-				second = properties.get(predicate).getTuplesNumber();
-			}
-		}
-		return first * second;
+		long answer = (long) properties.get(predicate).getTuplesNumber();
+		return answer;
 	}
+	
 
 	private HashSet<String> getTripleGroupVars(TriplesGroup group) {
 		HashSet<String> vars = new HashSet<String>();
