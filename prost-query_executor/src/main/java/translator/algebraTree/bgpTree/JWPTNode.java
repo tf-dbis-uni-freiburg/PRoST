@@ -135,6 +135,8 @@ public class JWPTNode extends MVNode {
 			}
 		}
 
+		//A unique id for exploded columns. Necessary for BGB with multiple patterns that explode the same column.
+		int explodedColumnId = 0;
 		// forward patterns
 		for (final TriplePattern t : wptTripleGroup) {
 			final String columnName =
@@ -148,9 +150,10 @@ public class JWPTNode extends MVNode {
 					whereElements.add(columnName + "='" + t.getObject() + "'");
 				}
 			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
-				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
+				selectElements.add(" P" + columnName + "_" + explodedColumnId + " AS " + Utils.removeQuestionMark(t.getObject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
-						+ " AS P" + columnName);
+						+ " AS P" + columnName + "_" + explodedColumnId);
+				explodedColumnId++;
 			} else {
 				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				whereElements.add(columnName + " IS NOT NULL");
@@ -170,9 +173,10 @@ public class JWPTNode extends MVNode {
 					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
 			} else if ((t.isInverseComplex(getStatistics(), t.getPredicate()))) {
-				selectElements.add(" P" + columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
+				selectElements.add(" P" + columnName + "_" + explodedColumnId + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
-						+ " AS P" + columnName);
+						+ " AS P" + columnName + "_" + explodedColumnId);
+				explodedColumnId++;
 			} else {
 				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				whereElements.add(columnName + " IS NOT NULL");

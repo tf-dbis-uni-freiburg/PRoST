@@ -133,7 +133,7 @@ public abstract class BgpNode {
 				} else {
 					m =
 							m * ((double) superSet.getPropertyTuplesNumber(triple.getPredicate())
-							/ (double) superSet.getDistinctSubjects());
+									/ (double) superSet.getDistinctSubjects());
 				}
 			}
 			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;

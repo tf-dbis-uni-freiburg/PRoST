@@ -59,7 +59,8 @@ public class WPTNode extends MVNode {
 		} else {
 			whereElements.add("s='" + this.getFirstTriplePattern().getSubject() + "'");
 		}
-
+		//A unique id for exploded columns. Necessary for BGB with multiple patterns that explode the same column.
+		int explodedColumnId = 0;
 		for (final TriplePattern t : this.getTripleGroup()) {
 			final String columnName = this.getStatistics().getProperties().get(t.getPredicate()).getInternalName();
 			if (columnName == null) {
@@ -73,9 +74,10 @@ public class WPTNode extends MVNode {
 					whereElements.add(columnName + "='" + t.getObject() + "'");
 				}
 			} else if ((t.isComplex(getStatistics(), t.getPredicate()))) {
-				selectElements.add("P" + columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
+				selectElements.add("P" + columnName + "_" + explodedColumnId + " AS " + Utils.removeQuestionMark(t.getObject()));
 				explodedElements.add("\nlateral view explode(" + columnName + ") exploded" + columnName
-						+ " AS P" + columnName);
+						+ " AS P" + columnName + "_" + explodedColumnId);
+				explodedColumnId++;
 			} else {
 				selectElements.add(columnName + " AS " + Utils.removeQuestionMark(t.getObject()));
 				whereElements.add(columnName + " IS NOT NULL");
