@@ -41,6 +41,10 @@ public class Executor {
 
 		// initialize the Spark environment
 		spark = SparkSession.builder().appName("PRoST-Executor").enableHiveSupport().getOrCreate();
+		if (!settings.isUsingBroadcastJoins()) {
+			spark.conf().set("spark.sql.autoBroadcastJoinThreshold", -1);
+		}
+
 		this.sqlContext = spark.sqlContext();
 		this.sqlContext.sql("USE " + settings.getDatabaseName());
 

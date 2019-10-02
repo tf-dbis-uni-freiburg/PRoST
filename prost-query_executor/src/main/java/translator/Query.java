@@ -44,6 +44,10 @@ public class Query {
 	public Dataset<Row> compute() {
 		// initialize the Spark environment
 		final SparkSession spark = SparkSession.builder().appName("PRoST-Executor").enableHiveSupport().getOrCreate();
+		if (!settings.isUsingBroadcastJoins()) {
+			spark.conf().set("spark.sql.autoBroadcastJoinThreshold", -1);
+		}
+
 		final SQLContext sqlContext = spark.sqlContext();
 		sqlContext.sql("USE " + settings.getDatabaseName());
 		return algebraTree.computeOperation(sqlContext);

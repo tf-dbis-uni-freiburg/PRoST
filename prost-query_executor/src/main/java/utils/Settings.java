@@ -47,6 +47,7 @@ public class Settings {
 	private boolean usingCharacteristicSets = false;
 
 	// Executor options
+	private boolean usingBroadcastJoins = true;
 	private boolean randomQueryOrder = false;
 	private boolean savingBenchmarkFile = false;
 	private boolean savingSparkPlans = false;
@@ -80,6 +81,7 @@ public class Settings {
 			this.minGroupSize = settings.get("translator", "minGroupSize", int.class);
 			this.usingCharacteristicSets = settings.get("translator", "usingCharacteristicSets", boolean.class);
 
+			this.usingBroadcastJoins = settings.get("executor", "usingBroadcastJoins", boolean.class);
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
 			this.savingBenchmarkFile = settings.get("executor", "savingBenchmarkFile", boolean.class);
 			this.savingSparkPlans = settings.get("executor", "savingSparkPlans", boolean.class);
@@ -393,6 +395,10 @@ public class Settings {
 		return savingSparkPlans;
 	}
 
+	public boolean isUsingBroadcastJoins() {
+		return usingBroadcastJoins;
+	}
+
 	/**
 	 * Builder class for a Settings object.
 	 */
@@ -411,11 +417,13 @@ public class Settings {
 		private boolean usingJWPTInner = false;
 		private boolean usingJWPTLeftOuter = false;
 
-
 		// Translator options
 		private boolean groupingTriples = true;
 		private int minGroupSize = 1;
 		private boolean usingCharacteriticSets = false;
+
+		//Executor options
+		private boolean usingBroadcastJoins = true;
 
 		public Builder(final String databaseName) {
 			this.databaseName = databaseName;
@@ -476,6 +484,11 @@ public class Settings {
 			return this;
 		}
 
+		public Builder usingBroadcastJoins(final boolean usingBroadcastJoins) {
+			this.usingBroadcastJoins = usingBroadcastJoins;
+			return  this;
+		}
+
 		public Settings build() {
 			final Settings settings = new Settings();
 			settings.databaseName = this.databaseName;
@@ -491,6 +504,7 @@ public class Settings {
 			settings.groupingTriples = this.groupingTriples;
 			settings.minGroupSize = this.minGroupSize;
 			settings.usingCharacteristicSets = this.usingCharacteriticSets;
+			settings.usingBroadcastJoins = this.usingBroadcastJoins;
 			return settings;
 		}
 	}
