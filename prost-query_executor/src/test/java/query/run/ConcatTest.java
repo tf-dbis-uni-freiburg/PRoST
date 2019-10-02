@@ -38,29 +38,29 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 	
 	@Test
+	@Ignore("Operation not yet implemented.")
 	public void queryTest1() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestConcat1_db");
-		Dataset<Row> fullDataset = initializeDb1(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT1(statistics, fullDataset);
-		queryOnVp1(statistics, fullDataset);
-		queryOnWpt1(statistics, fullDataset);
-		queryOnIwpt1(statistics, fullDataset);
-		queryOnJwptOuter1(statistics, fullDataset);
-		queryOnJwptLeftOuter1(statistics, fullDataset);
+		initializeDb1(statistics);
+		queryOnTT1(statistics);
+		queryOnVp1(statistics);
+		queryOnWpt1(statistics);
+		queryOnIwpt1(statistics);
+		queryOnJwptOuter1(statistics);
+		queryOnJwptLeftOuter1(statistics);
 	}	
-	private void queryOnTT1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnTT1(final DatabaseStatistics statistics)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -75,18 +75,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp1(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnVp1(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();	
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -96,18 +96,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt1(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnWpt1(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -117,18 +117,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt1(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnIwpt1(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -138,18 +138,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter1(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnJwptOuter1(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);	
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -159,18 +159,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter1(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnJwptLeftOuter1(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat1_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat1.q").getPath(), statistics, settings);
 			
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -180,7 +180,7 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb1(final DatabaseStatistics statistics) {
+	private void initializeDb1(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestConcat1_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestConcat1_db");
 		spark().sql("USE queryTestConcat1_db");
@@ -233,37 +233,36 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
-		return ttDataset;
 	}
 	
 	@Test
+	@Ignore("Operation not yet implemented.")
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestConcat2_db");
-		Dataset<Row> fullDataset = initializeDb2(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT2(statistics, fullDataset);
-		queryOnVp2(statistics, fullDataset);
-		queryOnWpt2(statistics, fullDataset);
-		queryOnIwpt2(statistics, fullDataset);
-		queryOnJwptOuter2(statistics, fullDataset);
-		queryOnJwptLeftOuter2(statistics, fullDataset);
+		initializeDb2(statistics);
+		queryOnTT2(statistics);
+		queryOnVp2(statistics);
+		queryOnWpt2(statistics);
+		queryOnIwpt2(statistics);
+		queryOnJwptOuter2(statistics);
+		queryOnJwptLeftOuter2(statistics);
 	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnTT2(final DatabaseStatistics statistics)  throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingTTNodes().usingCharacteristicSets().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -278,18 +277,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnVp2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();	
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -299,18 +298,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnWpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -320,18 +319,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnIwpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -341,18 +340,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);	
 		
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -362,18 +361,18 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row>  fullDataset) throws Exception {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestConcat2_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();		
 		final Query query = new Query(classLoader.getResource("queryTestConcat2.q").getPath(), statistics, settings);
 			
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				});
-		Row row1 = RowFactory.create("Alice", "Abc");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+		final Row row1 = RowFactory.create("Alice", "Abc");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
 		
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
@@ -383,7 +382,7 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
+	private void initializeDb2(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestConcat2_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestConcat2_db");
 		spark().sql("USE queryTestConcat2_db");
@@ -436,11 +435,10 @@ public class ConcatTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
-		return ttDataset;
 	}
 	
 }

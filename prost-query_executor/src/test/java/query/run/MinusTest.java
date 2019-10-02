@@ -26,10 +26,9 @@ import translator.Query;
 import utils.Settings;
 
 /**
- * This class tests represents the highest level of testing, i.e. given a query
- * it checks that results are correctly and consistently returned according to
- * ALL supported logical partitioning strategies (at the moment WPT, IWPT, JWPT,
- * and VP?), i.e. these tests verify are about SPARQL semantics.
+ * This class tests represents the highest level of testing, i.e. given a query it checks that results are correctly and
+ * consistently returned according to ALL supported logical partitioning strategies (at the moment WPT, IWPT, JWPT, and
+ * VP?), i.e. these tests verify are about SPARQL semantics.
  *
  * @author Kristin Plettau
  */
@@ -38,30 +37,31 @@ public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
+	@Ignore("Operation not yet implemented.")
 	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestMinus1_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT(statistics, fullDataset);
-		queryOnVp(statistics, fullDataset);
-		queryOnWpt(statistics, fullDataset);
-		queryOnIwpt(statistics, fullDataset);
-		queryOnJwptOuter(statistics, fullDataset);
-		queryOnJwptLeftOuter(statistics, fullDataset);
-	}	
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		initializeDb(statistics);
+		queryOnTT(statistics);
+		queryOnVp(statistics);
+		queryOnWpt(statistics);
+		queryOnIwpt(statistics);
+		queryOnJwptOuter(statistics);
+		queryOnJwptLeftOuter(statistics);
+	}
+
+	private void queryOnTT(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
-		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);		
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
 
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
@@ -74,130 +74,128 @@ public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
-				
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
-		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);		
-		
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());	
-		
-		
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
-			
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestMinus1_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestMinus1.q").getPath(), statistics, settings);
-				
+
 		//EXPECTED
-		StructType schema = DataTypes.createStructType(new StructField[]{
+		final StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
-				});
-		Row row1 = RowFactory.create("C");
-		List<Row> rowList = ImmutableList.of(row1);
-		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+		});
+		final Row row1 = RowFactory.create("C");
+		final List<Row> rowList = ImmutableList.of(row1);
+		final Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+	private void initializeDb(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestMinus1_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestMinus1_db");
 		spark().sql("USE queryTestMinus1_db");
 
-		
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/A>");
 		t1.setP("<http://example.org/name>");
 		t1.setO("A");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/B>");
 		t2.setP("<http://example.org/name>");
 		t2.setO("B");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/C>");
 		t3.setP("<http://example.org/name>");
@@ -207,13 +205,12 @@ public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 		t4.setS("<http://example.org/A>");
 		t4.setP("<http://example.org/knows>");
 		t4.setO("B");
-		
+
 		final TripleBean t5 = new TripleBean();
 		t5.setS("<http://example.org/C>");
 		t5.setP("<http://example.org/knows>");
 		t5.setO("A");
-		
-		
+
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
@@ -221,11 +218,10 @@ public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 		triplesList.add(t4);
 		triplesList.add(t5);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestMinus1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\MinusTest").replace('\\', '/'))
@@ -252,13 +248,11 @@ public class MinusTest extends JavaDataFrameSuiteBase implements Serializable {
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
-		return ttDataset;
 	}
-	
 }
 
 /*
