@@ -37,32 +37,33 @@ public class FilterIsIntegerTest extends JavaDataFrameSuiteBase implements Seria
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
+	@Ignore("Operation not supported.")
 	@Test
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterIsInteger1_db");
-		Dataset<Row> fullDataset = initializeDb2(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT2(statistics, fullDataset);
-		queryOnVp2(statistics, fullDataset);
-		queryOnWpt2(statistics, fullDataset);
-		queryOnIwpt2(statistics, fullDataset);
-		queryOnJwptOuter2(statistics, fullDataset);
-		queryOnJwptLeftOuter2(statistics, fullDataset);
-	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		initializeDb2(statistics);
+		queryOnTT2(statistics);
+		queryOnVp2(statistics);
+		queryOnWpt2(statistics);
+		queryOnIwpt2(statistics);
+		queryOnJwptOuter2(statistics);
+		queryOnJwptLeftOuter2(statistics);
+	}
+
+	private void queryOnTT2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
@@ -75,155 +76,153 @@ public class FilterIsIntegerTest extends JavaDataFrameSuiteBase implements Seria
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();	
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
-		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);		
-		
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
-			
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterIsInteger1_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterIsInteger1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("name", DataTypes.StringType, true),
 				DataTypes.createStructField("age", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("A", "20");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("name", "age");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
+	private void initializeDb2(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestFilterIsInteger1_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestFilterIsInteger1_db");
 		spark().sql("USE queryTestFilterIsInteger1_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/name1>");
 		t1.setP("<http://example.org/name>");
 		t1.setO("A");
-		
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/name2>");
 		t2.setP("<http://example.org/name>");
 		t2.setO("B");
-		
+
 		final TripleBean t3 = new TripleBean();
 		t3.setS("<http://example.org/name1>");
 		t3.setP("<http://example.org/age>");
-		//t3.setO("20"^^<http://example.org/integer>);
-		
+		t3.setO("'20'^^<http://example.org/integer>");
+
 		final TripleBean t4 = new TripleBean();
 		t4.setS("<http://example.org/name2>");
 		t4.setP("<http://example.org/age>");
-		//t4.setO("30.5"^^<http://example.org/float>);
-		
+		t4.setO("'30.5'^^<http://example.org/float>");
+
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 		triplesList.add(t3);
 		triplesList.add(t4);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestFilterIsInteger1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterIsIntegerTest").replace('\\', '/'))
@@ -250,13 +249,10 @@ public class FilterIsIntegerTest extends JavaDataFrameSuiteBase implements Seria
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
-
-		return ttDataset;
+		jwptLeftOuterLoader.load();*/
 	}
-	
 }
 
 /*

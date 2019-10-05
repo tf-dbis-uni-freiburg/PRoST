@@ -37,31 +37,32 @@ public class FilterLangTest extends JavaDataFrameSuiteBase implements Serializab
 	private static final long serialVersionUID = 1329L;
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
+	@Ignore("Operation not supported.")
 	@Test
 	public void queryTest2() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestFilterLang1_db");
-		Dataset<Row> fullDataset = initializeDb2(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT2(statistics, fullDataset);
-		queryOnVp2(statistics, fullDataset);
-		queryOnWpt2(statistics, fullDataset);
-		queryOnIwpt2(statistics, fullDataset);
-		queryOnJwptOuter2(statistics, fullDataset);
-		queryOnJwptLeftOuter2(statistics, fullDataset);
-	}	
-	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+		initializeDb2(statistics);
+		queryOnTT2(statistics);
+		queryOnVp2(statistics);
+		queryOnWpt2(statistics);
+		queryOnIwpt2(statistics);
+		queryOnJwptOuter2(statistics);
+		queryOnJwptLeftOuter2(statistics);
+	}
+
+	private void queryOnTT2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingTTNodes().usingCharacteristicSets().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
@@ -74,138 +75,136 @@ public class FilterLangTest extends JavaDataFrameSuiteBase implements Serializab
 		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingVPNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();	
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
-		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);		
-		
+		final ClassLoader classLoader = getClass().getClassLoader();
+		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
-				actualResult.schema().asNullable());	
-				
+				actualResult.schema().asNullable());
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingIWPTNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingJWPTOuterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
-			
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter2(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestFilterLang1_db").usingJWPTLeftouterNodes().build();
-		final ClassLoader classLoader = getClass().getClassLoader();		
+		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterLang1.q").getPath(), statistics, settings);
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("word", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("car");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("word");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private Dataset<Row> initializeDb2(final DatabaseStatistics statistics) {
+	private void initializeDb2(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestFilterLang1_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestFilterLang1_db");
 		spark().sql("USE queryTestFilterLang1_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/word1>");
 		t1.setP("<http://example.org/word>");
-		//t1.setO("Auto"@DE);
-		
+		t1.setO("'Auto'@DE");
+
 		final TripleBean t2 = new TripleBean();
 		t2.setS("<http://example.org/word1>");
 		t2.setP("<http://example.org/word>");
-		//t2.setO("car"@EN);
-		
+		t2.setO("'car'@EN");
+
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
 
-
 		final Dataset<Row> ttDataset = spark().createDataset(triplesList, triplesEncoder).select("s", "p", "o").orderBy(
 				"s", "p", "o");
 		ttDataset.write().saveAsTable("tripletable");
-		
+
 		final loader.Settings loaderSettings =
 				new loader.Settings.Builder("queryTestFilterLang1_db").withInputPath((System.getProperty(
 						"user.dir") + "\\target\\test_output\\FilterLangTest").replace('\\', '/'))
@@ -232,13 +231,11 @@ public class FilterLangTest extends JavaDataFrameSuiteBase implements Serializab
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
-		return ttDataset;
 	}
-	
 }
 
 /*

@@ -38,35 +38,31 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 	private static final Encoder<TripleBean> triplesEncoder = Encoders.bean(TripleBean.class);
 
 	@Test
-	public void queryTest() throws Exception{
+	public void queryTest() throws Exception {
 		final DatabaseStatistics statistics = new DatabaseStatistics("queryTestDistinct_db");
-		Dataset<Row> fullDataset = initializeDb(statistics);
-		fullDataset = fullDataset.orderBy("s", "p", "o");
-		queryOnTT(statistics, fullDataset);
-		queryOnVp(statistics, fullDataset);
-		queryOnWpt(statistics, fullDataset);
-		queryOnIwpt(statistics, fullDataset);
-		queryOnJwptOuter(statistics, fullDataset);
-		queryOnJwptLeftOuter(statistics, fullDataset);
+		initializeDb(statistics);
+		queryOnTT(statistics);
+		queryOnVp(statistics);
+		queryOnWpt(statistics);
+		queryOnIwpt(statistics);
+		queryOnJwptOuter(statistics);
+		queryOnJwptLeftOuter(statistics);
 	}
-	
-	  
-	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnTT(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
-		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
@@ -76,131 +72,125 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		expectedResult.show();
 
 		nullableActualResult.printSchema();
-		nullableActualResult.show();		
+		nullableActualResult.show();
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private void queryOnVp(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+
+	private void queryOnVp(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingVPNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-		
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnWpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnWpt(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnIwpt(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnIwpt(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingIWPTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
 
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptOuter(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingJWPTOuterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
 
-	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics, final Dataset<Row> fullDataset)  throws Exception {
+	private void queryOnJwptLeftOuter(final DatabaseStatistics statistics) throws Exception {
 		final Settings settings = new Settings.Builder("queryTestDistinct_db").usingJWPTLeftouterNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
-		
+
 		final Query query = new Query(classLoader.getResource("queryTestDistinct1.q").getPath(), statistics, settings);
-		
-		
+
 		//EXPECTED
 		StructType schema = DataTypes.createStructType(new StructField[]{
 				DataTypes.createStructField("title", DataTypes.StringType, true),
-				});
+		});
 		Row row1 = RowFactory.create("Title1");
 		List<Row> rowList = ImmutableList.of(row1);
 		Dataset<Row> expectedResult = spark().createDataFrame(rowList, schema);
-		
+
 		//ACTUAL
 		final Dataset<Row> actualResult = query.compute(spark().sqlContext()).orderBy("title");
 		final Dataset<Row> nullableActualResult = sqlContext().createDataFrame(actualResult.collectAsList(),
 				actualResult.schema().asNullable());
-				
+
 		assertDataFrameEquals(expectedResult, nullableActualResult);
 	}
-	
-	private Dataset<Row> initializeDb(final DatabaseStatistics statistics) {
+
+	private void initializeDb(final DatabaseStatistics statistics) {
 		spark().sql("DROP DATABASE IF EXISTS queryTestDistinct_db CASCADE");
 		spark().sql("CREATE DATABASE IF NOT EXISTS  queryTestDistinct_db");
 		spark().sql("USE queryTestDistinct_db");
 
-				
 		// creates test tt table
 		final TripleBean t1 = new TripleBean();
 		t1.setS("<http://example.org/book1>");
@@ -221,7 +211,7 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 		t4.setS("<http://example.org/book2>");
 		t4.setP("<http://example.org/publishedBy>");
 		t4.setO("Coppenrath-Verlag");
-		
+
 		final ArrayList<TripleBean> triplesList = new ArrayList<>();
 		triplesList.add(t1);
 		triplesList.add(t2);
@@ -258,11 +248,10 @@ public class DistinctTest extends JavaDataFrameSuiteBase implements Serializable
 				spark(), JoinedWidePropertyTableLoader.JoinType.leftouter, statistics);
 		jwptLeftOuterLoader.load();
 
-		final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
+		/*final JoinedWidePropertyTableLoader jwptInnerLoader = new JoinedWidePropertyTableLoader(loaderSettings,
 				spark(), JoinedWidePropertyTableLoader.JoinType.inner, statistics);
-		jwptLeftOuterLoader.load();
+		jwptLeftOuterLoader.load();*/
 
-		return ttDataset;
 	}
 }
 
