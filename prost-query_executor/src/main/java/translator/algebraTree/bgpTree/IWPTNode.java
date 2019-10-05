@@ -77,7 +77,7 @@ public class IWPTNode extends MVNode {
 					whereElements.add(columnName + "='" + t.getSubject() + "'");
 				}
 			} else if (t.isInverseComplex(getStatistics(), t.getPredicate())) {
-				selectElements.add("P" + columnName + " AS " + "_" + explodedColumnId + Utils.removeQuestionMark(t.getSubject()));
+				selectElements.add("P" + columnName + "_" + explodedColumnId + " AS " + Utils.removeQuestionMark(t.getSubject()));
 				explodedElements.add("\n lateral view explode(" + columnName + ") exploded" + columnName
 						+ " AS P" + columnName + "_" + explodedColumnId);
 				explodedColumnId++;
