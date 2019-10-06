@@ -1,0 +1,6 @@
+<http://example.org/resource/Res1> <http://example.org/property/pro1> <http://example.org/resource/Res:1000> .
+<http://example.org/resource/Res5> <http://example.org/property/pro3> "one literal" .
+<http://example.org/resource/Res2> <http://example.org/property/pro1> <http://example.org/resource/Res:1000>.
+<http://example.org/resource/Res3> <http://example.org/property/pro3> "This literal contains a dot . which should NOT be removed".
+<http://example.org/resource/Res4> <http://example.org/property/pro1> <http://example.org/resource/Res:1000>.
+<http://example.org/resource/Res6> <http://example.org/property/pro3> "one literal"^^<type1> .

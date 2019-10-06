@@ -1,0 +1,22 @@
+ex:res1 ex:hasTitle "title1" .
+ex:res1 ex:hasAuthor "author1" .
+ex:res1 ex:hasAuthor "author2" .
+ex:res1 ex:hasYear "1991" .
+
+ex:res3 ex:hasTitle "title3" .
+ex:res3 ex:hasTitle "title4" .
+ex:res3 ex:hasAuthor "author1" .
+ex:res3 ex:hasYear "1993" .
+
+ex:res2 ex:hasTitle "title2" .
+ex:res2 ex:hasAuthor "author2" .
+ex:res2 ex:hasYear "1992" .
+ex:res2 ex:hasPublisher "pub2" .
+
+ex:res4 ex:hasAuthor "author4" .
+
+ex:res5 ex:hasAuthor "author5" .
+
+ex:res6 ex:hasAuthor "author6" .
+
+ex:res7 ex:hasAuthor "author7" .

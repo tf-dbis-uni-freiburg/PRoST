@@ -19,6 +19,7 @@ prost-support@informatik.uni-freiburg.de
   - Hive
   - HDFS
   - Java 1.8+
+  - A local Hadoop environment to be able to run the tests
   
 ## Recommended cluster settings (relevant for the loader)
 The setting names are specific to Cloudera 5.10.0.
@@ -32,42 +33,31 @@ The setting names are specific to Cloudera 5.10.0.
  
 
 ## Getting the code and compiling
-First, clone this repository. The project contains two separate components, one for loading the data (/loader) and the other for querying (/query).
-Both are built using [Apache Maven](http://maven.apache.org/).
-To build PRoST run:
+First, clone this repository. The *main* branch contains the latest stable version of PRoST. PRoST consists of multiple modules, which are built using [Apache Maven](http://maven.apache.org/). To build all modules, run the following command on the parent directory:
 
     mvn package
-
-## PRoST-Loader: loading RDF graphs and creating the logical partitions.
-PRoST-Loader generates partitions according to the following five strategies: Triple Table (TT), Wide Property Table (WPT), Inverse Wide Property Table (IWPT), Joined Wide Property Table (JWPT), and Vertical Partitioning (VP).
-
-NEW: Support for N-Triples documents.
-
-NEW: Added an option "lp" to specify a logical partition strategy.
-
-You can load a graph with PRoST in the following way:
-
-    spark2-submit --class run.Main PRoST-Loader.jar -i <HDFS_path_RDF_graph> -o <output_DB_name> -lp <logical_partition_strategies> -s
-	Example:
-	spark2-submit --class run.Main /home/user/PRoST-Loader-0.0.1-SNAPSHOT.jar -i /data/original/DbPedia -o dbpedia -lp TT,WPT,VP -s
 	
+To skip running tests when building a module, add the following argument when building it:
+	
+	-DskipTests
+	
+## Running test cases
+You need to have a local Hadoop environment. In particular, you need to set up the environment variable "HADOOP_HOME" to point to your Hadoop distribution.
+Install the same version of Hadoop we are using, which is: hadoop-2.7.1, and set the default JDK version to Java 8.
 
-The input RDF graph is loaded from the HDFS path specified with the -i option.
+**For Windows users:** you need to winutils.exe binary with the above-mentioned distribution of Hadoop.
+Further details see here: https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html.
+Make sure to install the latest version of the VC++ Redistributable and change the writing permissions of the hive temporary folder.
 
-The option -o contains the name of the database in which PRoST will store the graph using its own representation.
+**For Linux users:** there is also plenty of documentation. 
+You can follow instructions from https://doctuts.readthedocs.io/en/latest/hadoop.html
 
-The option -lp allows one to specify a logical partitioning strategy. The argument is a comma-separated list of strategies, for instance "TT,WPT,VP".
-Possible values are "TT" for triple table, "WPT" for Wide Property Table, "IWPT" for Inverse Wide Property Table, "JWPT" for a single table with the joined data from both a Inverse Wide Property Table and a Wide Property Table, and "VP" for Vertical Partitioning. If this option is missing, the default is "TT,WPT,VP".
-Note that you should not include spaces for multiple strategies, otherwise the program will consider only the first strategy. 
-The strategy "TT" might be automatically triggered if "WPT", "IWPT", "JWPT" or "VP" are selected because they have a dependency on that table.
+To run the test cases, execute the following command:
 
-If the option -s is present, the loader produces a .stats file in the local node, required for querying. The strategy "VP" might be automatically triggered, as it is needed to generate the statistics.
-Note that this file will be generated in the same path from which the application is run. 
-
-Please be aware that there might be limitations in the number of columns a wide property table might have in order to be written.
-We have successfully tested our approach on approx. 1500 columns without problems.
-
-PRoST-Loader defines its own logger (Logger.getLogger("PRoST")) and uses it to log all relevant information related to loading and partitioning the dataset. If no actions are taken, the messages will end up in Spark's logger.
+	mvn test
+	
+## PRoST logger
+PRoST-Loader and PRoST-Query_Executor define its own logger (Logger.getLogger("PRoST")) and uses it to log all relevant information related to loading and partitioning the dataset, as well as executing SPARQL queries. If no actions are taken, the messages will end up in Spark's logger.
 You can modify Spark's log4j.properties to forward the messages to a different place, e.g. a file.
 If you wish to do so, add the following lines to the log4j.properties file:
 
@@ -81,23 +71,41 @@ If you wish to do so, add the following lines to the log4j.properties file:
 	log4j.appender.fileAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n
 
 
-## PRoST-Query: Querying with SPARQL
+## PRoST-Loader: loading RDF graphs and creating logical partitions.
+PRoST-loader is the module used to load graph data into an Apache Hive database. PRoST can take advantage of data replication on multiple database designs for improving query performance. 
+
+PRoST can use any of the following database designs: Triple Table (TT), Vertical Partitioning (VP), Wide Property Table (WPT), Inverse Wide Property Table (iWPT), and three variations of Joined Wide Property Tables (jWPT).
+
+A graph can be loaded with PRoST with the following command:
+
+    spark-submit --driver-java-options -ea --class run.Main prost-loader.jar -db <output_DB_name> -i <HDFS_path_to_RDF_graph>
+	Example:
+	spark-submit --driver-java-options -ea --class run.Main prost-loader.jar -db dbpedia  -i /data/original/DbPedia
+	
+The HDFS path to the RDF graph is only required to create the Triple Table (TT). The other tables are created from an existing Triple table in the database.
+
+The parameter **-i** with the path in HDFS to the RDF graph is only required when the database does not exist or does not contain a Triples Table of the graph.
+
+PRoST-loader default settings are defined in the file *prost-loader-default.ini*. An alternative settings file can be used with the argument *-pref <settings_file.ini>*.
+
+The datasets can be loaded into the different partitioning strategies as long as the setting dropDB is set to false. When set to true, all pre-existing tables in the database are deleted. Note that a Triple Table (TT) is required to load the data with the other models.
+
+The computation of the property statistics is done on top of the VP tables and is required to execute queries. The computation of characteristic sets is optional.
+
+Please be aware that there might be limitations on the number of columns a wide property table might have in order to be written.
+We have successfully tested our approach on approx. 1500 columns without problems.
+
+## PRoST-Query_Executor: Querying with SPARQL
+PRoST-query_executor is the module used to execute SPARQL queries on databases generate by PRoST-loader.
+
 To query the data use the following command:
 
-    spark2-submit --class run.Main PRoST-Query.jar -i <SPARQL_query> -d <DB_name> -s <stats_file> -o <HDFS_output_file> -wpt
+    spark2-submit --driver-java-options -ea --class run.Main PRoST-Query.jar -i <SPARQL_query> -db <DB_name> 
+	Example:
+	spark2-submit --driver-java-options -ea --class run.Main PRoST-Query.jar -i /DbPedia/queries/ -db dbpedia
 
-This command will execute the queries using both VP and WPT models.
-    
-The database name and the statistics file need to be the ones used to load the graph.
+This command will execute the queries using the settings defined in the file prost-query-executor-default.ini. An alternative settings file can be used with the optional argument -pref <settings.ini>.
 
-The -o option contains the name of the HDFS file in which PRoST will save the results of the query.
+The input -i may be either a folder containing the SPARQL queries files or a single query file.
 
-The -wpt enables the use of the WPT.
-
-One might also use the option -iwpt to enable the use of the IWPT. IWPT may be used together with the WPT model.
-
-The -jwpt option enables the use of the JWPT model. If it is enabled, WPT and IWPT will be automatically disabled.
-
-If no grouped strategy (WPT, IWPT, or JWPT) is used, only VP will be used.
-
-Alternatively, one might use the option -g <minimum_group_size> to set the minimum size of the WPT, IWPT, and JWPT nodes. If this option is not present, the minimum size defaults to 2. A minimum group size of 1 (-g 1) guarantees that VP will not be used.
+Optionally, the queries results may be saved to HDFS with the argument -o <HDFs_output_folder_name>.

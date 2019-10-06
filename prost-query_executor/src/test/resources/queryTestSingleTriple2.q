@@ -1,0 +1,3 @@
+SELECT ?p
+WHERE
+{?book ?p ?title.}

@@ -1,0 +1,12 @@
+prost-loader/target/*
+prost-query_executor/target/*
+prost-statistics/target/*
+prost-benchmark_analysis/target/*
+loader/*
+query-executor/*
+query/*
+statistics/*
+
+**/*.log
+**/*dependency-reduced-pom.xml
+**/*.project
