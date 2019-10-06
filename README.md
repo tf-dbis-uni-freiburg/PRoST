@@ -11,6 +11,7 @@ Input graphs are partitioned efficiently and stored across several tables regist
   - Guilherme Schievelbein, Victor Anthony Arrascue Ayala, Fang Wei-Kleiner, Georg Lausen. "Exploiting Wide Property Tables Empowered by Inverse Properties for Efficient Distributed SPARQL Query Evaluation". (ISWC 2019).
   
 ## Support
+If you have any problems using PRoST, write us an email:
 prost-support@informatik.uni-freiburg.de
 
 ## Requirements
