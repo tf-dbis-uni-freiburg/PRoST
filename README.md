@@ -95,7 +95,7 @@ The computation of the property statistics is done on top of the VP tables and i
 Please be aware that there might be limitations on the number of columns a wide property table might have in order to be written.
 We have successfully tested our approach on approx. 1500 columns without problems.
 
-## PRoST-Query: Querying with SPARQL
+## PRoST-Query_Executor: Querying with SPARQL
 PRoST-query_executor is the module used to execute SPARQL queries on databases generate by PRoST-loader.
 
 To query the data use the following command:
