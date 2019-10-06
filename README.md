@@ -56,7 +56,7 @@ To run the test cases, execute the following command:
 
 	mvn test
 	
-#PRoST logger
+## PRoST logger
 PRoST-Loader and PRoST-Query_Executor define its own logger (Logger.getLogger("PRoST")) and uses it to log all relevant information related to loading and partitioning the dataset, as well as executing SPARQL queries. If no actions are taken, the messages will end up in Spark's logger.
 You can modify Spark's log4j.properties to forward the messages to a different place, e.g. a file.
 If you wish to do so, add the following lines to the log4j.properties file:
