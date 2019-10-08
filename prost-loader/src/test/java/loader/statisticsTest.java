@@ -47,8 +47,10 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 		final WidePropertyTableLoader wptLoader = new WidePropertyTableLoader(settings,spark(),statistics);
 		wptLoader.load();
 
+		//statistics.computeCharacteristicSetsStatistics(spark());
+		//statistics.computeCharacteristicSetsStatisticsFromTT(spark());
+
 		statistics.computeCharacteristicSetsStatistics(spark());
-		//statistics.computeCharacteristicSetsStatistics2(spark());
 
 		/*statistics.saveToFile(System.getProperty("user.dir") + "\\target\\test_output\\charset"
 				+ ".json");*/
