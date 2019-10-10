@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,13 +12,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -39,9 +36,9 @@ import scala.collection.mutable.WrappedArray;
 public class DatabaseStatistics {
 	private static final String loj4jFileName = "log4j.properties";
 	private static final Logger logger = Logger.getLogger("PRoST");
-	private String databaseName;
+	private final String databaseName;
 	private Long tuplesNumber;
-	private HashMap<String, PropertyStatistics> properties;
+	private final HashMap<String, PropertyStatistics> properties;
 	private ArrayList<CharacteristicSetStatistics> characteristicSets;
 	private ArrayList<EmergentSchemaStatistics> emergentSchemas;
 
@@ -59,8 +56,6 @@ public class DatabaseStatistics {
 	private Boolean iwptPartitionedByObject;
 	private Boolean jwptPartitionedByResource;
 	private Boolean vpPartitionedBySubject;
-
-	public static final String CHARSET_UDF_NAME = "charsetUDF";
 
 	public DatabaseStatistics(final String databaseName) {
 		this.databaseName = databaseName;
@@ -106,14 +101,16 @@ public class DatabaseStatistics {
 		spark.sql("USE " + databaseName);
 		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
-		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"), functions.collect_list(
-				"p").as("predicates"));
+		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"),
+				functions.collect_list("p").as("predicates"));
 		characteristicSets = characteristicSets.groupBy("charSet").agg(functions.count("s").as("subjectCount"),
 				functions.collect_list("predicates").as("predicates"));
 		// the distinct list of predicates are exploded so they can be grouped and counted (distinct predicate lists
 		// of the same charSet are different rows
-		characteristicSets = characteristicSets.withColumn("predicates", functions.explode(functions.col("predicates")));
-		characteristicSets = characteristicSets.withColumn("predicates", functions.explode(functions.col("predicates")));
+		characteristicSets = characteristicSets.withColumn("predicates",
+				functions.explode(functions.col("predicates")));
+		characteristicSets = characteristicSets.withColumn("predicates",
+				functions.explode(functions.col("predicates")));
 		// the string predicate must be kept to be added to the final array together with its count
 		characteristicSets = characteristicSets.groupBy("charSet", "subjectCount", "predicates").agg(functions.count(
 				"predicates"));
@@ -142,69 +139,111 @@ public class DatabaseStatistics {
 		}
 	}
 
-	public void computeCharacteristicSetsStatistics(final SparkSession spark) throws IOException {
+	/**
+	 * Encodes predicates to integer values.
+	 *
+	 * @param tripletable Dataset with the full tripletable
+	 * @return Dictionary String->Integer
+	 */
+	private HashMap<String, Integer> encodePredicates(final Dataset<Row> tripletable) {
+		final List<Row> predicates = tripletable.select(functions.col("p")).distinct().collectAsList();
 
-		final InputStream inStream = DatabaseStatistics.class.getClassLoader().getResourceAsStream(loj4jFileName);
-		final Properties props = new Properties();
-		props.load(inStream);
-		PropertyConfigurator.configure(props);
+		final HashMap<String, Integer> encoding = new HashMap<>();
+		int code = 0;
+		for (final Row row : predicates) {
+			final String predicate = row.getString(0);
+			encoding.put(predicate, code);
+			code++;
+		}
+		return encoding;
+	}
 
-		spark.sqlContext().udf().register(CHARSET_UDF_NAME,
-				(UDF1<Seq<Seq<String>>, Seq<Seq<String>>>) (columnValue) -> {
-					final HashMap<String, Long> predicatesDictionary = new HashMap<>();
+	/**
+	 * Creates a dictionary Int->String from a dictionary String->Int to decode predicates.
+	 *
+	 * @param encoding the predicates encoding
+	 * @return the dictionary for the decoding of predicates.
+	 */
+	private HashMap<Integer, String> createDecoder(final HashMap<String, Integer> encoding) {
+		final HashMap<Integer, String> decoder = new HashMap<>();
+		for (final Map.Entry<String, Integer> entry : encoding.entrySet()) {
+			decoder.put(entry.getValue(), entry.getKey());
+		}
+		return decoder;
+	}
 
-					final List<Seq<String>> listSeq = scala.collection.JavaConversions.seqAsJavaList(columnValue);
-					for (final Seq<String> sequence : listSeq) {
-						final List<String> predicates = scala.collection.JavaConversions.seqAsJavaList(sequence);
-						for (final String predicate : predicates) {
+	public void computeCharacteristicSetsStatistics(final SparkSession spark) {
+		this.characteristicSets = new ArrayList<>(); //clears existing characteristic sets statistics
+
+		//UDF that maps a column with a list of list of predicates to a list of list with two elements: [predicate
+		// (encoded), tuples per predicate]
+		spark.sqlContext().udf().register("CHARSET_UDF",
+				(UDF1<Seq<Seq<Integer>>, Seq<Seq<Integer>>>) (columnValue) -> {
+					final HashMap<Integer, Integer> predicatesDictionary = new HashMap<>();
+
+					final List<Seq<Integer>> listSeq = scala.collection.JavaConversions.seqAsJavaList(columnValue);
+					for (final Seq<Integer> sequence : listSeq) {
+						final List<Integer> predicates = scala.collection.JavaConversions.seqAsJavaList(sequence);
+						for (final Integer predicate : predicates) {
 
 							if (predicatesDictionary.containsKey(predicate)) {
-								final Long count = predicatesDictionary.get(predicate);
+								final Integer count = predicatesDictionary.get(predicate);
 								predicatesDictionary.put(predicate, count + 1);
 							} else {
-								predicatesDictionary.put(predicate, 1L);
+								predicatesDictionary.put(predicate, 1);
 							}
 						}
 					}
 
-					final List<Seq<String>> resultList = new ArrayList<>();
-					for (final Map.Entry<String, Long> entry : predicatesDictionary.entrySet()) {
-						final List<String> entryAsList = new ArrayList<>();
+					final List<Seq<Integer>> resultList = new ArrayList<>();
+					for (final Map.Entry<Integer, Integer> entry : predicatesDictionary.entrySet()) {
+						final List<Integer> entryAsList = new ArrayList<>();
 						entryAsList.add(entry.getKey());
-						entryAsList.add(String.valueOf(entry.getValue()));
-						resultList.add(JavaConverters.asScalaIteratorConverter(entryAsList.iterator()).asScala().toSeq());
+						entryAsList.add(entry.getValue());
+						resultList.add(JavaConverters.asScalaIteratorConverter
+								(entryAsList.iterator()).asScala().toSeq());
 					}
-
 					return JavaConverters.asScalaIteratorConverter(resultList.iterator()).asScala().toSeq();
-				}, DataTypes.createArrayType(DataTypes.createArrayType(DataTypes.StringType)));
+				}, DataTypes.createArrayType(DataTypes.createArrayType(DataTypes.IntegerType)));
 
 		spark.sql("USE " + databaseName);
-		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
+		Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
-		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"), functions.collect_list(
-				"p").as("predicates"));
+		final HashMap<String, Integer> encoding = encodePredicates(tripletable);
+
+		//Encodes the properties in tripletable to avoid operations on RDDs larger than 2GB.
+		spark.sqlContext().udf().register("ENCODE_UDF",
+				(UDF1<String, Integer>) encoding::get, DataTypes.IntegerType);
+		tripletable = tripletable.withColumn("p", functions.callUDF("ENCODE_UDF", functions.col("p")));
+
+		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"),
+				functions.collect_list("p").as("predicates"));
 
 		characteristicSets = characteristicSets.groupBy("charSet").agg(functions.count("s").as("subjectCount"),
 				functions.collect_list("predicates").as("predicates"));
 
 		characteristicSets = characteristicSets.withColumn("tuplesPerPredicate",
-				functions.callUDF(CHARSET_UDF_NAME,
+				functions.callUDF("CHARSET_UDF",
 						functions.col("predicates")));
 
 		characteristicSets = characteristicSets.select("charSet", "subjectCount", "tuplesPerPredicate");
 
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
 
+		final HashMap<Integer, String> decoder = createDecoder(encoding);
+
 		for (final Row charSet : collectedCharSets) {
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
 			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
 
-			final WrappedArray<WrappedArray<String>> properties = charSet.getAs("tuplesPerPredicate");
-			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
+			final WrappedArray<WrappedArray<Integer>> properties = charSet.getAs("tuplesPerPredicate");
+			final Iterator<WrappedArray<Integer>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
-				final Vector<String> v = iterator.next().toVector();
-				characteristicSetStatistics.addProperty(v.getElem(0, 1), Long.parseLong(v.getElem(1, 1)));
+				final Vector<Integer> v = iterator.next().toVector();
+				characteristicSetStatistics.addProperty(decoder.get(v.getElem(0, 1)),
+						v.getElem(1, 1));
 			}
+
 			this.characteristicSets.add(characteristicSetStatistics);
 		}
 
@@ -223,8 +262,8 @@ public class DatabaseStatistics {
 		spark.sql("USE " + databaseName);
 		final Dataset<Row> tripletable = spark.sql("select * from tripletable");
 
-		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"), functions.collect_list(
-				"p").as("predicates"));
+		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"),
+				functions.collect_list("p").as("predicates"));
 		characteristicSets = characteristicSets.groupBy("charSet").agg(functions.count("s").as("subjectCount"));
 
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
