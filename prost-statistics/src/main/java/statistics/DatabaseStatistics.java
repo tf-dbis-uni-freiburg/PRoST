@@ -38,7 +38,7 @@ public class DatabaseStatistics {
 	private static final Logger logger = Logger.getLogger("PRoST");
 	private final String databaseName;
 	private Long tuplesNumber;
-	private final HashMap<String, PropertyStatistics> properties;
+	private HashMap<String, PropertyStatistics> properties;
 	private ArrayList<CharacteristicSetStatistics> characteristicSets;
 	private ArrayList<EmergentSchemaStatistics> emergentSchemas;
 
@@ -122,7 +122,7 @@ public class DatabaseStatistics {
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
 		for (final Row charSet : collectedCharSets) {
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
-			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
+			characteristicSetStatistics.setDistinctResources(charSet.getAs("subjectCount"));
 
 			final WrappedArray<WrappedArray<String>> properties = charSet.getAs("tuplesPerPredicate");
 			final Iterator<WrappedArray<String>> iterator = properties.toIterator();
@@ -219,14 +219,31 @@ public class DatabaseStatistics {
 		Dataset<Row> characteristicSets = tripletable.groupBy("s").agg(functions.collect_set("p").as("charSet"),
 				functions.collect_list("p").as("predicates"));
 
-		characteristicSets = characteristicSets.groupBy("charSet").agg(functions.count("s").as("subjectCount"),
-				functions.collect_list("predicates").as("predicates"));
+		Dataset<Row> inverseCharacteristicSets = tripletable.groupBy("o").agg(functions.collect_set("p").as(
+				"invCharSet"), functions.collect_list("p").as("invPredicates"));
+
+		characteristicSets = characteristicSets.withColumnRenamed("s", "r");
+		inverseCharacteristicSets = inverseCharacteristicSets.withColumnRenamed("o", "r");
+
+		final ArrayList<String> joinColumns = new ArrayList<>();
+		joinColumns.add("r");
+		characteristicSets = characteristicSets.join(inverseCharacteristicSets,
+				scala.collection.JavaConversions.asScalaBuffer(joinColumns).toList(), "outer");
+
+		characteristicSets = characteristicSets.groupBy("charSet", "invCharSet").agg(functions.count("r").as(
+				"resourceCount"), functions.collect_list("predicates").as("predicates"), functions.collect_list(
+				"invPredicates").as("invPredicates"));
 
 		characteristicSets = characteristicSets.withColumn("tuplesPerPredicate",
 				functions.callUDF("CHARSET_UDF",
 						functions.col("predicates")));
 
-		characteristicSets = characteristicSets.select("charSet", "subjectCount", "tuplesPerPredicate");
+		characteristicSets = characteristicSets.withColumn("tuplesPerInversePredicate",
+				functions.callUDF("CHARSET_UDF",
+						functions.col("invPredicates")));
+
+		characteristicSets = characteristicSets.select("resourceCount", "tuplesPerPredicate",
+				"tuplesPerInversePredicate");
 
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
 
@@ -234,13 +251,21 @@ public class DatabaseStatistics {
 
 		for (final Row charSet : collectedCharSets) {
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
-			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
+			characteristicSetStatistics.setDistinctResources(charSet.getAs("resourceCount"));
 
 			final WrappedArray<WrappedArray<Integer>> properties = charSet.getAs("tuplesPerPredicate");
 			final Iterator<WrappedArray<Integer>> iterator = properties.toIterator();
 			while (iterator.hasNext()) {
 				final Vector<Integer> v = iterator.next().toVector();
 				characteristicSetStatistics.addProperty(decoder.get(v.getElem(0, 1)),
+						v.getElem(1, 1));
+			}
+
+			final WrappedArray<WrappedArray<Integer>> inverseProperties = charSet.getAs("tuplesPerInversePredicate");
+			final Iterator<WrappedArray<Integer>> inverseIterator = inverseProperties.toIterator();
+			while (inverseIterator.hasNext()) {
+				final Vector<Integer> v = inverseIterator.next().toVector();
+				characteristicSetStatistics.addInverseProperty(decoder.get(v.getElem(0, 1)),
 						v.getElem(1, 1));
 			}
 
@@ -269,7 +294,7 @@ public class DatabaseStatistics {
 		final List<Row> collectedCharSets = characteristicSets.collectAsList();
 		for (final Row charSet : collectedCharSets) {
 			final CharacteristicSetStatistics characteristicSetStatistics = new CharacteristicSetStatistics();
-			characteristicSetStatistics.setDistinctSubjects(charSet.getAs("subjectCount"));
+			characteristicSetStatistics.setDistinctResources(charSet.getAs("subjectCount"));
 
 			final WrappedArray<String> properties = charSet.getAs("charSet");
 			final Iterator<String> iterator = properties.toIterator();
@@ -327,7 +352,7 @@ public class DatabaseStatistics {
 			final Row sums = tuples.collectAsList().get(0);
 
 			final CharacteristicSetStatistics newCharset = new CharacteristicSetStatistics();
-			newCharset.setDistinctSubjects(characteristicSet.getDistinctSubjects());
+			newCharset.setDistinctResources(characteristicSet.getDistinctResources());
 			for (final String property : characteristicsSetProperties) {
 				final String internalName = this.properties.get(property).getInternalName();
 				newCharset.addProperty(property, sums.getAs("sum(" + internalName + ")"));
@@ -337,6 +362,9 @@ public class DatabaseStatistics {
 	}
 
 	public void computePropertyStatistics(final SparkSession spark) {
+
+		properties = new HashMap<>(); // clears any preexisting statistic
+
 		spark.sql("USE " + databaseName);
 		final String[] propertiesNames = extractProperties(spark);
 

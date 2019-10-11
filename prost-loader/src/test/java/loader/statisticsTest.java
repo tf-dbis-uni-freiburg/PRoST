@@ -23,6 +23,8 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 	 * @throws Exception i/o related exceptions
 	 */
 	@Test
+	@Deprecated
+	//TODO implement tests for extended characteristic sets
 	public void characteristicSetsTest() throws Exception {
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final File triplesWithMoreThanThreeRes = new File(
@@ -60,20 +62,20 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 
 
 		final CharacteristicSetStatistics expectedCharacteristicSet1 = new CharacteristicSetStatistics();
-		expectedCharacteristicSet1.setDistinctSubjects(Long.valueOf("1"));
+		expectedCharacteristicSet1.setDistinctResources(Long.valueOf("1"));
 		expectedCharacteristicSet1.addProperty("ex:hasAuthor", Long.parseLong("1"));
 		expectedCharacteristicSet1.addProperty("ex:hasPublisher", Long.parseLong("1"));
 		expectedCharacteristicSet1.addProperty("ex:hasTitle", Long.parseLong("1"));
 		expectedCharacteristicSet1.addProperty("ex:hasYear", Long.parseLong("1"));
 
 		final CharacteristicSetStatistics expectedCharacteristicSet2 = new CharacteristicSetStatistics();
-		expectedCharacteristicSet2.setDistinctSubjects(Long.valueOf("2"));
+		expectedCharacteristicSet2.setDistinctResources(Long.valueOf("2"));
 		expectedCharacteristicSet2.addProperty("ex:hasAuthor", Long.parseLong("3"));
 		expectedCharacteristicSet2.addProperty("ex:hasTitle", Long.parseLong("3"));
 		expectedCharacteristicSet2.addProperty("ex:hasYear", Long.parseLong("2"));
 
 		final CharacteristicSetStatistics expectedCharacteristicSet3 = new CharacteristicSetStatistics();
-		expectedCharacteristicSet3.setDistinctSubjects(Long.valueOf("4"));
+		expectedCharacteristicSet3.setDistinctResources(Long.valueOf("4"));
 		expectedCharacteristicSet3.addProperty("ex:hasAuthor", Long.parseLong("4"));
 
 		Assert.assertTrue(characteristicSets.contains(expectedCharacteristicSet1));

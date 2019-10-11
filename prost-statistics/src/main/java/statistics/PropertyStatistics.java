@@ -12,11 +12,12 @@ public class PropertyStatistics {
 	private final boolean isComplex;
 	private final boolean isInverseComplex;
 	private final Long distinctObjects;
+	private final Long distinctSubjects;
 	// private final Long selectivity;
 
 	public PropertyStatistics(final Dataset<Row> table, final String tableName) {
 		this.tuplesNumber = (int) table.count();
-		// this.distinctSubjects = table.select("s").distinct().count();
+		this.distinctSubjects = table.select("s").distinct().count();
 		this.isComplex = tuplesNumber != table.select("s").distinct().count();
 		this.distinctObjects = table.select("o").distinct().count();
 		this.isInverseComplex = tuplesNumber != this.distinctObjects;
@@ -42,5 +43,9 @@ public class PropertyStatistics {
 
 	public double getBoundObjectEstimatedSelectivity() {
 		return this.distinctObjects.doubleValue() / this.tuplesNumber;
+	}
+
+	public double getBoundSubjectEstimatedSelectivity() {
+		return this.distinctSubjects.doubleValue() / this.tuplesNumber;
 	}
 }

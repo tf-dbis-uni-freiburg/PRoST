@@ -20,6 +20,7 @@ public class JWPTNode extends MVNode {
 	private static final String COLUMN_NAME_COMMON_RESOURCE = "r";
 	private static final String WPT_PREFIX = "o_";
 	private static final String IWPT_PREFIX = "s_";
+
 	private final List<TriplePattern> wptTripleGroup;
 	private final List<TriplePattern> iwptTripleGroup;
 	private String tableName;
@@ -69,6 +70,14 @@ public class JWPTNode extends MVNode {
 
 			wptTripleGroup = new ArrayList<>();
 		}
+	}
+
+	List<TriplePattern> getWptTripleGroup() {
+		return wptTripleGroup;
+	}
+
+	List<TriplePattern> getIwptTripleGroup() {
+		return iwptTripleGroup;
 	}
 
 	private void setTableName(final Settings settings) {
@@ -317,5 +326,4 @@ public class JWPTNode extends MVNode {
 		str.append(" }");
 		return str.toString();
 	}
-
 }

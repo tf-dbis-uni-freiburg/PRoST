@@ -14,8 +14,8 @@ import statistics.DatabaseStatistics;
 import utils.Settings;
 
 /**
- * An abstract class that each node of the bgpTree has to extend. Each node has
- * a parent and data frame that contains the data of the node.
+ * An abstract class that each node of the bgpTree has to extend. Each node has a parent and data frame that contains
+ * the data of the node.
  *
  * @author Polina Koleva
  */
@@ -36,15 +36,13 @@ public abstract class BgpNode {
 	public abstract void computeNodeData(SQLContext sqlContext);
 
 	/**
-	 * Get a list of triples that each node contains. For example, {@link VPNode}
-	 * represents only one triple. On the other side, {@link WPTNode} contains a list
-	 * of triples with the same subject.
+	 * Get a list of triples that each node contains. For example, {@link VPNode} represents only one triple. On the
+	 * other side, {@link WPTNode} contains a list of triples with the same subject.
 	 */
 	public abstract List<TriplePattern> collectTriples();
 
 	/**
-	 * Calculate a score for each node. Based on it, the position of the node in the
-	 * join tree is determined.
+	 * Calculate a score for each node. Based on it, the position of the node in the join tree is determined.
 	 *
 	 * @return heuristic score of a node
 	 */
@@ -58,15 +56,12 @@ public abstract class BgpNode {
 	}
 
 	/**
-	 * Calculate heuristically a score for each node. A numeric value for each
-	 * triple based on its predicates is collected while the data is loaded. The
-	 * value is equal to the number of triples that exist in the data for a
-	 * predicate. Each node represents one or more triples. Therefore, to calculate
-	 * a score of a node summation over values for their triples is calculated. An
-	 * exception of the rule exists only if a triples contains a constant. In this
-	 * case, the heuristic value of a node is 0. Therefore, such node is pushed down
-	 * in a join tree. Note: This heuristic function is valid only for leaves in the
-	 * tree node. For {@link JoinNode}, see the overridden method.
+	 * Calculate heuristically a score for each node. A numeric value for each triple based on its predicates is
+	 * collected while the data is loaded. The value is equal to the number of triples that exist in the data for a
+	 * predicate. Each node represents one or more triples. Therefore, to calculate a score of a node summation over
+	 * values for their triples is calculated. An exception of the rule exists only if a triples contains a constant. In
+	 * this case, the heuristic value of a node is 0. Therefore, such node is pushed down in a join tree. Note: This
+	 * heuristic function is valid only for leaves in the tree node. For {@link JoinNode}, see the overridden method.
 	 */
 	double heuristicNodePriority() {
 		if (settings.isUsingCharacteristicSets()) {
@@ -93,19 +88,50 @@ public abstract class BgpNode {
 		}
 	}
 
-	private HashSet<String> computeCharacteristicSet() {
-		final HashSet<String> characteristicSet = new HashSet<>();
-		for (final TriplePattern pattern : this.collectTriples()) {
-			characteristicSet.add(pattern.getPredicate());
+	private ArrayList<HashSet<String>> computeCharacteristicSet() {
+
+		//first element is forward set, second element is inverse set
+		final ArrayList<HashSet<String>> characteristicSets = new ArrayList<>();
+
+		if (this instanceof WPTNode) {
+			final HashSet<String> characteristicSet = new HashSet<>();
+			for (final TriplePattern pattern : this.collectTriples()) {
+				characteristicSet.add(pattern.getPredicate());
+			}
+			characteristicSets.add(characteristicSet);
+			characteristicSets.add(null);
+		} else if (this instanceof IWPTNode) {
+			final HashSet<String> inverseCharacteristicSet = new HashSet<>();
+			for (final TriplePattern pattern : this.collectTriples()) {
+				inverseCharacteristicSet.add(pattern.getPredicate());
+			}
+			characteristicSets.add(null);
+			characteristicSets.add(inverseCharacteristicSet);
+		} else {
+			assert (this instanceof JWPTNode) : ("Invalid node type. Cannot compute characteristic set");
+			final HashSet<String> characteristicSet = new HashSet<>();
+			final HashSet<String> inverseCharacteristicSet = new HashSet<>();
+
+			for (final TriplePattern pattern : ((JWPTNode) this).getWptTripleGroup()) {
+				characteristicSet.add(pattern.getPredicate());
+			}
+
+			for (final TriplePattern pattern : ((JWPTNode) this).getIwptTripleGroup()) {
+				inverseCharacteristicSet.add(pattern.getPredicate());
+			}
+
+			characteristicSets.add(characteristicSet);
+			characteristicSets.add(inverseCharacteristicSet);
 		}
-		return characteristicSet;
+		return characteristicSets;
 	}
 
 	private ArrayList<CharacteristicSetStatistics> computeCharacteristicSupersets(
-			final HashSet<String> baseCharacteristicSet, final DatabaseStatistics statistics) {
+			final ArrayList<HashSet<String>> baseCharacteristicSet, final DatabaseStatistics statistics) {
 		final ArrayList<CharacteristicSetStatistics> superSets = new ArrayList<>();
 		for (final CharacteristicSetStatistics characteristicSetStatistics : statistics.getCharacteristicSets()) {
-			if (characteristicSetStatistics.containsSubset(baseCharacteristicSet)) {
+			if (characteristicSetStatistics.containsSubset(baseCharacteristicSet.get(0),
+					baseCharacteristicSet.get(1))) {
 				superSets.add(characteristicSetStatistics);
 			}
 		}
@@ -124,7 +150,20 @@ public abstract class BgpNode {
 		for (final CharacteristicSetStatistics superSet : superSets) {
 			double m = 1;
 			double o = 1;
-			for (final TriplePattern triple : this.collectTriples()) {
+
+			List<TriplePattern> forwardTriples = new ArrayList<>();
+			List<TriplePattern> inverseTriples = new ArrayList<>();
+			if (this instanceof WPTNode) {
+				forwardTriples = this.collectTriples();
+			} else if (this instanceof IWPTNode) {
+				inverseTriples = this.collectTriples();
+			} else {
+				assert (this instanceof JWPTNode) : "Trying to compute join cardinality with an invalid node type";
+				forwardTriples = ((JWPTNode) this).getWptTripleGroup();
+				inverseTriples = ((JWPTNode) this).getIwptTripleGroup();
+			}
+
+			for (final TriplePattern triple : forwardTriples) {
 				if (triple.getObjectType() == ElementType.CONSTANT) {
 					// o is min(o,sel(?o=o|?p=p)
 					// min(o,sel(?o=o|?p=p) is sel(?o=o && ?p=p)/sel(?p=p)
@@ -133,10 +172,24 @@ public abstract class BgpNode {
 				} else {
 					m =
 							m * ((double) superSet.getPropertyTuplesNumber(triple.getPredicate())
-									/ (double) superSet.getDistinctSubjects());
+									/ (double) superSet.getDistinctResources());
 				}
 			}
-			cardinality = cardinality + superSet.getDistinctSubjects() * m * o;
+
+			for (final TriplePattern triple : inverseTriples) {
+				if (triple.getSubjectType() == ElementType.CONSTANT) {
+					// o is min(o,sel(?o=o|?p=p)
+					// min(o,sel(?o=o|?p=p) is sel(?o=o && ?p=p)/sel(?p=p)
+					o = min(o,
+							statistics.getProperties().get(triple.getPredicate()).getBoundSubjectEstimatedSelectivity());
+				} else {
+					m =
+							m * ((double) superSet.getInversePropertyTuplesNumber(triple.getPredicate())
+									/ (double) superSet.getDistinctResources());
+				}
+			}
+
+			cardinality = cardinality + superSet.getDistinctResources() * m * o;
 		}
 		return cardinality;
 	}
@@ -170,6 +223,5 @@ public abstract class BgpNode {
 		public String getTableName() {
 			return this.tableName;
 		}
-
 	}
 }
