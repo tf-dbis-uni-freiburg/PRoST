@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import com.holdenkarau.spark.testing.JavaDataFrameSuiteBase;
 import loader.utilities.HdfsUtilities;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import statistics.CharacteristicSetStatistics;
 import statistics.DatabaseStatistics;
@@ -23,7 +24,7 @@ public class statisticsTest extends JavaDataFrameSuiteBase implements Serializab
 	 * @throws Exception i/o related exceptions
 	 */
 	@Test
-	@Deprecated
+	@Ignore("Lacks expected extended characteristic set")
 	//TODO implement tests for extended characteristic sets
 	public void characteristicSetsTest() throws Exception {
 		final ClassLoader classLoader = getClass().getClassLoader();
