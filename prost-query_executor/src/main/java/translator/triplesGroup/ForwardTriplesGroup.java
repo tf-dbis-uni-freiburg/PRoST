@@ -18,7 +18,7 @@ import utils.Settings;
 public class ForwardTriplesGroup extends TriplesGroup {
 	private List<Triple> triplesGroup = new ArrayList<>();
 
-	ForwardTriplesGroup(final Triple triple) {
+	public ForwardTriplesGroup(final Triple triple) {
 		triplesGroup.add(triple);
 		commonResource = triple.getSubject().toString();
 	}

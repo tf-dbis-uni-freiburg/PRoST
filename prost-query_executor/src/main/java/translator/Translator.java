@@ -38,6 +38,8 @@ import org.apache.log4j.Logger;
 import statistics.DatabaseStatistics;
 import statistics.PropertyStatistics;
 import translator.triplesGroup.TriplesGroup;
+import translator.triplesGroup.ForwardTriplesGroup;
+import translator.triplesGroup.InverseTriplesGroup;
 import translator.triplesGroup.TriplesGroupsMapping;
 import utils.EmergentSchema;
 import utils.Settings;
@@ -56,6 +58,8 @@ public class Translator {
 	private final String queryPath;
 	private PrefixMapping prefixes;
 	private HashMap<String, Double> tripleGroupOccurences;
+	private List<TriplesGroup> triLengthGroups;
+	private List<TriplesGroup> pairedGroups;
 
 	public Translator(final Settings settings, final DatabaseStatistics statistics, final String queryPath) {
 		this.settings = settings;
@@ -128,7 +132,7 @@ public class Translator {
 	 */
 	private Node buildTree(final List<Triple> triples) {
 		final PriorityQueue<Node> nodesQueue = getDetailedNodesQueue(triples);
-		
+
 		Node currentNode = null;
 
 		while (!nodesQueue.isEmpty()) {
@@ -154,10 +158,12 @@ public class Translator {
 		}
 		TriplesGroupsMapping groupsMapping = new TriplesGroupsMapping(unassignedTriples, settings);
 		Multimap<String, TriplesGroup> triplesGroups = groupsMapping.getTriplesGroups();
+
 		List<TriplesGroup> uniqueTriples = new ArrayList<>();
 		for (String vr: triplesGroups.keys()) {
 			Collection<TriplesGroup> trigrps =  triplesGroups.get(vr);
 			for (TriplesGroup trigrp : trigrps) {
+
 				boolean isUnique = true;
 				for (TriplesGroup oldGroup: uniqueTriples) {
 					List<Triple> oldTriples = oldGroup.getTriples();
@@ -172,6 +178,7 @@ public class Translator {
 				}
 			}
 		}
+		/*
 		List<TriplesGroup> bestGroups = getMinimalTripleGroup(triples, uniqueTriples);
 		
 		for (TriplesGroup triplesGroup: bestGroups) {
@@ -179,9 +186,255 @@ public class Translator {
 			nodesQueue.addAll(createdNodes);
 
 		}
-	
+	    */
+
+	    orderPairsandTriples(uniqueTriples);
+
+	    if (pairedGroups.size() % 2 == 0) {
+	    	List<TriplesGroup> bestGroups = getEvenTriplesGroup();
+	    	for (TriplesGroup triplesGroup: bestGroups) {
+				List<Node> createdNodes = triplesGroup.createNodes(settings, statistics, prefixes);
+				nodesQueue.addAll(createdNodes);
+			}
+	    }
+
+	    else {
+	    	List<TriplesGroup> bestGroups = getOddTriplesGroup();
+	    	for (TriplesGroup triplesGroup: bestGroups) {
+				List<Node> createdNodes = triplesGroup.createNodes(settings, statistics, prefixes);
+				nodesQueue.addAll(createdNodes);
+			}
+	    }
 
 		return nodesQueue;
+
+	}
+
+	private List<TriplesGroup> getOddTriplesGroup() {
+		List<List<TriplesGroup> > candidateGroups = new ArrayList<>();
+
+		List<TriplesGroup> oddGroups = new ArrayList<>();
+		for (int i = 0; i < triLengthGroups.size(); i += 2) {
+			oddGroups.add(triLengthGroups.get(i));
+		}
+		oddGroups.add(triLengthGroups.get(triLengthGroups.size() - 1));
+
+		candidateGroups.add(oddGroups);
+
+		List<TriplesGroup> evenGroups = new ArrayList<>();
+		for (int i = 1; i < triLengthGroups.size(); i += 2) {
+			evenGroups.add(triLengthGroups.get(i));
+		}
+		evenGroups.add(triLengthGroups.get(0));
+
+		candidateGroups.add(evenGroups);
+
+		for (int pivot = 0; pivot < pairedGroups.size(); pivot += 2) {
+			List<TriplesGroup> mixedGroups = new ArrayList<>();
+			mixedGroups.add(pairedGroups.get(pivot));
+			
+			for (int i = 0; i < pivot ; i += 2) {
+				mixedGroups.add(triLengthGroups.get(i));	
+			}
+
+			for (int i = pivot + 1; i < triLengthGroups.size(); i += 2) {
+				mixedGroups.add(triLengthGroups.get(i));
+			}
+			candidateGroups.add(mixedGroups);
+		}
+
+		int bestIndex = -1;
+		long bestCost = Long.MAX_VALUE;
+
+		for (int i = 0; i < candidateGroups.size(); i++) {
+			long currentCost = evaluateTripleGroupCost(candidateGroups.get(i));
+
+			if (currentCost < bestCost) {
+				bestIndex = i;
+				bestCost = currentCost;
+			}
+		}
+
+		return candidateGroups.get(bestIndex);
+	}
+
+	private List<TriplesGroup> getEvenTriplesGroup() {
+		List<TriplesGroup> bestGroups = new ArrayList<>();
+		for (int i = 0; i < triLengthGroups.size(); i += 2) {
+			bestGroups.add(triLengthGroups.get(i));
+		}
+		return bestGroups;
+	}
+
+	private void orderPairsandTriples(List<TriplesGroup> uniqueGroups) {
+		pairedGroups = new ArrayList<>();
+		triLengthGroups = new ArrayList<>();
+
+		HashSet<String> groupsListString = new HashSet<>();
+
+		for (TriplesGroup grp : uniqueGroups) {
+			String listMapping = grp.getTriples().toString();
+			groupsListString.add(listMapping);
+		}
+
+		List<TriplesGroup> newUniqueGroups = new ArrayList<>();
+		for (TriplesGroup grp : uniqueGroups) {
+			if (grp instanceof ForwardTriplesGroup) {
+				if (grp.getTriples().size() > 1) {
+					for (Triple triple : grp.getTriples()) {
+						String triMap = "[" + triple.toString() + "]";
+						if (!groupsListString.contains(triMap)) {
+							TriplesGroup newGroup = new ForwardTriplesGroup(triple);
+							newUniqueGroups.add(newGroup);
+							groupsListString.add(triMap);
+						} 
+					}
+				}
+			}
+			if (grp instanceof InverseTriplesGroup) {
+				if (grp.getTriples().size() > 1) {
+					for (Triple triple : grp.getTriples()) {
+						String triMap = "[" + triple.toString() + "]";
+
+						if (!groupsListString.contains(triMap)) {
+							TriplesGroup newGroup = new InverseTriplesGroup(triple);
+							newUniqueGroups.add(newGroup);
+							groupsListString.add(triMap);
+						} 
+					}
+				}
+			}
+		}
+
+		uniqueGroups.addAll(newUniqueGroups);
+
+		Multimap<String, TriplesGroup> uniqueGroupsMap = ArrayListMultimap.create();
+		for (TriplesGroup grp : uniqueGroups) {
+			List<Triple> triples = grp.getTriples();
+
+			for (Triple tri : triples) {
+				String subject = tri.getSubject().toString();
+				String object = tri.getObject().toString();
+				
+				if (triples.size() == 1) {
+					uniqueGroupsMap.put(subject, grp);
+					uniqueGroupsMap.put(object, grp);
+				}
+
+				else {
+					String commonVar = getCommonVariableInGroup(grp);
+
+
+					if (!subject.equals(commonVar)) {
+						uniqueGroupsMap.put(subject, grp);
+					}
+
+					if (!object.equals(commonVar)) {
+						uniqueGroupsMap.put(object, grp);
+					}
+				}
+
+				
+			}
+
+			if (triples.size() == 2) {
+				uniqueGroupsMap.put(getCommonVariableInGroup(grp), grp);
+			} 
+		}
+
+		/*for (String key : uniqueGroupsMap.keySet()) {
+			Collection<TriplesGroup> val = uniqueGroupsMap.get(key);
+			for (TriplesGroup grp : val) {
+				System.out.println(grp.getTriples());	
+			}
+			System.out.println("---------------------------");
+		}*/
+		
+		String source = null;
+		String destination = null;
+
+
+
+		for (String key : uniqueGroupsMap.keySet()) {
+			if (source != null && destination != null) {
+				break;
+			}
+
+			Collection<TriplesGroup> keyEdges = uniqueGroupsMap.get(key);
+			if (keyEdges.size() > 2) {
+				continue;
+			}
+
+			if (source == null) {
+				source = key;
+			}
+
+			else {
+				destination = key;
+			}
+		}
+
+
+
+		HashSet<String> visitedNodes = new HashSet<>();
+
+		String index = source;
+
+		while (!index.equals(destination)) {
+			Collection<TriplesGroup> indexEdges = uniqueGroupsMap.get(index);
+
+			String next = null;
+
+
+
+			for (TriplesGroup group : indexEdges ) {
+				HashSet<String> groupVars = getTripleGroupVars(group);
+
+
+				if (groupVars.size() == 2) {
+					HashSet<String> intersection = new HashSet<String>(groupVars);
+					intersection.retainAll(visitedNodes);
+
+					if (intersection.size() == 0) {
+						pairedGroups.add(group);
+						HashSet<String> union = new HashSet<String>(groupVars);
+						union.remove(index);
+						for (String neighbour : union) {
+							next = neighbour;
+						}
+					}
+				}
+
+				else {
+					HashSet<String> intersection = new HashSet<String>(groupVars);
+					intersection.retainAll(visitedNodes);
+
+					if (intersection.size() == 0) {
+						triLengthGroups.add(group);
+					}
+				}
+			}
+			visitedNodes.add(index);
+			index = next;
+		}
+	}
+
+	private String getCommonVariableInGroup(TriplesGroup trigroup) {
+		List<Triple> triples = trigroup.getTriples();
+		String firstSubject = triples.get(0).getSubject().toString();
+		String firstObject = triples.get(0).getObject().toString();
+		String secondSubject = triples.get(1).getSubject().toString();
+		String secondObject = triples.get(1).getObject().toString();
+
+		if(firstSubject.equals(secondObject)) {
+			return firstSubject;
+		}
+
+		if(firstSubject.equals(secondSubject)) {
+			return firstSubject;
+		}
+
+		return firstObject;
 
 	}
 

@@ -18,7 +18,7 @@ import utils.Settings;
 public class InverseTriplesGroup extends TriplesGroup {
 	private List<Triple> triplesGroup = new ArrayList<>();
 
-	InverseTriplesGroup(final Triple triple) {
+	public InverseTriplesGroup(final Triple triple) {
 		this.triplesGroup.add(triple);
 		this.commonResource = triple.getObject().toString();
 	}

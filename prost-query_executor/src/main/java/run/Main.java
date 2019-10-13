@@ -1,11 +1,14 @@
 package run;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
 
 import executor.Executor;
 import joinTree.JoinTree;
@@ -53,43 +56,60 @@ public class Main {
 		//executor.createCharacteristicsFile();
 		
 		// single file
-		if (file.isFile()) {
-
-			// translation phase
-			final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
-					statistics, settings);
-
-			executor.execute(translatedQuery);
-
-			// if benchmark file is presented, save results
-			if (settings.isSavingBenchmarkFile()) {
-				executor.saveResultsCsv(settings.getBenchmarkFilePath());
-			}
-		} else if (file.isDirectory()) {
-			final List<String> queryFiles = Arrays.asList(file.list());
-
-			// if random order applied, shuffle the queries
-			if (settings.isRandomQueryOrder()) {
-				Collections.shuffle(queryFiles);
-			}
-
-			// if the path is a directory execute every files inside
-			for (final String fileName : queryFiles) {
-				logger.info("Starting: " + fileName);
+		String[] runTimes = new String[5];
+		for (int i = 0; i < 5 ; i++) {
+			
+		
+			long startTime = System.currentTimeMillis();
+			if (file.isFile()) {
 
 				// translation phase
-				final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
+				final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath(),
 						statistics, settings);
 
-				// execution phase
 				executor.execute(translatedQuery);
-			}
 
-			if (settings.isSavingBenchmarkFile()) {
-				logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
-				executor.saveResultsCsv(settings.getBenchmarkFilePath());
+				// if benchmark file is presented, save results
+				if (settings.isSavingBenchmarkFile()) {
+					executor.saveResultsCsv(settings.getBenchmarkFilePath());
+				}
+			} else if (file.isDirectory()) {
+				final List<String> queryFiles = Arrays.asList(file.list());
+
+				// if random order applied, shuffle the queries
+				if (settings.isRandomQueryOrder()) {
+					Collections.shuffle(queryFiles);
+				}
+
+				// if the path is a directory execute every files inside
+				for (final String fileName : queryFiles) {
+					logger.info("Starting: " + fileName);
+
+					// translation phase
+					final JoinTree translatedQuery = translateSingleQuery(settings.getQueriesInputPath() + "/" + fileName,
+							statistics, settings);
+
+					// execution phase
+					executor.execute(translatedQuery);
+				}
+
+				if (settings.isSavingBenchmarkFile()) {
+					logger.info("Benchmark file: " + settings.getBenchmarkFilePath());
+					executor.saveResultsCsv(settings.getBenchmarkFilePath());
+				}
 			}
-		} 
+			long endTime = System.currentTimeMillis();
+			runTimes[i] = "" + (endTime - startTime);
+		}
+		String csv = String.join(",", runTimes);
+        try (FileWriter csvFile = new FileWriter("optimized2.csv")) {
+ 
+            csvFile.write(csv);
+            csvFile.flush();
+ 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 	}
 
 	private static JoinTree translateSingleQuery(final String query, final DatabaseStatistics statistics,
