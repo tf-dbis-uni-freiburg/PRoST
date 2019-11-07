@@ -1,27 +1,28 @@
 package translator.algebraTree;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
-import translator.algebraTree.bgpTree.ElementType;
-import translator.algebraTree.bgpTree.IWPTNode;
-import translator.algebraTree.bgpTree.JWPTNode;
-import translator.algebraTree.bgpTree.JoinNode;
-import translator.algebraTree.bgpTree.BgpNode;
-import translator.algebraTree.bgpTree.TTNode;
-import translator.algebraTree.bgpTree.TriplePattern;
-import translator.algebraTree.bgpTree.VPNode;
-import translator.algebraTree.bgpTree.WPTNode;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.PriorityQueue;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import statistics.DatabaseStatistics;
 import translator.NodeComparator;
+import translator.algebraTree.bgpTree.BgpNode;
+import translator.algebraTree.bgpTree.ElementType;
+import translator.algebraTree.bgpTree.IWPTNode;
+import translator.algebraTree.bgpTree.JWPTNode;
+import translator.algebraTree.bgpTree.JoinNode;
+import translator.algebraTree.bgpTree.TTNode;
+import translator.algebraTree.bgpTree.TriplePattern;
+import translator.algebraTree.bgpTree.VPNode;
+import translator.algebraTree.bgpTree.WPTNode;
 import translator.triplesGroup.TriplesGroup;
 import translator.triplesGroup.TriplesGroupsMapping;
 import utils.Settings;
@@ -65,6 +66,72 @@ public class Bgp extends Operation {
 			}
 		}
 		return currentNode;
+	}
+
+	private BgpNode computeLinearQueryPlan(final DatabaseStatistics statistics, final Settings settings,
+										   final PrefixMapping prefixes) {
+		final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
+
+		assert nodesQueue.size() > 0 : "No elements in generated nodesQueue";
+
+		if (nodesQueue.size() == 1) {
+			return nodesQueue.poll();
+		} else {
+			BgpNode leftNode = null;
+			BgpNode rightNode = null;
+			double score = Double.MAX_VALUE;
+			while (!nodesQueue.isEmpty()) {
+				//first join (bottom of the linear tree)
+				if (leftNode == null) {
+					double candidateScore = Double.MAX_VALUE;
+					final List<BgpNode> queue = new ArrayList<>(nodesQueue);
+					final ListIterator<BgpNode> leftNodeIterator = queue.listIterator();
+					while (leftNodeIterator.hasNext()) {
+						final BgpNode candidateLeftNode = leftNodeIterator.next();
+						final Iterator<BgpNode> rightNodeIterator = queue.listIterator(leftNodeIterator.nextIndex());
+						while (rightNodeIterator.hasNext()) {
+							final BgpNode candidateRightNode = rightNodeIterator.next();
+							if (existsVariableInCommon(candidateLeftNode.collectTriples(),
+									candidateRightNode.collectTriples())) {
+								final JoinNode joinNode = new JoinNode(candidateLeftNode,
+										candidateRightNode, statistics, settings);
+								candidateScore = joinNode.getPriority();
+								if (candidateScore < score) {
+									leftNode = candidateLeftNode;
+									rightNode = candidateRightNode;
+									score = candidateScore;
+								}
+							}
+						}
+					}
+					assert leftNode != null : "BGP not a closed graph?";
+
+					nodesQueue.remove(leftNode);
+					nodesQueue.remove(rightNode);
+					leftNode = new JoinNode(leftNode, rightNode, statistics, settings);
+					rightNode = null;
+					score = Double.MAX_VALUE;
+				} else {
+					for (final BgpNode candidateRightNode : nodesQueue) {
+						final double candidateScore = candidateRightNode.getPriority();
+						if (existsVariableInCommon(leftNode.collectTriples(),
+								candidateRightNode.collectTriples())
+								&& candidateScore < score) {
+							rightNode = candidateRightNode;
+							score = candidateScore;
+						}
+					}
+
+					assert rightNode != null : "BGP not a closed graph?";
+
+					nodesQueue.remove(rightNode);
+					leftNode = new JoinNode(leftNode, rightNode, statistics, settings);
+					rightNode = null;
+					score = Double.MAX_VALUE;
+				}
+			}
+			return leftNode;
+		}
 	}
 
 	private PriorityQueue<BgpNode> getNodesQueue(final List<Triple> triples, final Settings settings,
@@ -167,8 +234,7 @@ public class Bgp extends Operation {
 	}
 
 	/**
-	 * Given a source node, finds another node with at least one variable in common,
-	 * if there isn't return null.
+	 * Given a source node, finds another node with at least one variable in common, if there isn't return null.
 	 */
 	private BgpNode findRelateNode(final BgpNode sourceNode, final PriorityQueue<BgpNode> availableNodes) {
 		for (final TriplePattern tripleSource : sourceNode.collectTriples()) {
@@ -212,6 +278,18 @@ public class Bgp extends Operation {
 		for (final String varA : variablesTripleA) {
 			for (final String varB : variablesTripleB) {
 				if (varA.equals(varB)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean existsVariableInCommon(final List<TriplePattern> triplesListA,
+										   final List<TriplePattern> triplesListB) {
+		for (final TriplePattern tripleA : triplesListA) {
+			for (final TriplePattern tripleB : triplesListB) {
+				if (existsVariableInCommon(tripleA, tripleB)) {
 					return true;
 				}
 			}
