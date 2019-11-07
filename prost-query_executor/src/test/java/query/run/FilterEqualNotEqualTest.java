@@ -50,7 +50,7 @@ public class FilterEqualNotEqualTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestEqualNotEqual1_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestEqualNotEqual1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestFilterNotEqual1.q").getPath(), statistics, settings);
 
@@ -268,7 +268,7 @@ public class FilterEqualNotEqualTest extends JavaDataFrameSuiteBase implements S
 	}
 
 	private void queryOnTT2(final DatabaseStatistics statistics) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestEqualNotEqual2_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestEqualNotEqual2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 
 		final Query query = new Query(classLoader.getResource("queryTestFilterEqual1.q").getPath(), statistics, settings);

@@ -63,7 +63,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 	}
 
 	private void queryOnTT(final DatabaseStatistics statistics, final Dataset<Row> expectedResult)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter1.q").getPath(), statistics, settings);
@@ -251,7 +251,7 @@ public class OptionalFilterTest extends JavaDataFrameSuiteBase implements Serial
 		queryOnJwptLeftOuter2(statistics);
 	}	
 	private void queryOnTT2(final DatabaseStatistics statistics)  throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOptionalFilter2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		
 		final Query query = new Query(classLoader.getResource("queryTestOptionalFilter2.q").getPath(), statistics, settings);

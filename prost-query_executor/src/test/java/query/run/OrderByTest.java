@@ -50,7 +50,7 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnTT1(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOrderBy1_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy1.q").getPath(), statistics, settings);
 
@@ -312,7 +312,7 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnTT2(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOrderBy2_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy2.q").getPath(), statistics, settings);
 
@@ -573,7 +573,7 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnTT3(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOrderBy3_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy3.q").getPath(), statistics, settings);
 
@@ -834,7 +834,7 @@ public class OrderByTest extends JavaDataFrameSuiteBase implements Serializable 
 	}
 
 	private void queryOnTT4(final DatabaseStatistics statistics, final Dataset<Row> fullDataset) throws Exception {
-		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingTTNodes().usingCharacteristicSets().build();
+		final Settings settings = new Settings.Builder("queryTestOrderBy4_db").usingTTNodes().build();
 		final ClassLoader classLoader = getClass().getClassLoader();
 		final Query query = new Query(classLoader.getResource("queryTestOrderBy4.q").getPath(), statistics, settings);
 
