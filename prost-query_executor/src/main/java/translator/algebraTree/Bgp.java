@@ -202,7 +202,7 @@ public class Bgp extends Operation {
 			vertexCovers = updatedVertexCovers;
 		}
 
-		final ListIterator<HashSet<String>> vcIterator = vertexCovers.listIterator();
+		ListIterator<HashSet<String>> vcIterator = vertexCovers.listIterator();
 
 		while (vcIterator.hasNext()) {
 			if (vcIterator.next().size() < vcMaximumSize) {
@@ -210,7 +210,20 @@ public class Bgp extends Operation {
 			}
 		}
 
-		//TODO vertexCovers might contain identical Sets
+		vcIterator = vertexCovers.listIterator();
+		while (vcIterator.hasNext()) {
+			final HashSet<String> currentSet = vcIterator.next();
+			final ListIterator<HashSet<String>> subListVcIterator = vertexCovers.listIterator(vcIterator.nextIndex());
+			boolean hasDuplicate = false;
+			while (subListVcIterator.hasNext() && !hasDuplicate) {
+				if (subListVcIterator.next().containsAll(currentSet)) {
+					hasDuplicate = true;
+				}
+			}
+			if (hasDuplicate) {
+				vcIterator.remove();
+			}
+		}
 
 		return vertexCovers;
 	}
