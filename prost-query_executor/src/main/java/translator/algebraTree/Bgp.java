@@ -78,11 +78,10 @@ public class Bgp extends Operation {
 		for (final String resource : minimumVertexCover) {
 			final TriplesGroup triplesGroup = new JoinedTriplesGroup(resource);
 
-
 			for (final Triple triple : triples) {
-				if (triple.getSubject().toString().equals(resource)){
+				if (triple.getSubject().toString().equals(resource)) {
 					triplesGroup.addTriple(triple);
-				} else if (triple.getObject().toString().equals(resource)){
+				} else if (triple.getObject().toString().equals(resource)) {
 					triplesGroup.addTriple(triple);
 				}
 			}
@@ -93,12 +92,13 @@ public class Bgp extends Operation {
 
 	private BgpNode computeLinearQueryPlan(final DatabaseStatistics statistics, final Settings settings,
 										   final PrefixMapping prefixes, final HashSet<String> minimumVertexCover) {
-		final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
+		final ArrayList<BgpNode> nodesQueue = createJwptNodes(triples, settings, statistics,
+				prefixes, minimumVertexCover);
 
 		assert nodesQueue.size() > 0 : "No elements in generated nodesQueue";
 
 		if (nodesQueue.size() == 1) {
-			return nodesQueue.poll();
+			return nodesQueue.get(0);
 		} else {
 			BgpNode leftNode = null;
 			BgpNode rightNode = null;
@@ -107,11 +107,12 @@ public class Bgp extends Operation {
 				//first join (bottom of the linear tree)
 				if (leftNode == null) {
 					double candidateScore = Double.MAX_VALUE;
-					final List<BgpNode> queue = new ArrayList<>(nodesQueue);
-					final ListIterator<BgpNode> leftNodeIterator = queue.listIterator();
+					//final List<BgpNode> queue = new ArrayList<>(nodesQueue);
+					final ListIterator<BgpNode> leftNodeIterator = nodesQueue.listIterator();
 					while (leftNodeIterator.hasNext()) {
 						final BgpNode candidateLeftNode = leftNodeIterator.next();
-						final Iterator<BgpNode> rightNodeIterator = queue.listIterator(leftNodeIterator.nextIndex());
+						final Iterator<BgpNode> rightNodeIterator =
+								nodesQueue.listIterator(leftNodeIterator.nextIndex());
 						while (rightNodeIterator.hasNext()) {
 							final BgpNode candidateRightNode = rightNodeIterator.next();
 							if (existsVariableInCommon(candidateLeftNode.collectTriples(),
@@ -208,6 +209,8 @@ public class Bgp extends Operation {
 				vcIterator.remove();
 			}
 		}
+
+		//TODO vertexCovers might contain identical Sets
 
 		return vertexCovers;
 	}
