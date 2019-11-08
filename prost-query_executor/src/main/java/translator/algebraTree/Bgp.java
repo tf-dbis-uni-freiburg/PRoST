@@ -4,6 +4,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -132,6 +133,61 @@ public class Bgp extends Operation {
 			}
 			return leftNode;
 		}
+	}
+
+	private ArrayList<HashSet<String>> getMinimumVertexCovers(final List<Triple> triples) {
+		final ArrayList<String[]> edgeCovers = new ArrayList<>();
+
+		for (final Triple triple : triples) {
+			final String[] edgeCover = new String[2];
+			edgeCover[0] = triple.getSubject().toString();
+			edgeCover[1] = triple.getObject().toString();
+			edgeCovers.add(edgeCover);
+		}
+
+		ArrayList<HashSet<String>> vertexCovers = new ArrayList<>();
+		int vcMaximumSize = 0;
+
+		for (final String[] edge : edgeCovers) {
+			final ArrayList<HashSet<String>> updatedVertexCovers = new ArrayList<>();
+			if (vertexCovers.isEmpty()) {
+				final HashSet<String> vc1 = new HashSet<>();
+				final HashSet<String> vc2 = new HashSet<>();
+				vc1.add(edge[0]);
+				vc2.add(edge[1]);
+				updatedVertexCovers.add(vc1);
+				updatedVertexCovers.add(vc2);
+				vcMaximumSize = 1;
+			} else {
+				for (final HashSet<String> originalVC : vertexCovers) {
+					final HashSet<String> vc1 = new HashSet<>(originalVC);
+					final HashSet<String> vc2 = new HashSet<>(originalVC);
+					vc1.add(edge[0]);
+					vc2.add(edge[1]);
+					updatedVertexCovers.add(vc1);
+					updatedVertexCovers.add(vc2);
+
+					final int vc1Size = vc1.size();
+					final int vc2Size = vc2.size();
+					if (vc1Size > vcMaximumSize) {
+						vcMaximumSize = vc1Size;
+					} else if (vc2Size > vcMaximumSize) {
+						vcMaximumSize = vc2Size;
+					}
+				}
+			}
+			vertexCovers = updatedVertexCovers;
+		}
+
+		final ListIterator<HashSet<String>> vcIterator = vertexCovers.listIterator();
+
+		while (vcIterator.hasNext()) {
+			if (vcIterator.next().size() < vcMaximumSize) {
+				vcIterator.remove();
+			}
+		}
+
+		return vertexCovers;
 	}
 
 	private PriorityQueue<BgpNode> getNodesQueue(final List<Triple> triples, final Settings settings,
