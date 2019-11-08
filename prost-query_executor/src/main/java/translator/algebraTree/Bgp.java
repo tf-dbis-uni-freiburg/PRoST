@@ -24,6 +24,7 @@ import translator.algebraTree.bgpTree.TTNode;
 import translator.algebraTree.bgpTree.TriplePattern;
 import translator.algebraTree.bgpTree.VPNode;
 import translator.algebraTree.bgpTree.WPTNode;
+import translator.triplesGroup.JoinedTriplesGroup;
 import translator.triplesGroup.TriplesGroup;
 import translator.triplesGroup.TriplesGroupsMapping;
 import utils.Settings;
@@ -69,8 +70,29 @@ public class Bgp extends Operation {
 		return currentNode;
 	}
 
+	private ArrayList<BgpNode> createJwptNodes(final List<Triple> triples, final Settings settings,
+											   final DatabaseStatistics statistics, final PrefixMapping prefixes,
+											   final HashSet<String> minimumVertexCover) {
+		final ArrayList<BgpNode> nodesList = new ArrayList<>();
+
+		for (final String resource : minimumVertexCover) {
+			final TriplesGroup triplesGroup = new JoinedTriplesGroup(resource);
+
+
+			for (final Triple triple : triples) {
+				if (triple.getSubject().toString().equals(resource)){
+					triplesGroup.addTriple(triple);
+				} else if (triple.getObject().toString().equals(resource)){
+					triplesGroup.addTriple(triple);
+				}
+			}
+			nodesList.add(new JWPTNode(triplesGroup, prefixes, statistics, settings));
+		}
+		return nodesList;
+	}
+
 	private BgpNode computeLinearQueryPlan(final DatabaseStatistics statistics, final Settings settings,
-										   final PrefixMapping prefixes) {
+										   final PrefixMapping prefixes, final HashSet<String> minimumVertexCover) {
 		final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
 
 		assert nodesQueue.size() > 0 : "No elements in generated nodesQueue";

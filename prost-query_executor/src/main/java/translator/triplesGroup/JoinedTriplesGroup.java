@@ -17,7 +17,7 @@ public class JoinedTriplesGroup extends TriplesGroup {
 	private final List<Triple> forwardTriples = new ArrayList<>();
 	private final List<Triple> inverseTriples = new ArrayList<>();
 
-	JoinedTriplesGroup(final String commonResource) {
+	public JoinedTriplesGroup(final String commonResource) {
 		this.commonResource = commonResource;
 	}
 
