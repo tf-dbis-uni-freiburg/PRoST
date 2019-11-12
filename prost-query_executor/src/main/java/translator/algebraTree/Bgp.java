@@ -40,12 +40,24 @@ public class Bgp extends Operation {
 	Bgp(final OpBGP jenaAlgebraTree, final DatabaseStatistics statistics, final Settings settings,
 		final PrefixMapping prefixes) {
 		this.triples = jenaAlgebraTree.getPattern().getList();
-		this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
+
+		if (settings.isUsingJWPTOuter() || settings.isUsingJWPTInner()) {
+			this.bgpRootNode = computeMinimumQueryPlan(statistics, settings, prefixes);
+		} else {
+			this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
+		}
 	}
 
 	public Dataset<Row> computeOperation(final SQLContext sqlContext) {
 		bgpRootNode.computeNodeData(sqlContext);
 		return bgpRootNode.getSparkNodeData();
+	}
+
+	private BgpNode computeMinimumQueryPlan(final DatabaseStatistics statistics, final Settings settings,
+											final PrefixMapping prefixes) {
+		final ArrayList<HashSet<String>> vertexCover = getMinimumVertexCovers(triples);
+		final BgpNode rootNode = computeLinearQueryPlan(statistics, settings, prefixes, vertexCover.get(0));
+		return rootNode;
 	}
 
 	/**
@@ -169,7 +181,7 @@ public class Bgp extends Operation {
 		}
 
 		ArrayList<HashSet<String>> vertexCovers = new ArrayList<>();
-		int vcMaximumSize = 0;
+		int vcMinimumSize = 0;
 
 		for (final String[] edge : edgeCovers) {
 			final ArrayList<HashSet<String>> updatedVertexCovers = new ArrayList<>();
@@ -180,8 +192,9 @@ public class Bgp extends Operation {
 				vc2.add(edge[1]);
 				updatedVertexCovers.add(vc1);
 				updatedVertexCovers.add(vc2);
-				vcMaximumSize = 1;
+				vcMinimumSize = 1;
 			} else {
+				vcMinimumSize++;
 				for (final HashSet<String> originalVC : vertexCovers) {
 					final HashSet<String> vc1 = new HashSet<>(originalVC);
 					final HashSet<String> vc2 = new HashSet<>(originalVC);
@@ -192,10 +205,10 @@ public class Bgp extends Operation {
 
 					final int vc1Size = vc1.size();
 					final int vc2Size = vc2.size();
-					if (vc1Size > vcMaximumSize) {
-						vcMaximumSize = vc1Size;
-					} else if (vc2Size > vcMaximumSize) {
-						vcMaximumSize = vc2Size;
+					if (vc1Size < vcMinimumSize) {
+						vcMinimumSize = vc1Size;
+					} else if (vc2Size < vcMinimumSize) {
+						vcMinimumSize = vc2Size;
 					}
 				}
 			}
@@ -205,7 +218,7 @@ public class Bgp extends Operation {
 		ListIterator<HashSet<String>> vcIterator = vertexCovers.listIterator();
 
 		while (vcIterator.hasNext()) {
-			if (vcIterator.next().size() < vcMaximumSize) {
+			if (vcIterator.next().size() > vcMinimumSize) {
 				vcIterator.remove();
 			}
 		}
