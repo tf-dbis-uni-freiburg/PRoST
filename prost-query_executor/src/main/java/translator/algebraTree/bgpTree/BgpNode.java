@@ -89,7 +89,6 @@ public abstract class BgpNode {
 	}
 
 	private ArrayList<HashSet<String>> computeCharacteristicSet() {
-
 		//first element is forward set, second element is inverse set
 		final ArrayList<HashSet<String>> characteristicSets = new ArrayList<>();
 

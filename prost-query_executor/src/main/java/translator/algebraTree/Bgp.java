@@ -65,9 +65,28 @@ public class Bgp extends Operation {
 	 */
 	private BgpNode computeMinimumQueryPlan(final DatabaseStatistics statistics, final Settings settings,
 											final PrefixMapping prefixes) {
-		final ArrayList<HashSet<String>> vertexCover = getMinimumVertexCovers(triples);
-		//TODO heuristic for selecting best minimum vertex cover
-		return computeLinearQueryPlan(statistics, settings, prefixes, vertexCover.get(0));
+		final ArrayList<HashSet<String>> vertexCovers = getMinimumVertexCovers(triples);
+
+		//finds the minimum cover/nodes queue with smallest final estimated cardinality.
+		double score = Double.MAX_VALUE;
+		ArrayList<BgpNode> selectedNodesQueue = null;
+		for (final HashSet<String> vertexCover : vertexCovers) {
+			final ArrayList<BgpNode> nodesQueue = createJwptNodes(triples, settings, statistics,
+					prefixes, vertexCover);
+
+			double cardinality = 1;
+			for (final BgpNode node : nodesQueue) {
+				cardinality = cardinality * node.getPriority();
+			}
+			if (cardinality < score) {
+				score = cardinality;
+				selectedNodesQueue = nodesQueue;
+			}
+		}
+
+		assert selectedNodesQueue != null : "Unexpected state. Nodes queue of selected minimal "
+				+ "vertex cover is not initialized";
+		return computeLinearQueryPlan(statistics, settings, selectedNodesQueue);
 	}
 
 	/**
@@ -118,17 +137,12 @@ public class Bgp extends Operation {
 	}
 
 	/**
-	 * Computes a linear query plan given the minimum vertex cover of the bgp.
+	 * Computes a linear query plan given a list of nodes.
 	 *
 	 * @return The root node of the query plan.
 	 */
 	private BgpNode computeLinearQueryPlan(final DatabaseStatistics statistics, final Settings settings,
-										   final PrefixMapping prefixes, final HashSet<String> minimumVertexCover) {
-		final ArrayList<BgpNode> nodesQueue = createJwptNodes(triples, settings, statistics,
-				prefixes, minimumVertexCover);
-
-		assert nodesQueue.size() > 0 : "No elements in generated nodesQueue";
-
+										   final ArrayList<BgpNode> nodesQueue) {
 		if (nodesQueue.size() == 1) {
 			return nodesQueue.get(0);
 		} else {
@@ -362,7 +376,8 @@ public class Bgp extends Operation {
 		}
 
 		if (unassignedTriples.size() > 0 || unassignedTriplesWithVariablePredicate.size() > 0) {
-			throw new RuntimeException("Cannot generate nodes queue. Some triple patterns are not assigned to a node.");
+			throw new RuntimeException("Cannot generate nodes queue. Some triple patterns are not assigned to a node"
+					+ ".");
 		} else {
 			return nodesQueue;
 		}
