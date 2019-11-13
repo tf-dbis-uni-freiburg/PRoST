@@ -35,23 +35,23 @@ public abstract class TriplesGroup {
 
 	/**
 	 * Creates a {@link BgpNode} object for this group of triples.
+	 *
 	 * @param settings {@link Settings} object containing information about available data models, and whether nodes
-	 *                                    with grouped triple patterns is enabled.
+	 *                 with grouped triple patterns is enabled.
 	 * @return The list of created nodes. Returns null if no group could be created.
 	 */
 	public abstract List<BgpNode> createNodes(final Settings settings, final DatabaseStatistics statistics,
 											  final PrefixMapping prefixes);
 
 	/**
-	 * Returns a list containing only the triple patterns whose subject resource is equal to
-	 * {@link this.commonResource}.
+	 * Returns a list containing only the triple patterns whose subject resource is equal to {@link
+	 * this.commonResource}.
 	 */
 	public abstract List<Triple> getForwardTriples();
 
 	/**
-	 * Returns a list containing only the triple patterns whose object resource is equal to
-	 * {@link this.commonResource}.
+	 * Returns a list containing only the triple patterns whose object resource is equal to {@link
+	 * this.commonResource}.
 	 */
 	public abstract List<Triple> getInverseTriples();
-
 }

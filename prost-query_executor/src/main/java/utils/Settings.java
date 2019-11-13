@@ -484,7 +484,7 @@ public class Settings {
 
 		public Builder usingBroadcastJoins(final boolean usingBroadcastJoins) {
 			this.usingBroadcastJoins = usingBroadcastJoins;
-			return  this;
+			return this;
 		}
 
 		public Settings build() {
@@ -506,5 +506,4 @@ public class Settings {
 			return settings;
 		}
 	}
-
 }

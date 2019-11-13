@@ -9,12 +9,11 @@ import utils.Settings;
 import utils.Utils;
 
 /**
- * A node of a bgp tree that contains the result of a join between two other
- * nodes. It has two children. Its child can be another join node, if it is not
- * a leaf in the tree. Its list of triples is a union of its children's triples.
+ * A node of a bgp tree that contains the result of a join between two other nodes. It has two children. Its child can
+ * be another join node, if it is not a leaf in the tree. Its list of triples is a union of its children's triples.
  * <p>
- * To compute the data in a join node, the data for its children is first
- * computed. Then, a join between them is executed, based on a common variables.
+ * To compute the data in a join node, the data for its children is first computed. Then, a join between them is
+ * executed, based on a common variables.
  *
  * @author Polina Koleva
  */
@@ -41,7 +40,6 @@ public class JoinNode extends MVNode {
 
 		this.setSparkNodeData(getLeftChild().getSparkNodeData().join(getRightChild().getSparkNodeData(),
 				scala.collection.JavaConversions.asScalaBuffer(joinVariables).seq()));
-
 	}
 
 	public BgpNode getLeftChild() {
@@ -53,8 +51,7 @@ public class JoinNode extends MVNode {
 	}
 
 	/**
-	 * To compute the triples that a join node represents, union the triples each of
-	 * its children contains.
+	 * To compute the triples that a join node represents, union the triples each of its children contains.
 	 *
 	 * @return a list of triples
 	 */
@@ -66,13 +63,11 @@ public class JoinNode extends MVNode {
 	}
 
 	/**
-	 * Calculate heuristically a score for a join node. It is a multiplication of
-	 * its children's scores. If a child's score is zero (when a constant is
-	 * involved), it is ignored from the multiplication.
+	 * Calculate heuristically a score for a join node. It is a multiplication of its children's scores. If a child's
+	 * score is zero (when a constant is involved), it is ignored from the multiplication.
 	 */
 	@Override
 	public double heuristicNodePriority() {
-		final double priority = 0;
 		final double leftChildPriority = this.leftChild.heuristicNodePriority();
 		final double rightChildPriority = this.rightChild.heuristicNodePriority();
 		/*if (leftChildPriority == 0.0) {

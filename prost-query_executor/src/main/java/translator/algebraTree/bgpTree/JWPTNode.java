@@ -91,22 +91,6 @@ public class JWPTNode extends MVNode {
 		}
 	}
 
-	/**
-	 * Uses the database statistics to determine if the column in the JWPT for each
-	 * <code>TriplePattern</code> in <code>wptTripleGroup</code> and
-	 * <code>iwptTripleGroup</code>is complex.
-	 */
-	/*private void setIsComplex() {
-		for (final TriplePattern triplePattern : wptTripleGroup) {
-			triplePattern.setComplex(
-					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isComplex());
-		}
-
-		for (final TriplePattern triplePattern : iwptTripleGroup) {
-			triplePattern.setComplex(
-					this.getStatistics().getProperties().get(triplePattern.getPredicate()).isInverseComplex());
-		}
-	}*/
 	@Override
 	public void computeNodeData(final SQLContext sqlContext) {
 		final TriplePattern triple = this.getFirstTriplePattern();

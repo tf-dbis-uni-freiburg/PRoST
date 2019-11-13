@@ -42,7 +42,6 @@ public class JoinedTriplesGroup extends TriplesGroup {
 		}
 	}
 
-
 	public List<Triple> getTriples() {
 		final List<Triple> fullList = new ArrayList<>();
 		fullList.addAll(this.forwardTriples);
@@ -92,5 +91,4 @@ public class JoinedTriplesGroup extends TriplesGroup {
 			return createdNodes;
 		}
 	}
-
 }

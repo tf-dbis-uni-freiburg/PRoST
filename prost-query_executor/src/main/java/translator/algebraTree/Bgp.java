@@ -48,20 +48,30 @@ public class Bgp extends Operation {
 		}
 	}
 
+	/**
+	 * Executes the query plan.
+	 *
+	 * @return the resulting dataset.
+	 */
 	public Dataset<Row> computeOperation(final SQLContext sqlContext) {
 		bgpRootNode.computeNodeData(sqlContext);
 		return bgpRootNode.getSparkNodeData();
 	}
 
+	/**
+	 * Computes a Query Plan with the minimal number of join operations. Uses the JWPT data model.
+	 *
+	 * @return The root node of the query plan.
+	 */
 	private BgpNode computeMinimumQueryPlan(final DatabaseStatistics statistics, final Settings settings,
 											final PrefixMapping prefixes) {
 		final ArrayList<HashSet<String>> vertexCover = getMinimumVertexCovers(triples);
-		final BgpNode rootNode = computeLinearQueryPlan(statistics, settings, prefixes, vertexCover.get(0));
-		return rootNode;
+		//TODO heuristic for selecting best minimum vertex cover
+		return computeLinearQueryPlan(statistics, settings, prefixes, vertexCover.get(0));
 	}
 
 	/**
-	 * Constructs the bgp tree.
+	 * Constructs the bgp query plan. Does not guarantee a minimal plan. All data models may be used.
 	 */
 	private BgpNode computeRootNode(final DatabaseStatistics statistics, final Settings settings,
 									final PrefixMapping prefixes) {
@@ -82,6 +92,11 @@ public class Bgp extends Operation {
 		return currentNode;
 	}
 
+	/**
+	 * Creates JWPT nodes given a minimum vertex cover.
+	 *
+	 * @return Created JWPT nodes as a list of BgpNodes.
+	 */
 	private ArrayList<BgpNode> createJwptNodes(final List<Triple> triples, final Settings settings,
 											   final DatabaseStatistics statistics, final PrefixMapping prefixes,
 											   final HashSet<String> minimumVertexCover) {
@@ -102,6 +117,11 @@ public class Bgp extends Operation {
 		return nodesList;
 	}
 
+	/**
+	 * Computes a linear query plan given the minimum vertex cover of the bgp.
+	 *
+	 * @return The root node of the query plan.
+	 */
 	private BgpNode computeLinearQueryPlan(final DatabaseStatistics statistics, final Settings settings,
 										   final PrefixMapping prefixes, final HashSet<String> minimumVertexCover) {
 		final ArrayList<BgpNode> nodesQueue = createJwptNodes(triples, settings, statistics,
@@ -117,9 +137,9 @@ public class Bgp extends Operation {
 			double score = Double.MAX_VALUE;
 			while (!nodesQueue.isEmpty()) {
 				//first join (bottom of the linear tree)
+				//finds the two nodes with common resources and estimated lowest cardinality.
 				if (leftNode == null) {
-					double candidateScore = Double.MAX_VALUE;
-					//final List<BgpNode> queue = new ArrayList<>(nodesQueue);
+					double candidateScore;
 					final ListIterator<BgpNode> leftNodeIterator = nodesQueue.listIterator();
 					while (leftNodeIterator.hasNext()) {
 						final BgpNode candidateLeftNode = leftNodeIterator.next();
@@ -140,14 +160,15 @@ public class Bgp extends Operation {
 							}
 						}
 					}
-					assert leftNode != null : "BGP not a closed graph?";
+					assert leftNode != null : "No candidates found for join operation. BGP not a closed graph?";
 
 					nodesQueue.remove(leftNode);
 					nodesQueue.remove(rightNode);
 					leftNode = new JoinNode(leftNode, rightNode, statistics, settings);
 					rightNode = null;
-					score = Double.MAX_VALUE;
+					score = Double.MAX_VALUE; //resets score value before next step.
 				} else {
+					//looks for best candidate that can be joined with the current tree root.
 					for (final BgpNode candidateRightNode : nodesQueue) {
 						final double candidateScore = candidateRightNode.getPriority();
 						if (existsVariableInCommon(leftNode.collectTriples(),
@@ -158,21 +179,26 @@ public class Bgp extends Operation {
 						}
 					}
 
-					assert rightNode != null : "BGP not a closed graph?";
+					assert rightNode != null : "No node found with a common resource to the current root. BGP not a "
+							+ "closed graph?";
 
 					nodesQueue.remove(rightNode);
 					leftNode = new JoinNode(leftNode, rightNode, statistics, settings);
 					rightNode = null;
-					score = Double.MAX_VALUE;
+					score = Double.MAX_VALUE; //resets score value before next step.
 				}
 			}
 			return leftNode;
 		}
 	}
 
+	/**
+	 * Computes and returns the minimum vertex covers for the given triple patterns.
+	 */
 	private ArrayList<HashSet<String>> getMinimumVertexCovers(final List<Triple> triples) {
 		final ArrayList<String[]> edgeCovers = new ArrayList<>();
 
+		//computes edge covers
 		for (final Triple triple : triples) {
 			final String[] edgeCover = new String[2];
 			edgeCover[0] = triple.getSubject().toString();
@@ -183,6 +209,7 @@ public class Bgp extends Operation {
 		ArrayList<HashSet<String>> vertexCovers = new ArrayList<>();
 		int vcMinimumSize = 0;
 
+		//computes all vertex covers
 		for (final String[] edge : edgeCovers) {
 			final ArrayList<HashSet<String>> updatedVertexCovers = new ArrayList<>();
 			if (vertexCovers.isEmpty()) {
@@ -215,14 +242,15 @@ public class Bgp extends Operation {
 			vertexCovers = updatedVertexCovers;
 		}
 
+		//removes non minimal vertex covers
 		ListIterator<HashSet<String>> vcIterator = vertexCovers.listIterator();
-
 		while (vcIterator.hasNext()) {
 			if (vcIterator.next().size() > vcMinimumSize) {
 				vcIterator.remove();
 			}
 		}
 
+		//removes duplicated vertex covers
 		vcIterator = vertexCovers.listIterator();
 		while (vcIterator.hasNext()) {
 			final HashSet<String> currentSet = vcIterator.next();

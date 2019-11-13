@@ -17,8 +17,7 @@ import utils.EmergentSchema;
 import utils.Settings;
 
 /**
- * The Main class parses the CLI arguments and calls the translator and the
- * executor.
+ * The Main class parses the CLI arguments and calls the translator and the executor.
  *
  * @author Matteo Cossu
  * @author Polina Koleva
