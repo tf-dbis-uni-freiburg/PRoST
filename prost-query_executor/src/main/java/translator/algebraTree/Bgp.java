@@ -86,7 +86,28 @@ public class Bgp extends Operation {
 
 		assert selectedNodesQueue != null : "Unexpected state. Nodes queue of selected minimal "
 				+ "vertex cover is not initialized";
-		return computeLinearQueryPlan(statistics, settings, selectedNodesQueue);
+
+		if (settings.isUsingJWPTLinearPlan()) {
+			return computeLinearQueryPlan(statistics, settings, selectedNodesQueue);
+		} else {
+			final PriorityQueue<BgpNode> nodesQueue = new PriorityQueue<>(selectedNodesQueue.size(),
+					new NodeComparator());
+			nodesQueue.addAll(selectedNodesQueue);
+			BgpNode currentNode = null;
+
+			while (!nodesQueue.isEmpty()) {
+				currentNode = nodesQueue.poll();
+				final BgpNode relatedNode = findRelateNode(currentNode, nodesQueue);
+
+				if (relatedNode != null) {
+					final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
+					nodesQueue.add(joinNode);
+					nodesQueue.remove(currentNode);
+					nodesQueue.remove(relatedNode);
+				}
+			}
+			return currentNode;
+		}
 	}
 
 	/**

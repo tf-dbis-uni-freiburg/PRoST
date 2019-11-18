@@ -45,6 +45,7 @@ public class Settings {
 	private boolean groupingTriples = true;
 	private int minGroupSize = 2;
 	private boolean usingCharacteristicSets = false;
+	private boolean usingJWPTLinearPlan = false;
 
 	// Executor options
 	private boolean usingBroadcastJoins = true;
@@ -56,6 +57,7 @@ public class Settings {
 
 	}
 
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	public Settings(final String[] args) throws Exception {
 		parseArguments(args);
 		if (settingsPath == null) {
@@ -67,7 +69,6 @@ public class Settings {
 
 		final File file = new File(settingsPath);
 		if (file.exists()) {
-			//noinspection MismatchedQueryAndUpdateOfCollection
 			final Ini settings = new Ini(file);
 			this.usingTT = settings.get("nodeTypes", "TT", boolean.class);
 			this.usingVP = settings.get("nodeTypes", "VP", boolean.class);
@@ -80,6 +81,7 @@ public class Settings {
 			this.groupingTriples = settings.get("translator", "groupingTriples", boolean.class);
 			this.minGroupSize = settings.get("translator", "minGroupSize", int.class);
 			this.usingCharacteristicSets = settings.get("translator", "usingCharacteristicSets", boolean.class);
+			this.usingJWPTLinearPlan = settings.get("translator", "usingJWPTLinearPlan", boolean.class);
 
 			this.usingBroadcastJoins = settings.get("executor", "usingBroadcastJoins", boolean.class);
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
@@ -310,6 +312,11 @@ public class Settings {
 		if (usingCharacteristicSets) {
 			csvFilenameElements.add("usingCharset");
 		}
+
+		if (usingJWPTLinearPlan) {
+			csvFilenameElements.add("linearPlan");
+		}
+
 		return String.join("_", csvFilenameElements) + ".csv";
 	}
 
@@ -387,6 +394,10 @@ public class Settings {
 
 	public boolean isUsingCharacteristicSets() {
 		return usingCharacteristicSets;
+	}
+
+	public boolean isUsingJWPTLinearPlan() {
+		return usingJWPTLinearPlan;
 	}
 
 	public boolean isSavingSparkPlans() {
