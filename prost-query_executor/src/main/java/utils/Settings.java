@@ -45,6 +45,7 @@ public class Settings {
 	private boolean groupingTriples = true;
 	private int minGroupSize = 2;
 	private boolean usingCharacteristicSets = false;
+	private boolean usingVertexCover = false;
 	private boolean usingJWPTLinearPlan = false;
 
 	// Executor options
@@ -82,6 +83,7 @@ public class Settings {
 			this.minGroupSize = settings.get("translator", "minGroupSize", int.class);
 			this.usingCharacteristicSets = settings.get("translator", "usingCharacteristicSets", boolean.class);
 			this.usingJWPTLinearPlan = settings.get("translator", "usingJWPTLinearPlan", boolean.class);
+			this.usingVertexCover = settings.get("translator", "usingVertexCover", boolean.class);
 
 			this.usingBroadcastJoins = settings.get("executor", "usingBroadcastJoins", boolean.class);
 			this.randomQueryOrder = settings.get("executor", "randomQueryOrder", boolean.class);
@@ -262,6 +264,19 @@ public class Settings {
 		}
 		logger.info("Minimum group size: " + minGroupSize);
 
+		if (usingCharacteristicSets) {
+			logger.info("Using Characteristic Sets");
+		}
+
+		if ((usingJWPTInner || usingJWPTOuter)) {
+			if (usingVertexCover) {
+				logger.info("Using minimum vertex cover");
+			}
+			if (usingJWPTLinearPlan) {
+				logger.info("Creating a linear execution  plan");
+			}
+		}
+
 		logger.info("#EXECUTOR OPTIONS#");
 		if (randomQueryOrder) {
 			logger.info("Queries execution order: random");
@@ -313,8 +328,14 @@ public class Settings {
 			csvFilenameElements.add("usingCharset");
 		}
 
-		if (usingJWPTLinearPlan) {
-			csvFilenameElements.add("linearPlan");
+		if (usingJWPTInner || usingJWPTOuter) {
+			if (usingVertexCover) {
+				csvFilenameElements.add("vertexCover");
+			}
+
+			if (usingJWPTLinearPlan) {
+				csvFilenameElements.add("linearPlan");
+			}
 		}
 
 		return String.join("_", csvFilenameElements) + ".csv";
@@ -394,6 +415,10 @@ public class Settings {
 
 	public boolean isUsingCharacteristicSets() {
 		return usingCharacteristicSets;
+	}
+
+	public boolean isUsingVertexCover() {
+		return usingVertexCover;
 	}
 
 	public boolean isUsingJWPTLinearPlan() {

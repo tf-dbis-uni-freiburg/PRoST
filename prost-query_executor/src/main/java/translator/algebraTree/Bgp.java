@@ -41,7 +41,7 @@ public class Bgp extends Operation {
 		final PrefixMapping prefixes) {
 		this.triples = jenaAlgebraTree.getPattern().getList();
 
-		if (settings.isUsingJWPTOuter() || settings.isUsingJWPTInner()) {
+		if ((settings.isUsingJWPTOuter() || settings.isUsingJWPTInner()) && settings.isUsingVertexCover()) {
 			this.bgpRootNode = computeMinimumQueryPlan(statistics, settings, prefixes);
 		} else {
 			this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
@@ -93,21 +93,28 @@ public class Bgp extends Operation {
 			final PriorityQueue<BgpNode> nodesQueue = new PriorityQueue<>(selectedNodesQueue.size(),
 					new NodeComparator());
 			nodesQueue.addAll(selectedNodesQueue);
-			BgpNode currentNode = null;
-
-			while (!nodesQueue.isEmpty()) {
-				currentNode = nodesQueue.poll();
-				final BgpNode relatedNode = findRelateNode(currentNode, nodesQueue);
-
-				if (relatedNode != null) {
-					final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
-					nodesQueue.add(joinNode);
-					nodesQueue.remove(currentNode);
-					nodesQueue.remove(relatedNode);
-				}
-			}
-			return currentNode;
+			return computeRootNode(statistics, settings, nodesQueue);
 		}
+	}
+
+	/**
+	 * Constructs the bgp query plan from the give priority queue.
+	 */
+	private BgpNode computeRootNode(final DatabaseStatistics statistics, final Settings settings,
+									final PriorityQueue<BgpNode> nodesPriorityQueue) {
+		BgpNode currentNode = null;
+		while (!nodesPriorityQueue.isEmpty()) {
+			currentNode = nodesPriorityQueue.poll();
+			final BgpNode relatedNode = findRelateNode(currentNode, nodesPriorityQueue);
+
+			if (relatedNode != null) {
+				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
+				nodesPriorityQueue.add(joinNode);
+				nodesPriorityQueue.remove(currentNode);
+				nodesPriorityQueue.remove(relatedNode);
+			}
+		}
+		return currentNode;
 	}
 
 	/**
@@ -116,20 +123,7 @@ public class Bgp extends Operation {
 	private BgpNode computeRootNode(final DatabaseStatistics statistics, final Settings settings,
 									final PrefixMapping prefixes) {
 		final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
-		BgpNode currentNode = null;
-
-		while (!nodesQueue.isEmpty()) {
-			currentNode = nodesQueue.poll();
-			final BgpNode relatedNode = findRelateNode(currentNode, nodesQueue);
-
-			if (relatedNode != null) {
-				final JoinNode joinNode = new JoinNode(currentNode, relatedNode, statistics, settings);
-				nodesQueue.add(joinNode);
-				nodesQueue.remove(currentNode);
-				nodesQueue.remove(relatedNode);
-			}
-		}
-		return currentNode;
+		return computeRootNode(statistics, settings, nodesQueue);
 	}
 
 	/**
