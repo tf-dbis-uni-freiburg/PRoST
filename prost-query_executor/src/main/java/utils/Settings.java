@@ -332,10 +332,10 @@ public class Settings {
 			if (usingVertexCover) {
 				csvFilenameElements.add("vertexCover");
 			}
+		}
 
-			if (usingJWPTLinearPlan) {
-				csvFilenameElements.add("linearPlan");
-			}
+		if (usingJWPTLinearPlan) {
+			csvFilenameElements.add("linearPlan");
 		}
 
 		return String.join("_", csvFilenameElements) + ".csv";

@@ -43,6 +43,12 @@ public class Bgp extends Operation {
 
 		if ((settings.isUsingJWPTOuter() || settings.isUsingJWPTInner()) && settings.isUsingVertexCover()) {
 			this.bgpRootNode = computeMinimumQueryPlan(statistics, settings, prefixes);
+		} else if (settings.isUsingJWPTLinearPlan()){
+			final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
+			final ArrayList<BgpNode> nodesList = new ArrayList<>();
+			nodesList.addAll(nodesQueue);
+			this.bgpRootNode = computeLinearQueryPlan(statistics,settings, nodesList);
+
 		} else {
 			this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
 		}
