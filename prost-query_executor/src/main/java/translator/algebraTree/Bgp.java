@@ -43,12 +43,11 @@ public class Bgp extends Operation {
 
 		if ((settings.isUsingJWPTOuter() || settings.isUsingJWPTInner()) && settings.isUsingVertexCover()) {
 			this.bgpRootNode = computeMinimumQueryPlan(statistics, settings, prefixes);
-		} else if (settings.isUsingJWPTLinearPlan()){
+		} else if (settings.isUsingJWPTLinearPlan()) {
 			final PriorityQueue<BgpNode> nodesQueue = getNodesQueue(triples, settings, statistics, prefixes);
 			final ArrayList<BgpNode> nodesList = new ArrayList<>();
 			nodesList.addAll(nodesQueue);
-			this.bgpRootNode = computeLinearQueryPlan(statistics,settings, nodesList);
-
+			this.bgpRootNode = computeLinearQueryPlan(statistics, settings, nodesList);
 		} else {
 			this.bgpRootNode = computeRootNode(statistics, settings, prefixes);
 		}
@@ -90,6 +89,9 @@ public class Bgp extends Operation {
 			}
 		}
 
+
+		removeOverlap(selectedNodesQueue);
+
 		assert selectedNodesQueue != null : "Unexpected state. Nodes queue of selected minimal "
 				+ "vertex cover is not initialized";
 
@@ -100,6 +102,36 @@ public class Bgp extends Operation {
 					new NodeComparator());
 			nodesQueue.addAll(selectedNodesQueue);
 			return computeRootNode(statistics, settings, nodesQueue);
+		}
+	}
+
+	private void removeOverlap(final ArrayList<BgpNode> nodesQueue) {
+		final ListIterator<BgpNode> leftIterator = nodesQueue.listIterator();
+		while (leftIterator.hasNext()) {
+			final BgpNode leftNode = leftIterator.next();
+			final ListIterator<BgpNode> rightIterator = nodesQueue.listIterator(leftIterator.nextIndex());
+			while (rightIterator.hasNext()) {
+				final List<TriplePattern> leftTriples = leftNode.collectTriples();
+				final ArrayList<TriplePattern> repeatedTriples = new ArrayList<>();
+				final BgpNode rightNode = rightIterator.next();
+				final List<TriplePattern> rightTriples = rightNode.collectTriples();
+				for (final TriplePattern leftTriple : leftTriples) {
+					for (final TriplePattern rightTriple : rightTriples) {
+						if (leftTriple.getSubject().equals(rightTriple.getSubject())
+								&& leftTriple.getPredicate().equals(rightTriple.getPredicate())
+								&& leftTriple.getObject().equals(rightTriple.getObject())) {
+							repeatedTriples.add(leftTriple);
+						}
+					}
+				}
+				if (repeatedTriples.size() > 0) {
+					if (leftNode.getPriority() < rightNode.getPriority()) {
+						leftNode.removeTriples(repeatedTriples);
+					} else {
+						rightNode.removeTriples(repeatedTriples);
+					}
+				}
+			}
 		}
 	}
 

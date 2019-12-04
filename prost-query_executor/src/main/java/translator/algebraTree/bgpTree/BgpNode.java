@@ -41,6 +41,14 @@ public abstract class BgpNode {
 	 */
 	public abstract List<TriplePattern> collectTriples();
 
+	public void removeTriples(final ArrayList<TriplePattern> triples) {
+		for (final TriplePattern tripleToRemove : triples) {
+			collectTriples().removeIf(original -> original.getSubject().equals(tripleToRemove.getSubject())
+					&& original.getObject().equals(tripleToRemove.getObject())
+					&& original.getPredicate().equals(tripleToRemove.getPredicate()));
+		}
+	}
+
 	/**
 	 * Calculate a score for each node. Based on it, the position of the node in the join tree is determined.
 	 *
@@ -59,7 +67,8 @@ public abstract class BgpNode {
 	 * Calculate heuristically a score for each node. A numeric value for each triple based on its predicates is
 	 * collected while the data is loaded. The value is equal to the number of triples that exist in the data for a
 	 * predicate. Each node represents one or more triples. Therefore, to calculate a score of a node summation over
-	 * values for their triples is calculated. An exception of the rule exists only if a triples contains a constant. In
+	 * values for their triples is calculated. An exception of the rule exists only if a triples contains a constant
+	 * . In
 	 * this case, the heuristic value of a node is 0. Therefore, such node is pushed down in a join tree. Note: This
 	 * heuristic function is valid only for leaves in the tree node. For {@link JoinNode}, see the overridden method.
 	 */

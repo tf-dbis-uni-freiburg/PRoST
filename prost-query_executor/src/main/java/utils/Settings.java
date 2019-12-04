@@ -272,9 +272,10 @@ public class Settings {
 			if (usingVertexCover) {
 				logger.info("Using minimum vertex cover");
 			}
-			if (usingJWPTLinearPlan) {
-				logger.info("Creating a linear execution  plan");
-			}
+		}
+
+		if (usingJWPTLinearPlan) {
+			logger.info("Creating a linear execution  plan");
 		}
 
 		logger.info("#EXECUTOR OPTIONS#");
