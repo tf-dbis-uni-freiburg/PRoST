@@ -100,20 +100,6 @@ public class Main {
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
-		if (settings.isComputingCharacteristicSets()) {
-			assert statistics.hasTT() : "Not possible to compute characteristic sets. Db does not contain TT.";
-			assert statistics.hasWPT() : "Not possible to compute characteristic sets. Db does not contain WPT.";
-			assert statistics.hasPropertiesStatistics() : "Not possible to compute characteristic sets. Property "
-					+ "statistics are not available.";
-			logger.info("COMPUTING CHARACTERISTIC SETS...");
-			startTime = System.currentTimeMillis();
-			statistics.computeCharacteristicSetsStatistics(spark);
-			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("CHARACTERISTIC SETS COMPUTED!");
-			logger.info("Time in ms to compute characteristic sets: " + executionTime);
-			statistics.saveToFile(settings.getDatabaseName() + ".json");
-		}
-
 		if (settings.isGeneratingWPT()) {
 			statistics.setHasWPT(false);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
@@ -210,6 +196,20 @@ public class Main {
 
 			statistics.setHasJWPTLeftOuter(true);
 			statistics.setJwptPartitionedByResource(settings.isJwptPartitionedByResource());
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+		}
+		
+		if (settings.isComputingCharacteristicSets()) {
+			assert statistics.hasTT() : "Not possible to compute characteristic sets. Db does not contain TT.";
+			assert statistics.hasWPT() : "Not possible to compute characteristic sets. Db does not contain WPT.";
+			assert statistics.hasPropertiesStatistics() : "Not possible to compute characteristic sets. Property "
+					+ "statistics are not available.";
+			logger.info("COMPUTING CHARACTERISTIC SETS...");
+			startTime = System.currentTimeMillis();
+			statistics.computeCharacteristicSetsStatistics(spark);
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("CHARACTERISTIC SETS COMPUTED!");
+			logger.info("Time in ms to compute characteristic sets: " + executionTime);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
