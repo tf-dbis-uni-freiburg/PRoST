@@ -42,7 +42,7 @@ public class Main {
 		final Settings settings = new Settings(args);
 		final DatabaseStatistics statistics;
 		if (settings.isDroppingDB()) {
-			spark.sql("DROP DATABASE " + settings.getDatabaseName() + " IF EXISTS CASCADE");
+			spark.sql("DROP DATABASE IF EXISTS " + settings.getDatabaseName() + " CASCADE");
 			statistics = new DatabaseStatistics(settings.getDatabaseName());
 		} else {
 			statistics = DatabaseStatistics.loadFromFile(settings.getDatabaseName() + ".json");
