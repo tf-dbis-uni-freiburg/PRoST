@@ -42,7 +42,7 @@ public class Main {
 		final Settings settings = new Settings(args);
 		final DatabaseStatistics statistics;
 		if (settings.isDroppingDB()) {
-			spark.sql("DROP DATABASE " + settings.getDatabaseName() + " IF EXISTS CASCADE");
+			spark.sql("DROP DATABASE IF EXISTS " + settings.getDatabaseName() + " CASCADE");
 			statistics = new DatabaseStatistics(settings.getDatabaseName());
 		} else {
 			statistics = DatabaseStatistics.loadFromFile(settings.getDatabaseName() + ".json");
@@ -97,20 +97,6 @@ public class Main {
 			executionTime = System.currentTimeMillis() - startTime;
 			logger.info("PROPERTY STATISTICS COMPUTED!");
 			logger.info("Time in ms to compute property statistics: " + executionTime);
-			statistics.saveToFile(settings.getDatabaseName() + ".json");
-		}
-
-		if (settings.isComputingCharacteristicSets()) {
-			assert statistics.hasTT() : "Not possible to compute characteristic sets. Db does not contain TT.";
-			assert statistics.hasWPT() : "Not possible to compute characteristic sets. Db does not contain WPT.";
-			assert statistics.hasPropertiesStatistics() : "Not possible to compute characteristic sets. Property "
-					+ "statistics are not available.";
-			logger.info("COMPUTING CHARACTERISTIC SETS...");
-			startTime = System.currentTimeMillis();
-			statistics.computeCharacteristicSetsStatistics(spark);
-			executionTime = System.currentTimeMillis() - startTime;
-			logger.info("CHARACTERISTIC SETS COMPUTED!");
-			logger.info("Time in ms to compute characteristic sets: " + executionTime);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
@@ -210,6 +196,20 @@ public class Main {
 
 			statistics.setHasJWPTLeftOuter(true);
 			statistics.setJwptPartitionedByResource(settings.isJwptPartitionedByResource());
+			statistics.saveToFile(settings.getDatabaseName() + ".json");
+		}
+		
+		if (settings.isComputingCharacteristicSets()) {
+			assert statistics.hasTT() : "Not possible to compute characteristic sets. Db does not contain TT.";
+			assert statistics.hasWPT() : "Not possible to compute characteristic sets. Db does not contain WPT.";
+			assert statistics.hasPropertiesStatistics() : "Not possible to compute characteristic sets. Property "
+					+ "statistics are not available.";
+			logger.info("COMPUTING CHARACTERISTIC SETS...");
+			startTime = System.currentTimeMillis();
+			statistics.computeCharacteristicSetsStatistics(spark);
+			executionTime = System.currentTimeMillis() - startTime;
+			logger.info("CHARACTERISTIC SETS COMPUTED!");
+			logger.info("Time in ms to compute characteristic sets: " + executionTime);
 			statistics.saveToFile(settings.getDatabaseName() + ".json");
 		}
 
